@@ -1,0 +1,98 @@
+@import "tailwindcss";
+
+:root {
+  --color-paper: #f6f1e8;
+  --color-ink: #0d1b2a;
+  --color-ink-muted: #52606d;
+  --color-teal: #0c7c86;
+  --color-ochre: #c98c3a;
+  --color-white: #ffffff;
+  --radius-control: 1.125rem;
+  --radius-media: 1.5rem;
+  --radius-pill: 999px;
+}
+
+@theme inline {
+  --font-sans: var(--font-inter);
+  --font-editorial: var(--font-newsreader);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  background: var(--color-paper);
+  color: var(--color-ink);
+  font-family: var(--font-inter), Arial, sans-serif;
+}
+
+:focus-visible {
+  outline: 3px solid var(--color-ochre);
+  outline-offset: 4px;
+}
+
+.font-editorial {
+  font-family: var(--font-newsreader), Georgia, serif;
+}
+
+.brand-mark {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.65rem;
+  color: var(--color-ink);
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-size: clamp(1.35rem, 2vw, 1.7rem);
+  font-weight: 600;
+  letter-spacing: -0.04em;
+  text-decoration: none;
+}
+
+.brand-pulse {
+  width: 0.75rem;
+  height: 0.75rem;
+  border: 2px solid var(--color-teal);
+  border-radius: var(--radius-pill);
+  box-shadow: 0 0 0 5px rgb(12 124 134 / 14%);
+}
+
+.eyebrow {
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.14em;
+  line-height: 1.2;
+  text-transform: uppercase;
+}
+
+.topic-pill {
+  border: 1px solid rgb(13 27 42 / 12%);
+  border-radius: var(--radius-pill);
+  padding: 0.6rem 0.9rem;
+  color: var(--color-ink-muted);
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.ambient-orb {
+  position: absolute;
+  border-radius: 999px;
+  filter: blur(2px);
+  opacity: 0.55;
+  pointer-events: none;
+}
+
+.ambient-orb-left {
+  width: min(33vw, 28rem);
+  height: min(33vw, 28rem);
+  top: -12rem;
+  left: -11rem;
+  background: radial-gradient(circle, rgb(12 124 134 / 22%), transparent 68%);
+}
+
+.ambient-orb-right {
+  width: min(36vw, 30rem);
+  height: min(36vw, 30rem);
+  right: -13rem;
+  bottom: -14rem;
+  background: radial-gradient(circle, rgb(201 140 58 / 18%), transparent 68%);
+}
