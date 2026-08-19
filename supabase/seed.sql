@@ -1,0 +1,2 @@
+-- This file is intentionally data-only. Module 4 adds repeatable development data.
+-- `pnpm supabase:reset` applies migrations first and this seed file afterwards.

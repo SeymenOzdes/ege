@@ -2,7 +2,7 @@
 
 Ege Bölgesi odaklı, modern, yalın ve mobil öncelikli bölgesel haber platformu.
 
-Bu depo, iki haftalık MVP geliştirme planının ilk modülüyle başlamıştır. Şu anki sürüm; görsel sistem, Türkçe uygulama kabuğu, kalite araçları ve teslim altyapısını içerir. Haber yönetimi, kimlik doğrulama ve kalıcı veri sonraki modüllerde eklenir.
+Bu depo, iki haftalık MVP geliştirme planının ilk üç modülünü içerir. Şu anki sürüm; görsel sistem, Türkçe uygulama kabuğu, erişilebilir paylaşılan bileşenler, Supabase bağlantı temeli, kalite araçları ve teslim altyapısını kapsar. Haber yönetimi, kimlik doğrulama ve kalıcı veri sonraki modüllerde eklenir.
 
 ## Gereksinimler
 
@@ -43,6 +43,26 @@ Tüm yerel değişkenler `.env.local` içinde tutulur ve Git'e eklenmez. Başlan
 | `NEXT_PUBLIC_SITE_NAME` | Yayın adı                 | `Ege'nin Nabzı`         |
 
 Supabase, Resend ve Sentry değişkenleri ilgili modüller uygulanana kadar tanımlanmaz.
+
+## Supabase geliştirme ortamı
+
+Bu proje, ayrı geliştirme ve üretim Supabase projeleriyle çalışacak şekilde hazırlanmıştır. Geliştirme projesinin URL'sini ve publishable key değerini `.env.local` dosyasına; üretim değerlerini ise yalnızca Vercel'in üretim ortam değişkenlerine ekleyin. `SUPABASE_SECRET_KEY` hiçbir zaman istemciye gönderilmez.
+
+Yerel veritabanı için Docker uyumlu bir çalışma zamanı gerekir. Ardından:
+
+```bash
+pnpm supabase:start
+pnpm supabase:reset
+```
+
+Yeni bir şema değişikliğini yalnızca CLI ile başlatın; örneğin `pnpm supabase:migration:new create_articles`. Sonrasında yerel veritabanını sıfırlayın ve türleri yeniden üretin:
+
+```bash
+pnpm supabase:reset
+pnpm supabase:types
+```
+
+`supabase/seed.sql` yalnızca geliştirme verisi içindir; üretime seed verisi göndermeyin.
 
 ## Teslimat
 
