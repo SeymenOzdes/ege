@@ -23,6 +23,12 @@ export function FeaturedCarousel({
   const regionRef = useRef<HTMLDivElement>(null);
 
   const activeSlide = slides[activeIndex];
+  const previousSlides = [2, 1]
+    .filter((depth) => slides.length > depth)
+    .map((depth) => ({
+      depth,
+      slide: slides[(activeIndex - depth + slides.length) % slides.length],
+    }));
   const canAutoPlay =
     slides.length > 1 &&
     !isHovered &&
@@ -68,7 +74,7 @@ export function FeaturedCarousel({
 
   return (
     <div
-      className={styles.carousel}
+      className={styles.carouselFrame}
       ref={regionRef}
       role="region"
       aria-roledescription="carousel"
@@ -80,25 +86,45 @@ export function FeaturedCarousel({
         if (!regionRef.current?.contains(event.relatedTarget as Node | null)) setHasFocus(false);
       }}
     >
-      <MediaSurface
-        tone={activeSlide.mediaTone}
-        label={activeSlide.location}
-        className={styles.carouselMedia}
-      />
-      <div className={styles.carouselStory} aria-live="off">
-        <h1 className="font-editorial">
-          <Link href={`/haber/${activeSlide.slug}`}>{activeSlide.title}</Link>
-        </h1>
-        <p>{activeSlide.summary}</p>
-      </div>
+      <div className={styles.carouselDeck}>
+        {previousSlides.map(({ depth, slide }) => (
+          <div
+            key={`layer-${depth}`}
+            className={`${styles.deckLayer} ${depth === 1 ? styles.deckLayerMid : styles.deckLayerBack}`}
+            aria-hidden="true"
+          >
+            <MediaSurface
+              key={slide.id}
+              tone={slide.mediaTone}
+              label={slide.location}
+              className={styles.deckLayerMedia}
+            />
+          </div>
+        ))}
 
-      <div className={styles.carouselArrows}>
-        <button type="button" onClick={showPrevious} aria-label="Önceki manşet">
-          <CaretLeft aria-hidden="true" size={18} weight="bold" />
-        </button>
-        <button type="button" onClick={showNext} aria-label="Sonraki manşet">
-          <CaretRight aria-hidden="true" size={18} weight="bold" />
-        </button>
+        <div className={styles.carousel}>
+          <MediaSurface
+            key={`media-${activeSlide.id}`}
+            tone={activeSlide.mediaTone}
+            label={activeSlide.location}
+            className={styles.carouselMedia}
+          />
+          <div className={styles.carouselStory} key={`story-${activeSlide.id}`} aria-live="off">
+            <h1 className="font-editorial">
+              <Link href={`/haber/${activeSlide.slug}`}>{activeSlide.title}</Link>
+            </h1>
+            <p>{activeSlide.summary}</p>
+          </div>
+
+          <div className={styles.carouselArrows}>
+            <button type="button" onClick={showPrevious} aria-label="Önceki manşet">
+              <CaretLeft aria-hidden="true" size={18} weight="bold" />
+            </button>
+            <button type="button" onClick={showNext} aria-label="Sonraki manşet">
+              <CaretRight aria-hidden="true" size={18} weight="bold" />
+            </button>
+          </div>
+        </div>
       </div>
 
       <div className={styles.carouselDots} aria-label="Manşet seçimi">
