@@ -41,3 +41,17 @@ Her açık tablo RLS kullanır. `GRANT` nesneye ulaşımı, politika ise görül
 ## Yerel test
 
 Mailpit `http://127.0.0.1:54324` üzerinde Magic Link’i yakalar. pgTAP testleri anonim, reader ve editor bağlamlarında şema, seed, Türkçe arama, profil ve bookmark sahipliği ile hassas audit izolasyonunu doğrular.
+## Magic Link URL hizalama (yerel + hosted) — kısa kontrol listesi
+
+Üretilen Magic Link'in bağlantısı, `signInWithOtp` içindeki `emailRedirect` değil **Auth'un yapılandırılmış Site URL host'u** üzerinden kurulur (`{{ .RedirectTo }}`). Uygulamanın taban adresi (`NEXT_PUBLIC_APP_URL`) ile Auth Site URL host'u birebir eşleşmezse GoTrue `emailRedirectTo`'yu yok sayar, `/auth/confirm`'i düşürür ve bağlantı site köküne gider; oturum kurulmaz. Belirti: `/giris`'ten gönderilince e-posta gelir ama tıklanınca ana sayfa açılır ve giriş olmaz.
+
+- Yerel: `supabase/config.toml` `[auth] site_url = "http://127.0.0.1:3000"`; `additional_redirect_urls` aynı host'ları içerir. `.env.local` `NEXT_PUBLIC_APP_URL` host   `site_url` ile aynı olmalı. `localhost` ile `127.0.0.1` ayrı host sayılır — karıştırmayın.
+- Hosted (Dashboard → Auth → URL Configuration): "Site URL" değeri `NEXT_PUBLIC_APP_URL`'in origin'iyle eşleşmeli; "Redirect URLs"e uygulama origin'i ve `.../auth/confirm` eklenmeli. Magic Link şablonunu host projesinde de aynı token-hash biçimine çekin (`{{ .RedirectTo }}?token_hash={{ .TokenHash }}&type=email`).
+- `emailRedirectTo`, `src/lib/auth/actions.ts` içinde otomatik `${NEXT_PUBLIC_APP_URL}/auth/confirm` olarak kurulur; bu nedenle host eşleşmesi tek kritik değişkendir.
+
+Yerel doğrulama: `pnpm supabase:start && pnpm supabase:reset` → `.env.local` host'unu hizalayın → `/giris`'ten gönderin → Mailpit'ten bağlantıyı açın (`http://127.0.0.1:54324`). Bağlantı `.../auth/confirm?token_hash=<hash>&type=email` ile bitmeli; takip edince oturum kurulmalı.
+
+Notlar:
+- `config.toml` `[auth.rate_limit] email_sent = 2` saatlik — geliştirmede çok magic link deneyince 429 (`/giris?error=send_failed`) alınır; supabase'i yeniden başlatıp artırabilirsiniz.
+- `config.toml` değişiklikleri `supabase start/stop` sonrası uygulanır; `.env.local` değişikliği dev sunucusunun yeniden başlatılmasını gerektirir.
+- `.env.local`'de secret değerden önce boşluk koymayın; boşluk anahtarın parçası olur (`KEY=abc` bitişik yazın).
