@@ -1,5 +1,8 @@
 import Link from "next/link";
-import { ArrowRight, BellRinging, EnvelopeSimple, Sparkle } from "@phosphor-icons/react/ssr";
+import { ArrowRight } from "@phosphor-icons/react/dist/ssr/ArrowRight";
+import { BellRinging } from "@phosphor-icons/react/dist/ssr/BellRinging";
+import { EnvelopeSimple } from "@phosphor-icons/react/dist/ssr/EnvelopeSimple";
+import { Sparkle } from "@phosphor-icons/react/dist/ssr/Sparkle";
 import type { ArticlePreview, HomepageContent } from "@/lib/homepage";
 import { ArticleCard } from "@/components/site/article-card";
 import { FeaturedCarousel } from "@/components/site/featured-carousel";

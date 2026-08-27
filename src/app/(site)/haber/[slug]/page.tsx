@@ -3,6 +3,8 @@ import { notFound } from "next/navigation";
 import { ArticleDetail } from "@/components/site/article-detail";
 import { articleSlugs, getArticleBySlug, getArticleMetadata } from "@/lib/articles";
 
+export const dynamicParams = false;
+
 export function generateStaticParams() {
   return articleSlugs.map((slug) => ({ slug }));
 }

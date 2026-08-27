@@ -1,6 +1,9 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight, Clock, MapPin, NotePencil } from "@phosphor-icons/react/ssr";
+import { ArrowRight } from "@phosphor-icons/react/dist/ssr/ArrowRight";
+import { Clock } from "@phosphor-icons/react/dist/ssr/Clock";
+import { MapPin } from "@phosphor-icons/react/dist/ssr/MapPin";
+import { NotePencil } from "@phosphor-icons/react/dist/ssr/NotePencil";
 import type { ArticleBodyBlock, ArticleDetail as ArticleDetailType } from "@/lib/articles";
 import { siteConfig } from "@/lib/site";
 import { ArticleActions } from "@/components/site/article-actions";
@@ -10,7 +13,7 @@ function AdSlot({ placement }: { placement: "ARTICLE_MID" | "ARTICLE_END" }) {
   return (
     <aside className={styles.adSlot} aria-label="Reklam alanı">
       <span>Reklam</span>
-      <p>Ege'nin yerel markaları için ayrılmış sade yayın alanı</p>
+      <p>Ege&apos;nin yerel markaları için ayrılmış sade yayın alanı</p>
       <small>{placement}</small>
     </aside>
   );

@@ -1,6 +1,6 @@
 import Link from "next/link";
 
-export default function ArticleNotFound() {
+export default function SiteNotFound() {
   return (
     <section className="statePanel" role="status">
       <p className="eyebrow">Haber bulunamadı</p>

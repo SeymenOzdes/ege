@@ -16,7 +16,9 @@
     "supabase:start": "supabase start",
     "supabase:stop": "supabase stop",
     "supabase:reset": "supabase db reset --local",
+    "supabase:lint": "supabase db lint",
     "supabase:migration:new": "supabase migration new",
+    "supabase:test": "supabase test db",
     "supabase:types": "supabase gen types --local --schema public > src/lib/supabase/database.types.ts"
   },
   "dependencies": {

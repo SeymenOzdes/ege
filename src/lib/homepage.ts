@@ -205,4 +205,6 @@ export async function getHomepageContent(): Promise<HomepageContent> {
   return homepageContent;
 }
 
+export const allPreviewArticles: ArticlePreview[] = Object.values(articles);
+
 export const homepagePreviewArticle = articles.coast;

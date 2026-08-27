@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowUpRight } from "@phosphor-icons/react/ssr";
+import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr/ArrowUpRight";
 import type { ArticlePreview, MediaTone } from "@/lib/homepage";
 import styles from "./homepage.module.css";
 

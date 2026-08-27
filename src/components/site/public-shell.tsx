@@ -1,13 +1,11 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
-import {
-  List,
-  MagnifyingGlass,
-  MapPin,
-  NewspaperClipping,
-  UserCircle,
-} from "@phosphor-icons/react/ssr";
+import { List } from "@phosphor-icons/react/dist/ssr/List";
+import { MapPin } from "@phosphor-icons/react/dist/ssr/MapPin";
+import { NewspaperClipping } from "@phosphor-icons/react/dist/ssr/NewspaperClipping";
+import { UserCircle } from "@phosphor-icons/react/dist/ssr/UserCircle";
 import { Brand } from "@/components/site/brand";
+import { NewsHeaderActions } from "@/components/site/news-header-actions";
 
 const navigation = [
   ["Gündem", "/kategori/gundem"],
@@ -58,9 +56,7 @@ export function PublicShell({ children }: { children: ReactNode }) {
             ))}
           </nav>
           <div className="header-tools">
-            <Link className="icon-action" href="/arama" aria-label="Haberlerde ara">
-              <MagnifyingGlass aria-hidden="true" size={21} weight="bold" />
-            </Link>
+            <NewsHeaderActions />
             <Link className="login-action" href="/giris">
               <UserCircle aria-hidden="true" size={21} weight="duotone" />
               <span>Giriş</span>

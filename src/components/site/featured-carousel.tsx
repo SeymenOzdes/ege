@@ -2,7 +2,8 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { CaretLeft, CaretRight } from "@phosphor-icons/react";
+import { CaretLeft } from "@phosphor-icons/react/dist/csr/CaretLeft";
+import { CaretRight } from "@phosphor-icons/react/dist/csr/CaretRight";
 import type { FeaturedStory } from "@/lib/homepage";
 import { MediaSurface } from "@/components/site/article-card";
 import styles from "./homepage.module.css";

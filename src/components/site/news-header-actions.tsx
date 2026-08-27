@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { ListIcon, MagnifyingGlassIcon, XIcon } from "@phosphor-icons/react";
+import { ListIcon } from "@phosphor-icons/react/dist/csr/List";
+import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlass";
+import { XIcon } from "@phosphor-icons/react/dist/csr/X";
 
 const navigation = [
   ["Son Dakika", "#son-dakika"],
@@ -14,9 +16,25 @@ const navigation = [
 
 export function NewsHeaderActions() {
   const [panel, setPanel] = useState<"search" | "menu" | null>(null);
+  const rootRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    function onPointerDown(event: PointerEvent) {
+      if (panel && !rootRef.current?.contains(event.target as Node)) setPanel(null);
+    }
+    function onKeyDown(event: KeyboardEvent) {
+      if (event.key === "Escape" && panel) setPanel(null);
+    }
+    window.addEventListener("pointerdown", onPointerDown);
+    window.addEventListener("keydown", onKeyDown);
+    return () => {
+      window.removeEventListener("pointerdown", onPointerDown);
+      window.removeEventListener("keydown", onKeyDown);
+    };
+  }, [panel]);
 
   return (
-    <div className="header-controls">
+    <div className="header-controls" ref={rootRef}>
       <button
         className="icon-button"
         type="button"
@@ -39,7 +57,7 @@ export function NewsHeaderActions() {
       {panel && (
         <div className={`header-panel header-panel-${panel}`}>
           {panel === "search" ? (
-            <form className="search-form" action="#haberler">
+            <form className="search-form" action="/arama" method="get">
               <MagnifyingGlassIcon aria-hidden="true" />
               <input autoFocus name="q" type="search" placeholder="Ege'de ne arıyorsunuz?" />
               <button type="submit">Ara</button>

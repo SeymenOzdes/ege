@@ -6,11 +6,19 @@ const publicSupabaseSchema = z.object({
   publishableKey: z.string().min(1, "NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY zorunludur."),
 });
 
-export function getSupabasePublicConfig() {
-  return publicSupabaseSchema.parse({
+function publicSupabaseValues() {
+  return {
     url: env.NEXT_PUBLIC_SUPABASE_URL,
     publishableKey: env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY,
-  });
+  };
+}
+
+export function hasSupabasePublicConfig() {
+  return publicSupabaseSchema.safeParse(publicSupabaseValues()).success;
+}
+
+export function getSupabasePublicConfig() {
+  return publicSupabaseSchema.parse(publicSupabaseValues());
 }
 
 /** Use only from server-only code when a privileged operation is genuinely required. */

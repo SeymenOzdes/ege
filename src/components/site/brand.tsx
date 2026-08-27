@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { PulseIcon } from "@phosphor-icons/react/dist/ssr";
+import { PulseIcon } from "@phosphor-icons/react/dist/ssr/Pulse";
 import { siteConfig } from "@/lib/site";
 
 type BrandProps = {

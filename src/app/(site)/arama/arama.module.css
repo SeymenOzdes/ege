@@ -1,0 +1,68 @@
+.page {
+  padding: 3rem 0 4.5rem;
+}
+
+.header {
+  display: grid;
+  gap: 0.6rem;
+  max-width: 46rem;
+  margin-bottom: 2.2rem;
+}
+
+.header h1 {
+  margin: 0;
+  font-size: clamp(1.8rem, 4vw, 2.6rem);
+  line-height: 1.15;
+}
+
+.count {
+  margin: 0;
+  color: var(--color-ink-muted);
+}
+
+.results {
+  display: grid;
+  gap: 1.1rem;
+  max-width: 52rem;
+}
+
+.suggestions {
+  display: grid;
+  place-items: start;
+  gap: 0.7rem;
+  max-width: 30rem;
+  padding: 1.6rem;
+  border: 1px solid rgb(13 27 42 / 10%);
+  border-radius: var(--radius-media);
+  background: var(--color-white);
+  color: var(--color-ink-muted);
+}
+
+.suggestions svg {
+  color: var(--color-teal);
+}
+
+.suggestions p {
+  margin: 0;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.chips a {
+  padding: 0.35rem 1rem;
+  border: 1px solid rgb(13 27 42 / 14%);
+  border-radius: var(--radius-pill);
+  text-decoration: none;
+  transition:
+    border-color 140ms ease,
+    background-color 140ms ease;
+}
+
+.chips a:hover {
+  border-color: var(--color-teal);
+  background: rgb(12 124 134 / 8%);
+}

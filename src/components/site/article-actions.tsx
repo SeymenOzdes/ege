@@ -1,7 +1,9 @@
 "use client";
 
 import { useState } from "react";
-import { BookmarkSimple, Check, ShareNetwork } from "@phosphor-icons/react";
+import { BookmarkSimple } from "@phosphor-icons/react/dist/csr/BookmarkSimple";
+import { Check } from "@phosphor-icons/react/dist/csr/Check";
+import { ShareNetwork } from "@phosphor-icons/react/dist/csr/ShareNetwork";
 import styles from "./article-detail.module.css";
 
 export function ArticleActions({ title }: { title: string }) {
