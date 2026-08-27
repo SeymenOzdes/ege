@@ -1,58 +1,102 @@
+import "server-only";
+
 import type { ArticlePreview } from "@/lib/homepage";
-import { allPreviewArticles } from "@/lib/homepage";
-import { normalizeTurkish } from "@/lib/turkish";
+import { SEARCH_PAGE_SIZE, normalizeSearchQuery } from "@/lib/search-query";
+import { toArticlePreview } from "@/lib/article-preview";
+import { hasSupabasePublicConfig } from "@/lib/supabase/config";
+import { createClient } from "@/lib/supabase/server";
 
-export { normalizeTurkish };
+export type SearchHit = ArticlePreview & {
+  /**
+   * Excerpt with matches delimited by the STX/ETX control characters the
+   * search function emits. Render it through `<HighlightedText />`, never as
+   * HTML.
+   */
+  headline: string;
+};
 
-function articleHaystack(article: ArticlePreview): string {
-  return normalizeTurkish(
-    [article.title, article.summary ?? "", article.topic, article.location].join(" "),
-  );
-}
+export type SearchParameters = {
+  query: string;
+  topicSlug?: string | null;
+  locationSlug?: string | null;
+  page?: number;
+  pageSize?: number;
+};
 
-const haystacks = new Map<string, string>(
-  allPreviewArticles.map((article) => [article.id, articleHaystack(article)]),
-);
+export type SearchResult = {
+  hits: SearchHit[];
+  total: number;
+  currentPage: number;
+  totalPages: number;
+  loadError: boolean;
+};
 
-export type SearchHit = ArticlePreview & { matchedIn: "title" | "summary" | "meta" };
+const emptyResult: SearchResult = {
+  hits: [],
+  total: 0,
+  currentPage: 1,
+  totalPages: 1,
+  loadError: false,
+};
 
 /**
- * Full-text style search over the article catalog with Turkish normalization.
- * Every query token must appear somewhere in the article; ranking favors
- * title matches, then summaries, then topic/location metadata.
+ * Turkish full-text search over published articles.
+ *
+ * Ranking, filtering, highlighting and the total count all happen inside
+ * `public.search_published_articles`, so one round trip serves a page. Like
+ * the admin dashboard adapter this never throws: a failed query surfaces as
+ * `loadError` so the page can say so instead of blanking out.
  */
-export function searchArticles(query: string): SearchHit[] {
-  const tokens = normalizeTurkish(query).split(" ").filter(Boolean);
+export async function searchArticles({
+  query,
+  topicSlug,
+  locationSlug,
+  page = 1,
+  pageSize = SEARCH_PAGE_SIZE,
+}: SearchParameters): Promise<SearchResult> {
+  const currentPage = Number.isInteger(page) && page >= 1 ? page : 1;
+  if (normalizeSearchQuery(query).state !== "ok") return { ...emptyResult, currentPage };
+  if (!hasSupabasePublicConfig()) return { ...emptyResult, currentPage, loadError: true };
 
-  if (tokens.length === 0) return [];
+  const supabase = await createClient();
+  const { data, error } = await supabase.rpc("search_published_articles", {
+    p_query: query,
+    p_topic: topicSlug ?? undefined,
+    p_location: locationSlug ?? undefined,
+    p_limit: pageSize,
+    p_offset: (currentPage - 1) * pageSize,
+  });
 
-  const hits: Array<{ article: ArticlePreview; score: number; matchedIn: SearchHit["matchedIn"] }> =
-    [];
+  if (error) return { ...emptyResult, currentPage, loadError: true };
 
-  for (const article of allPreviewArticles) {
-    const haystack = haystacks.get(article.id) ?? "";
-    if (!tokens.every((token) => haystack.includes(token))) continue;
+  const rows = data ?? [];
+  const total = rows[0]?.total_count ?? 0;
+  const now = new Date();
 
-    const normalizedTitle = normalizeTurkish(article.title);
-    const normalizedSummary = normalizeTurkish(article.summary ?? "");
+  return {
+    hits: rows.map((row) => ({ ...toArticlePreview(row, now), headline: row.headline })),
+    total,
+    currentPage,
+    totalPages: Math.max(1, Math.ceil(total / pageSize)),
+    loadError: false,
+  };
+}
 
-    let score = 0;
-    let matchedIn: SearchHit["matchedIn"] = "meta";
-    if (tokens.every((token) => normalizedTitle.includes(token))) {
-      score = 3;
-      matchedIn = "title";
-    } else if (tokens.some((token) => normalizedTitle.includes(token))) {
-      score = 2;
-      matchedIn = "title";
-    } else if (normalizedSummary && tokens.some((token) => normalizedSummary.includes(token))) {
-      score = 1;
-      matchedIn = "summary";
-    }
+export type SearchFacet = { name: string; slug: string };
+export type SearchFacets = { topics: SearchFacet[]; locations: SearchFacet[] };
 
-    hits.push({ article, score, matchedIn });
-  }
+const emptyFacets: SearchFacets = { topics: [], locations: [] };
 
-  return hits
-    .sort((a, b) => b.score - a.score || a.article.title.localeCompare(b.article.title, "tr"))
-    .map(({ article, matchedIn }) => ({ ...article, matchedIn }));
+/** Topic and location options for the filter selects. */
+export async function getSearchFacets(): Promise<SearchFacets> {
+  if (!hasSupabasePublicConfig()) return emptyFacets;
+
+  const supabase = await createClient();
+  const [topics, locations] = await Promise.all([
+    supabase.from("topics").select("name, slug").order("sort_order", { ascending: true }),
+    supabase.from("locations").select("name, slug").order("name", { ascending: true }),
+  ]);
+
+  if (topics.error || locations.error) return emptyFacets;
+  return { topics: topics.data ?? [], locations: locations.data ?? [] };
 }

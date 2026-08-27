@@ -1,3 +1,4 @@
+import type { ReactNode } from "react";
 import Link from "next/link";
 import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr/ArrowUpRight";
 import type { ArticlePreview, MediaTone } from "@/lib/homepage";
@@ -37,9 +38,12 @@ export function MediaSurface({
 export function ArticleCard({
   article,
   variant = "topic",
+  excerpt,
 }: {
   article: ArticlePreview;
   variant?: ArticleCardVariant;
+  /** Replaces the summary line. /arama passes the highlighted search excerpt. */
+  excerpt?: ReactNode;
 }) {
   return (
     <article className={`${styles.articleCard} ${styles[`articleCard${variant}`]}`}>
@@ -58,7 +62,8 @@ export function ArticleCard({
         <h3 className="font-editorial">
           <Link href={`/haber/${article.slug}`}>{article.title}</Link>
         </h3>
-        {variant !== "secondary" && article.summary && <p>{article.summary}</p>}
+        {variant !== "secondary" &&
+          (excerpt ?? (article.summary ? <p>{article.summary}</p> : null))}
         <div className={styles.articleFooter}>
           <span>
             {article.publishedLabel} · {article.readingTime} okuma

@@ -20,19 +20,28 @@ function pagerHref(basePath: string, page: number): string {
   return page <= 1 ? basePath : `${basePath}?sayfa=${page}`;
 }
 
-function Pager({
-  basePath,
-  currentPage,
-  totalPages,
-}: Pick<ArchiveListProps, "basePath" | "currentPage" | "totalPages">) {
+export type PagerProps = {
+  currentPage: number;
+  totalPages: number;
+  /** Archive routes page on `basePath` alone. */
+  basePath?: string;
+  /**
+   * Routes with extra state in the query string — /arama carries `q`, `konu`
+   * and `sehir` — pass a builder instead so paging preserves it.
+   */
+  buildHref?: (page: number) => string;
+};
+
+export function Pager({ basePath = "", currentPage, totalPages, buildHref }: PagerProps) {
   if (totalPages <= 1) return null;
 
+  const href = buildHref ?? ((page: number) => pagerHref(basePath, page));
   const pages = Array.from({ length: totalPages }, (_, index) => index + 1);
 
   return (
     <nav className={styles.pager} aria-label="Sayfalama">
       {currentPage > 1 ? (
-        <Link className={styles.pagerArrow} href={pagerHref(basePath, currentPage - 1)} rel="prev">
+        <Link className={styles.pagerArrow} href={href(currentPage - 1)} rel="prev">
           <ArrowLeft aria-hidden="true" size={16} weight="bold" />
           Önceki sayfa
         </Link>
@@ -48,14 +57,14 @@ function Pager({
             {page}
           </span>
         ) : (
-          <Link className={styles.pageLink} href={pagerHref(basePath, page)} key={page}>
+          <Link className={styles.pageLink} href={href(page)} key={page}>
             {page}
           </Link>
         ),
       )}
 
       {currentPage < totalPages ? (
-        <Link className={styles.pagerArrow} href={pagerHref(basePath, currentPage + 1)} rel="next">
+        <Link className={styles.pagerArrow} href={href(currentPage + 1)} rel="next">
           Sonraki sayfa
           <ArrowRight aria-hidden="true" size={16} weight="bold" />
         </Link>
@@ -102,7 +111,9 @@ export function ArchiveList({
         ) : (
           <section className="statePanel" role="status">
             <p className="eyebrow">Boş arşiv</p>
-            <h2 className={`font-editorial ${styles.emptyHeading}`}>Bu sayfada henüz bir haber yok.</h2>
+            <h2 className={`font-editorial ${styles.emptyHeading}`}>
+              Bu sayfada henüz bir haber yok.
+            </h2>
             <p>Yeni içerikler yayımlandığında burada listelenir.</p>
             <Link className="button button-primary" href="/">
               Ana sayfaya dön

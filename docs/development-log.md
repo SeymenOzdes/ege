@@ -62,3 +62,14 @@ Her modül tamamlandığında aşağıdakiler eklenir:
 - **Veri ve güvenlik:** Dashboard Supabase publishable istemcisiyle, mevcut personel RLS politikaları altında çalışır. `ADMIN` sayfası menü gizliliğine güvenmez; sunucuda tekrar korunur. Secret key istemciye veya dashboard sorgularına dahil edilmez.
 - **Doğrulama:** `pnpm typecheck`, hedeflenmiş ESLint ve Prettier kontrolleri geçti; `pnpm test` 8 dosyada 22 testi başarıyla tamamladı; `pnpm build`, tüm yönetim rotalarıyla üretim derlemesini başarıyla oluşturdu.
 - **Sonraki modül:** Haber listeleme, gerçek taslak oluşturma, zengin metin editörü ve medya seçimi.
+
+## Module 12 — Turkish Search
+
+- **Tarih:** 2026-08-27
+- **Durum:** Tamamlandı; yerel migration, seed, tür üretimi, pgTAP, birim ve uçtan uca testler doğrulandı.
+- **Kapsam:** `/arama` sayfasının bellek içi demo eşleştiriciden gerçek PostgreSQL tam metin aramasına taşınması; konu/lokasyon filtreleri, sayfalama, güvenli vurgulama ve sonuçsuz sorgu telemetrisi.
+- **Uygulananlar:** `search_published_articles` RPC'si (`websearch_to_tsquery` + `ts_rank` + `ts_headline` + `count(*) over ()`), `search_queries` tablosu, dokuz yayımlanmış seed haberi, `/arama` üzerinde GET arama formu ve iki filtre, arşivlerle ortak `Pager`, `ArticleCard` için alıntı yuvası, `HighlightedText` bileşeni ve `article-preview` eşleyicisi.
+- **Veri ve güvenlik:** Fonksiyon `security invoker`'dır; yayın koşulları RLS'e ek olarak `WHERE` içinde de uygulanır, böylece EDITOR/ADMIN oturumunda bile taslak veya ileri tarihli haber sızmaz. Vurgulama HTML değil kontrol karakteri taşır; `dangerouslySetInnerHTML` kullanılmaz. `search_queries` yalnızca secret key ile yazılır, politika ve anon grant'i yoktur.
+- **Doğrulama:** `pnpm supabase:reset`, `pnpm supabase:types`, `pnpm supabase:lint` ve `pnpm supabase:test` (2 dosyada 28 test, yeni `turkish_search` süiti dahil) geçti. `pnpm typecheck`, `pnpm lint`, `pnpm test` (15 dosyada 73 test) ve `pnpm build` başarılı. `pnpm test:e2e arama.spec.ts` masaüstü ve Pixel 7 görünümünde 14 test ile geçti. Elle doğrulama: `IZMIR`/`İzmir`/`izmir` aynı iki haberi döndürdü, filtreler sonucu daralttı, sayfalama `q` ve filtreleri korudu, sonuçsuz sorgular `search_queries` içine yazıldı, sonuçlu sorgular yazılmadı.
+- **Not:** Modül 4'ün iki pgTAP testi tüm tabloyu sayıyordu ve seed'e yayımlanmış haber eklenince kırıldı; kendi fixture'larına daraltılarak seed hacminden bağımsız hâle getirildi.
+- **Sonraki modül:** Okur hesapları ve kaydedilenler; `/haber/[slug]` veritabanına bağlandığında arama sonuçlarındaki bağlantılar da tamamlanacak.

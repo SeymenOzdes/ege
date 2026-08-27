@@ -43,14 +43,14 @@ from public.articles
 where slug = 'zeytin-hasadi-test';
 
 select results_eq(
-  $$ select count(*) from public.articles where search_vector @@ plainto_tsquery('turkish', 'zeytin') $$,
+  $$ select count(*) from public.articles where slug = 'zeytin-hasadi-test' and search_vector @@ plainto_tsquery('turkish', 'zeytin') $$,
   array[1::bigint],
   'Turkish full-text search indexes normalized article text'
 );
 
 set local role anon;
 select results_eq(
-  $$ select count(*) from public.articles $$,
+  $$ select count(*) from public.articles where slug in ('zeytin-hasadi-test', 'taslak-haber-test') $$,
   array[1::bigint],
   'anonymous users can see only currently published articles'
 );

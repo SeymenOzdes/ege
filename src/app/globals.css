@@ -257,6 +257,14 @@ input {
   transform: translateY(-1px);
 }
 
+/* Header account state: account pills reused on native button elements. */
+button.login-action,
+button.header-action {
+  border: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+
 .header-controls {
   position: relative;
   display: flex;
@@ -481,6 +489,29 @@ input {
 }
 
 .mobile-nav nav a:hover {
+  background: rgb(12 124 134 / 8%);
+  color: var(--color-teal);
+}
+
+/* Signed-in state keeps the same list rhythm without link markup. */
+.mobile-nav nav form {
+  display: contents;
+}
+
+.mobile-nav nav .mobile-signout {
+  width: 100%;
+  padding: 0.78rem 0.9rem;
+  border: none;
+  border-radius: 0.8rem;
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.86rem;
+  font-weight: 700;
+  text-align: left;
+  cursor: pointer;
+}
+
+.mobile-nav nav .mobile-signout:hover {
   background: rgb(12 124 134 / 8%);
   color: var(--color-teal);
 }

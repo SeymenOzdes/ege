@@ -66,3 +66,54 @@
   border-color: var(--color-teal);
   background: rgb(12 124 134 / 8%);
 }
+
+.searchBar {
+  display: grid;
+  gap: 0.75rem;
+  max-width: 42rem;
+  margin: 0.4rem 0 0.2rem;
+}
+
+.searchBar .search-form {
+  background: var(--color-white);
+}
+
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.filters select {
+  padding: 0.5rem 0.9rem;
+  border: 1px solid rgb(13 27 42 / 14%);
+  border-radius: var(--radius-pill);
+  background: var(--color-white);
+  font: inherit;
+  font-size: 0.88rem;
+  color: var(--color-ink);
+  cursor: pointer;
+  transition: border-color 140ms ease;
+}
+
+.filters select:hover {
+  border-color: var(--color-teal);
+}
+
+.clearFilters {
+  font-size: 0.85rem;
+  color: var(--color-ink-muted);
+}
+
+.excerpt {
+  color: var(--color-ink-muted);
+}
+
+.excerpt mark {
+  padding: 0 0.15em;
+  border-radius: 0.25rem;
+  background: rgb(201 140 58 / 22%);
+  color: var(--color-ink);
+  font-weight: 600;
+}

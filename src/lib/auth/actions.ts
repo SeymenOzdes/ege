@@ -1,6 +1,6 @@
 "use server";
 
-import { cookies } from "next/headers";
+import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
 import { authRedirectCookie, getSafeRedirectPath } from "@/lib/auth/redirect";
@@ -9,6 +9,22 @@ import { hasSupabasePublicConfig } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
 
 const emailSchema = z.email();
+
+/**
+ * The magic-link confirm redirect must land on whatever host the browser is
+ * actually on (localhost vs 127.0.0.1 are separate cookie jars) — otherwise
+ * the auth cookie set at /auth/confirm never reaches the host the reader
+ * keeps browsing on, and the header keeps showing "Giriş" post-login.
+ */
+async function requestOrigin() {
+  const headerList = await headers();
+  const host = headerList.get("host");
+  if (!host) return env.NEXT_PUBLIC_APP_URL;
+
+  const isLocal = host.startsWith("localhost") || host.startsWith("127.0.0.1");
+  const protocol = headerList.get("x-forwarded-proto") ?? (isLocal ? "http" : "https");
+  return `${protocol}://${host}`;
+}
 
 export async function sendMagicLink(formData: FormData) {
   const emailValue = formData.get("email");
@@ -36,7 +52,7 @@ export async function sendMagicLink(formData: FormData) {
   const { error } = await supabase.auth.signInWithOtp({
     email,
     options: {
-      emailRedirectTo: `${env.NEXT_PUBLIC_APP_URL}/auth/confirm`,
+      emailRedirectTo: `${await requestOrigin()}/auth/confirm`,
     },
   });
 

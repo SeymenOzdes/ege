@@ -18,3 +18,10 @@ export function getUserRole(claims: unknown): UserRole | undefined {
 export function isStaffRole(role: UserRole | undefined) {
   return role === "ADMIN" || role === "EDITOR";
 }
+
+export function getClaimString(claims: unknown, key: string): string | undefined {
+  if (!isRecord(claims)) return undefined;
+
+  const value = claims[key];
+  return typeof value === "string" && value.length > 0 ? value : undefined;
+}

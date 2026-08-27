@@ -609,6 +609,36 @@ export type Database = {
           },
         ];
       };
+      search_queries: {
+        Row: {
+          created_at: string;
+          id: string;
+          location_slug: string | null;
+          query: string;
+          query_normalized: string;
+          result_count: number;
+          topic_slug: string | null;
+        };
+        Insert: {
+          created_at?: string;
+          id?: string;
+          location_slug?: string | null;
+          query: string;
+          query_normalized: string;
+          result_count?: number;
+          topic_slug?: string | null;
+        };
+        Update: {
+          created_at?: string;
+          id?: string;
+          location_slug?: string | null;
+          query?: string;
+          query_normalized?: string;
+          result_count?: number;
+          topic_slug?: string | null;
+        };
+        Relationships: [];
+      };
       topics: {
         Row: {
           created_at: string;
@@ -644,7 +674,30 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
-      [_ in never]: never;
+      search_published_articles: {
+        Args: {
+          p_limit?: number;
+          p_location?: string;
+          p_offset?: number;
+          p_query: string;
+          p_topic?: string;
+        };
+        Returns: {
+          headline: string;
+          id: string;
+          location_name: string;
+          location_slug: string;
+          published_at: string;
+          rank: number;
+          slug: string;
+          summary: string;
+          title: string;
+          topic_name: string;
+          topic_slug: string;
+          total_count: number;
+          word_count: number;
+        }[];
+      };
     };
     Enums: {
       ad_placement_key: "HOME_LEADER" | "HOME_INLINE" | "ARTICLE_MID" | "ARTICLE_END";

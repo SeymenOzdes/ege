@@ -3,9 +3,11 @@ import Link from "next/link";
 import { List } from "@phosphor-icons/react/dist/ssr/List";
 import { MapPin } from "@phosphor-icons/react/dist/ssr/MapPin";
 import { NewspaperClipping } from "@phosphor-icons/react/dist/ssr/NewspaperClipping";
-import { UserCircle } from "@phosphor-icons/react/dist/ssr/UserCircle";
 import { Brand } from "@/components/site/brand";
 import { NewsHeaderActions } from "@/components/site/news-header-actions";
+import { UserMenu } from "@/components/site/user-menu";
+import { signOut } from "@/lib/auth/actions";
+import type { CurrentUser } from "@/lib/auth/server";
 
 const navigation = [
   ["Gündem", "/kategori/gundem"],
@@ -23,7 +25,12 @@ const cityNavigation = [
   ["Balıkesir", "balikesir"],
 ] as const;
 
-export function PublicShell({ children }: { children: ReactNode }) {
+type PublicShellProps = {
+  children: ReactNode;
+  user?: CurrentUser;
+};
+
+export function PublicShell({ children, user }: PublicShellProps) {
   return (
     <div className="public-site">
       <header className="site-header" id="site-header">
@@ -57,10 +64,7 @@ export function PublicShell({ children }: { children: ReactNode }) {
           </nav>
           <div className="header-tools">
             <NewsHeaderActions />
-            <Link className="login-action" href="/giris">
-              <UserCircle aria-hidden="true" size={21} weight="duotone" />
-              <span>Giriş</span>
-            </Link>
+            <UserMenu user={user} />
             <Link className="header-action" href="/bulten">
               Bültene katıl
             </Link>
@@ -77,7 +81,15 @@ export function PublicShell({ children }: { children: ReactNode }) {
                 </Link>
               ))}
               <Link href="/arama">Arama</Link>
-              <Link href="/giris">Giriş</Link>
+              {user ? (
+                <form action={signOut}>
+                  <button className="mobile-signout" type="submit">
+                    Çıkış yap
+                  </button>
+                </form>
+              ) : (
+                <Link href="/giris">Giriş</Link>
+              )}
               <Link href="/bulten">Bültene katıl</Link>
             </nav>
           </details>
