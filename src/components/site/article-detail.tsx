@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowRight } from "@phosphor-icons/react/dist/ssr/ArrowRight";
 import { Clock } from "@phosphor-icons/react/dist/ssr/Clock";
 import { MapPin } from "@phosphor-icons/react/dist/ssr/MapPin";
+import { MegaphoneSimple } from "@phosphor-icons/react/dist/ssr/MegaphoneSimple";
 import { NotePencil } from "@phosphor-icons/react/dist/ssr/NotePencil";
 import type { ArticleBodyBlock, ArticleDetail as ArticleDetailType } from "@/lib/articles";
 import { siteConfig } from "@/lib/site";
@@ -80,6 +81,11 @@ export function ArticleDetail({ article }: { article: ArticleDetailType }) {
               <span>
                 <MapPin aria-hidden="true" size={14} weight="fill" /> {article.location}
               </span>
+              {article.sponsored ? (
+                <span>
+                  <MegaphoneSimple aria-hidden="true" size={13} weight="fill" /> Sponsorlu içerik
+                </span>
+              ) : null}
             </div>
             <h1 className="font-editorial">{article.title}</h1>
             <p className={styles.summary}>{article.summary}</p>

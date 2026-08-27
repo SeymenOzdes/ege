@@ -1,0 +1,98 @@
+.block {
+  padding-block: clamp(2.5rem, 5vw, 3.75rem);
+}
+
+.header {
+  margin-bottom: 2rem;
+  max-width: 46rem;
+}
+
+.title {
+  font-size: clamp(2rem, 4.4vw, 2.85rem);
+  letter-spacing: -0.01em;
+  line-height: 1.12;
+  margin-bottom: 0.7rem;
+  margin-top: 0.55rem;
+}
+
+.lede {
+  color: var(--color-ink-muted);
+  font-size: 1.02rem;
+  line-height: 1.65;
+  margin: 0 0 0.9rem;
+}
+
+.count {
+  color: var(--color-teal);
+  font-size: 0.78rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  margin: 0;
+  text-transform: uppercase;
+}
+
+.entries {
+  display: grid;
+  gap: 1rem;
+}
+
+@media (min-width: 720px) {
+  .entries {
+    gap: 1.25rem;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* Server-rendered pager: plain links keep archives crawlable without JS. */
+.pager {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.55rem;
+  justify-content: center;
+  margin-top: 2.25rem;
+}
+
+.pageLink {
+  align-items: center;
+  border-radius: var(--radius-pill);
+  display: inline-flex;
+  font-size: 0.9rem;
+  font-weight: 700;
+  justify-content: center;
+  min-width: 2.6rem;
+  padding: 0.45rem 0.95rem;
+}
+
+.pageLink:not(.pageLinkCurrent),
+.pagerArrow {
+  background: var(--color-white);
+  border: 1px solid rgb(13 27 42 / 14%);
+  color: var(--color-ink);
+  transition:
+    background-color 150ms ease,
+    border-color 150ms ease;
+}
+
+.pageLink:not(.pageLinkCurrent):hover,
+.pagerArrow:hover {
+  background: rgb(12 124 134 / 7%);
+  border-color: var(--color-teal);
+}
+
+.pageLinkCurrent {
+  background: var(--color-ink);
+  border: 1px solid var(--color-ink);
+  color: var(--color-white);
+  cursor: default;
+}
+
+.pagerArrow {
+  gap: 0.35rem;
+}
+
+.emptyHeading {
+  font-size: clamp(1.55rem, 3.6vw, 2.1rem);
+  line-height: 1.2;
+  margin: 0.4rem 0 0.2rem;
+}

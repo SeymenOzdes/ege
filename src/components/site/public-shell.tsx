@@ -26,7 +26,7 @@ const cityNavigation = [
 export function PublicShell({ children }: { children: ReactNode }) {
   return (
     <div className="public-site">
-      <header className="site-header">
+      <header className="site-header" id="site-header">
         <div className="utility-bar">
           <div className="shell-container utility-bar-inner">
             <Link className="utility-breaking" href="/son-dakika">

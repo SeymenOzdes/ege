@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import type { ArticlePreview } from "@/lib/homepage";
+import { getRelatedArticles } from "@/lib/archives";
 
 export type ArticleAuthor = {
   name: string;
@@ -29,9 +30,14 @@ export type ArticleDetail = ArticlePreview & {
   updatedDisplay?: string;
   hero: ArticleMedia;
   body: ArticleBodyBlock[];
+  /** Marks commercial content that must carry a visible sponsor label. */
+  sponsored?: boolean;
   correction: string;
   related: ArticlePreview[];
 };
+
+/** Detail shape before the data layer appends related stories. */
+export type ArticleDetailBase = Omit<ArticleDetail, "related">;
 
 const marketArticle = {
   id: "market",
@@ -45,6 +51,7 @@ const marketArticle = {
   publishedLabel: "08:37",
   readingTime: "4 dk",
   mediaTone: "coral",
+  sponsored: true,
   author: {
     name: "Ece Aksoy",
     slug: "ece-aksoy",
@@ -98,40 +105,19 @@ const marketArticle = {
   ],
   correction:
     "Bu haber yayımlandıktan sonra içerikte bir düzeltme yapılmadı. Güncelleme saati, görsel açıklamasına eklenen bağlamı gösterir.",
-  related: [
-    {
-      id: "soil",
-      slug: "gediz-ovasinda-toprak-takibi",
-      title: "Gediz Ovası'nda toprağı dinleyen yeni üretim yaklaşımı",
-      summary: "Çiftçiler suyu ve toprağı birlikte izleyen yöntemleri paylaşmaya başladı.",
-      topic: "Ekonomi",
-      topicSlug: "ekonomi",
-      location: "Manisa",
-      publishedLabel: "06:58",
-      readingTime: "5 dk",
-      mediaTone: "sage",
-    },
-    {
-      id: "neighborhood",
-      slug: "mahallede-ortak-sofra",
-      title: "Mahallede ortak sofra, kentte yeni komşuluk",
-      summary: "Semt girişimleri gıda paylaşımını kalıcı bir dayanışma modeline dönüştürüyor.",
-      topic: "Yaşam",
-      topicSlug: "yasam",
-      location: "İzmir",
-      publishedLabel: "06:30",
-      readingTime: "3 dk",
-      mediaTone: "coral",
-    },
-  ],
-} satisfies ArticleDetail;
+} satisfies ArticleDetailBase;
 
-const articlesBySlug = new Map<string, ArticleDetail>([[marketArticle.slug, marketArticle]]);
+const articlesBySlug = new Map<string, ArticleDetailBase>([[marketArticle.slug, marketArticle]]);
 
 export const articleSlugs = [...articlesBySlug.keys()];
 
 export async function getArticleBySlug(slug: string): Promise<ArticleDetail | undefined> {
-  return articlesBySlug.get(slug);
+  const article = articlesBySlug.get(slug);
+  if (!article) return undefined;
+
+  // Related stories come from the shared archive adapter so they stay in sync
+  // with the newest-first catalog once real database content arrives.
+  return { ...article, related: getRelatedArticles(article.slug) };
 }
 
 export function getArticleMetadata(article: ArticleDetail): Metadata {

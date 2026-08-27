@@ -291,22 +291,72 @@ input {
   height: 1.25rem;
 }
 
-.header-panel {
+/* Panels drop from the header's bottom edge as a full-width layer with a
+   centered panel card, in the typical news-site search style. */
+.header-drawer {
   position: absolute;
-  top: calc(100% + 0.6rem);
+  top: calc(100% + 0.55rem);
   right: 0;
+  left: 0;
   z-index: 50;
-  min-width: min(22rem, 88vw);
-  padding: 0.5rem;
+  display: grid;
+  padding-inline: 1rem;
+}
+
+.header-panel-slot {
+  display: flex;
+  grid-area: 1 / 1;
+  justify-content: center;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(-0.75rem);
+  /* Keep the slot visible while it fades out on close. */
+  transition:
+    opacity 170ms ease,
+    transform 200ms cubic-bezier(0.2, 0, 0, 1),
+    visibility 0s linear 200ms;
+}
+
+.header-panel-slot[data-open="true"] {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0);
+  transition:
+    opacity 160ms ease,
+    transform 260ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.header-panel {
+  width: min(38rem, 100%);
+  padding: 0.4rem;
   border: 1px solid rgb(13 27 42 / 12%);
   border-radius: var(--radius-media);
   background: var(--color-white);
   box-shadow: var(--shadow-soft);
 }
 
-.header-panel-search {
-  width: min(26rem, 92vw);
-  padding: 0.4rem;
+.header-panel-menu {
+  width: min(30rem, 100%);
+  padding: 0.5rem;
+}
+
+.header-panel-menu nav {
+  grid-auto-flow: column;
+  justify-content: center;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .header-panel-slot {
+    transform: none;
+    /* Fade only; no vertical motion. */
+    transition:
+      opacity 120ms ease,
+      visibility 0s linear 120ms;
+  }
+
+  .header-panel-slot[data-open="true"] {
+    transition: opacity 120ms ease;
+  }
 }
 
 .header-panel nav {
@@ -379,7 +429,9 @@ input {
   font-size: 0.8rem;
   font-weight: 800;
   cursor: pointer;
-  transition: background-color 150ms ease, transform 150ms ease;
+  transition:
+    background-color 150ms ease,
+    transform 150ms ease;
 }
 
 .search-form button:hover {
