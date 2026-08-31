@@ -74,66 +74,53 @@ export function ArticleDetail({ article, isSaved, isSignedIn }: ArticleDetailPro
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
       />
 
-      <header className={`${styles.articleHeader} shell-container`}>
+      <header className={styles.articleHeader}>
         <div className={styles.breadcrumbs} aria-label="İçerik yolu">
           <Link href="/">Ana sayfa</Link>
           <span aria-hidden="true">/</span>
           <Link href={`/kategori/${article.topicSlug}`}>{article.topic}</Link>
         </div>
 
-        <div className={styles.headerGrid}>
-          <div className={styles.titleBlock}>
-            <div className={styles.storyLabels}>
-              <span>{article.topic}</span>
+        <div className={styles.titleBlock}>
+          <div className={styles.storyLabels}>
+            <span>{article.topic}</span>
+            <span>
+              <MapPin aria-hidden="true" size={14} weight="fill" /> {article.location}
+            </span>
+            {article.sponsored ? (
               <span>
-                <MapPin aria-hidden="true" size={14} weight="fill" /> {article.location}
+                <MegaphoneSimple aria-hidden="true" size={13} weight="fill" /> Sponsorlu içerik
               </span>
-              {article.sponsored ? (
-                <span>
-                  <MegaphoneSimple aria-hidden="true" size={13} weight="fill" /> Sponsorlu içerik
-                </span>
-              ) : null}
-            </div>
-            <h1 className="font-editorial">{article.title}</h1>
-            <p className={styles.summary}>{article.summary}</p>
+            ) : null}
           </div>
+          <h1 className="font-editorial">{article.title}</h1>
+          <p className={styles.summary}>{article.summary}</p>
 
-          <aside className={styles.storyMeta} aria-label="Haber bilgileri">
-            <div>
-              <span>Hazırlayan</span>
-              <Link href={`/yazar/${article.author.slug}`}>{article.author.name}</Link>
-              <small>{article.author.role}</small>
-            </div>
-            <div className={styles.timeMeta}>
-              <Clock aria-hidden="true" size={18} weight="duotone" />
-              <p>
-                <time dateTime={article.publishedAt}>{article.publishedDisplay}</time>
-                {article.updatedAt && article.updatedDisplay && (
-                  <small>
-                    Güncellendi: <time dateTime={article.updatedAt}>{article.updatedDisplay}</time>
-                  </small>
-                )}
-                <small>{article.readingTime} okuma</small>
-              </p>
-            </div>
-            <ArticleActions
-              title={article.title}
-              slug={article.slug}
-              initialSaved={isSaved}
-              isSignedIn={isSignedIn}
-            />
-          </aside>
+          {/* Künyenin tamamı sayfa sonunda; başlıkta yalnızca tazelik sinyali kalıyor. */}
+          <p className={styles.headerMeta}>
+            <Clock aria-hidden="true" size={15} weight="duotone" />
+            <time dateTime={article.publishedAt}>{article.publishedDisplay}</time>
+            <span aria-hidden="true">·</span>
+            <span>{article.readingTime} okuma</span>
+          </p>
+
+          <ArticleActions
+            title={article.title}
+            slug={article.slug}
+            initialSaved={isSaved}
+            isSignedIn={isSignedIn}
+          />
         </div>
       </header>
 
-      <figure className={`${styles.hero} shell-container`}>
+      <figure className={styles.hero}>
         <div className={styles.heroImage}>
           <Image
             src={article.hero.src}
             alt={article.hero.alt}
             fill
             priority
-            sizes="(max-width: 640px) calc(100vw - 2rem), (max-width: 1280px) calc(100vw - 4rem), 1216px"
+            sizes="(max-width: 640px) calc(100vw - 2rem), (max-width: 1088px) calc(100vw - 4rem), 1024px"
           />
         </div>
         <figcaption>
@@ -142,7 +129,7 @@ export function ArticleDetail({ article, isSaved, isSignedIn }: ArticleDetailPro
         </figcaption>
       </figure>
 
-      <div className={`${styles.readingLayout} shell-container`}>
+      <div className={styles.readingLayout}>
         <aside className={styles.readingAside}>
           <span className="eyebrow">Dosya</span>
           <p>Yerel üretim, mahalle ekonomisi ve gıda dayanışması üzerine.</p>
@@ -156,10 +143,37 @@ export function ArticleDetail({ article, isSaved, isSignedIn }: ArticleDetailPro
         </div>
       </div>
 
-      <section
-        className={`${styles.correction} shell-container`}
-        aria-labelledby="correction-title"
-      >
+      <footer className={styles.byline} aria-labelledby="byline-title">
+        <div className={styles.bylineAuthor}>
+          <span className="eyebrow" id="byline-title">
+            Hazırlayan
+          </span>
+          <Link href={`/yazar/${article.author.slug}`}>{article.author.name}</Link>
+          <small>{article.author.role}</small>
+        </div>
+        <dl className={styles.bylineTimes}>
+          <div>
+            <dt>Yayımlandı</dt>
+            <dd>
+              <time dateTime={article.publishedAt}>{article.publishedDisplay}</time>
+            </dd>
+          </div>
+          {article.updatedAt && article.updatedDisplay && (
+            <div>
+              <dt>Son güncelleme</dt>
+              <dd>
+                <time dateTime={article.updatedAt}>{article.updatedDisplay}</time>
+              </dd>
+            </div>
+          )}
+          <div>
+            <dt>Okuma süresi</dt>
+            <dd>{article.readingTime}</dd>
+          </div>
+        </dl>
+      </footer>
+
+      <section className={styles.correction} aria-labelledby="correction-title">
         <NotePencil aria-hidden="true" size={24} weight="duotone" />
         <div>
           <span className="eyebrow">Şeffaflık notu</span>
@@ -170,7 +184,7 @@ export function ArticleDetail({ article, isSaved, isSignedIn }: ArticleDetailPro
         </div>
       </section>
 
-      <section className={`${styles.related} shell-container`} aria-labelledby="related-title">
+      <section className={styles.related} aria-labelledby="related-title">
         <div className={styles.relatedHeading}>
           <div>
             <span className="eyebrow">Okumaya devam</span>
