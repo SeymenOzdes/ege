@@ -254,3 +254,88 @@ set
   published_at = excluded.published_at,
   body = excluded.body,
   body_text = excluded.body_text;
+
+-- ==========================================================================
+-- YEREL GELİŞTİRME: sabit admin hesabı.
+-- Seed yalnızca `supabase db reset --local` sırasında çalışır; canlı ortama
+-- asla taşınmaz. Kimlik bilgileri src/lib/auth/dev-access.ts içindeki
+-- varsayılanlarla birebir eşleşir; DEV_ADMIN_EMAIL / DEV_ADMIN_PASSWORD ile
+-- ezip değiştiriliyorsa burası da güncellenmelidir.
+-- Profil satırını core_schema'daki on_auth_user_created tetiği oluşturur.
+-- ==========================================================================
+delete from auth.users where email = 'dev-admin@ege.local';
+
+insert into auth.users (
+  instance_id,
+  id,
+  aud,
+  role,
+  email,
+  encrypted_password,
+  email_confirmed_at,
+  confirmation_token,
+  recovery_token,
+  email_change,
+  email_change_token_new,
+  email_change_token_current,
+  reauthentication_token,
+  phone,
+  phone_change,
+  phone_change_token,
+  raw_app_meta_data,
+  raw_user_meta_data,
+  created_at,
+  updated_at
+)
+values (
+  '00000000-0000-0000-0000-000000000000',
+  '00000000-0000-4000-8000-000000000001',
+  'authenticated',
+  'authenticated',
+  'dev-admin@ege.local',
+  crypt('dev-admin-password', gen_salt('bf')),
+  now(),
+  '',
+  '',
+  '',
+  '',
+  '',
+  '',
+  '',
+  '',
+  '',
+  '{"role": "ADMIN"}'::jsonb,
+  '{"display_name": "Dev Admin"}'::jsonb,
+  now(),
+  now()
+);
+-- Not: token/phone metin kolonları NULL değil '' olmalı; GoTrue NULL kolonları
+-- taramada string'e çeviremediği için 500 döndürüyor. instance_id de
+-- API ile oluşturulan kullanıcılarla aynı sıfır UUID olmalı.
+
+insert into auth.identities (
+  id,
+  user_id,
+  provider,
+  provider_id,
+  identity_data,
+  last_sign_in_at,
+  created_at,
+  updated_at
+)
+values (
+  '00000000-0000-4000-8000-000000000001',
+  '00000000-0000-4000-8000-000000000001',
+  'email',
+  'email',
+  jsonb_build_object(
+    'sub', '00000000-0000-4000-8000-000000000001',
+    'email', 'dev-admin@ege.local',
+    'email_verified', true
+  ),
+  now(),
+  now(),
+  now()
+);
+-- Üstteki `delete from auth.users` kullanıcıyı ve cascade edilen identity
+-- satırlarını temizlediği için bu ekleme her reset'te güvenle tekrarlanır.

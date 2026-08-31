@@ -1,12 +1,26 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(15);
+select plan(28);
 
 select has_table('public', 'profiles', 'profiles table exists');
 select has_table('public', 'articles', 'articles table exists');
 select has_table('public', 'bookmarks', 'bookmarks table exists');
 select has_index('public', 'articles', 'articles_search_vector_idx', 'article search has a GIN index');
+select has_table('public', 'newsletter_subscriptions', 'newsletter_subscriptions table exists');
+select has_table('public', 'account_deletion_requests', 'account_deletion_requests table exists');
+select has_index(
+  'public', 'newsletter_subscriptions', 'newsletter_subscriptions_confirmation_digest_idx',
+  'newsletter confirmation digests are uniquely indexed for lookup'
+);
+select has_index(
+  'public', 'newsletter_subscriptions', 'newsletter_subscriptions_unsubscribe_digest_idx',
+  'newsletter unsubscribe digests are uniquely indexed for lookup'
+);
+select has_index(
+  'public', 'account_deletion_requests', 'account_deletion_requests_open_idx',
+  'a reader can only have one open deletion request'
+);
 select results_eq(
   $$ select count(*) from storage.buckets where id = 'news-media' and public and file_size_limit = 10485760 $$,
   array[1::bigint],
@@ -59,6 +73,21 @@ select throws_like(
   '%permission denied%',
   'anonymous users have no Data API grant for bookmarks'
 );
+select throws_like(
+  $$ select count(*) from public.newsletter_subscriptions $$,
+  '%permission denied%',
+  'anonymous users have no Data API grant for newsletter subscriptions'
+);
+select throws_like(
+  $$ insert into public.newsletter_subscriptions (email) values ('sizinti@example.com') $$,
+  '%permission denied%',
+  'anonymous users cannot write newsletter subscriptions directly'
+);
+select throws_like(
+  $$ select count(*) from public.account_deletion_requests $$,
+  '%permission denied%',
+  'anonymous users have no Data API grant for account deletion requests'
+);
 reset role;
 
 set local role authenticated;
@@ -81,6 +110,43 @@ select results_eq(
   $$ update public.profiles set display_name = 'Yetkisiz' where id = '00000000-0000-0000-0000-000000000102' returning 1 $$,
   array[]::integer[],
   'a reader cannot update another profile'
+);
+select throws_like(
+  $$ select count(*) from public.newsletter_subscriptions $$,
+  '%permission denied%',
+  'a reader has no Data API grant for newsletter subscriptions'
+);
+select throws_like(
+  $$ select count(*) from public.account_deletion_requests $$,
+  '%permission denied%',
+  'a reader has no Data API grant for account deletion requests'
+);
+reset role;
+
+-- İkinci okur: kaydedilenler yalnızca sahibine görünür ve yalnızca sahibi silebilir.
+set local role authenticated;
+select set_config(
+  'request.jwt.claims',
+  '{"sub":"00000000-0000-0000-0000-000000000102","role":"authenticated","app_metadata":{"role":"READER"}}',
+  true
+);
+select results_eq(
+  $$ select count(*) from public.bookmarks $$,
+  array[0::bigint],
+  'a reader cannot see another reader''s bookmark'
+);
+select results_eq(
+  $$ delete from public.bookmarks
+     where profile_id = '00000000-0000-0000-0000-000000000101' returning 1 $$,
+  array[]::integer[],
+  'a reader cannot delete another reader''s bookmark'
+);
+select throws_like(
+  $$ insert into public.bookmarks (profile_id, article_id)
+     select '00000000-0000-0000-0000-000000000101', id
+     from public.articles where slug = 'zeytin-hasadi-test' $$,
+  '%row-level security%',
+  'a reader cannot create a bookmark owned by someone else'
 );
 reset role;
 

@@ -82,11 +82,14 @@ export function PublicShell({ children, user }: PublicShellProps) {
               ))}
               <Link href="/arama">Arama</Link>
               {user ? (
-                <form action={signOut}>
-                  <button className="mobile-signout" type="submit">
-                    Çıkış yap
-                  </button>
-                </form>
+                <>
+                  <Link href="/kaydedilenler">Kaydedilenler</Link>
+                  <form action={signOut}>
+                    <button className="mobile-signout" type="submit">
+                      Çıkış yap
+                    </button>
+                  </form>
+                </>
               ) : (
                 <Link href="/giris">Giriş</Link>
               )}

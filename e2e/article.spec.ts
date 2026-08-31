@@ -18,17 +18,16 @@ test("opens the sample article from the homepage card", async ({ page }) => {
   await expect(page.getByText("ARTICLE_END")).toBeVisible();
 });
 
-test("exposes functional, accessible article actions", async ({ page }) => {
+test("anonim okuru kaydetmeden önce girişe yönlendirir", async ({ page }) => {
   await page.goto("/haber/mahalle-pazarlarinda-yerel-urun");
 
-  const saveButton = page.getByRole("button", { name: "Haberi kaydet" });
-  await expect(saveButton).toHaveAttribute("aria-pressed", "false");
-  await saveButton.click();
-  await expect(page.getByRole("button", { name: "Haberi kaydedilenlerden çıkar" })).toHaveAttribute(
-    "aria-pressed",
-    "true",
-  );
   await expect(page.getByRole("button", { name: "Haberi paylaş" })).toBeVisible();
+
+  // Oturum açmamış ziyaretçi için kaydetme, iyimser bir açma/kapama değil giriş
+  // akışının başlangıcıdır: hedef haber çerezde taşınır.
+  await page.getByRole("button", { name: "Haberi kaydetmek için giriş yap" }).click();
+
+  await expect(page).toHaveURL(/\/giris\?next=%2Fhaber%2Fmahalle-pazarlarinda-yerel-urun/);
 });
 
 test("returns a permanent not-found state for unknown article slugs", async ({ page }) => {

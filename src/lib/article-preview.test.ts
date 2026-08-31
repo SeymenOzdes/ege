@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
+  WORDS_PER_MINUTE,
+  countWords,
   formatPublishedLabel,
   readingTimeLabel,
   toArticlePreview,
@@ -105,5 +107,28 @@ describe("toArticlePreview", () => {
     expect(preview.location).toBe("Ege");
     expect(preview.publishedLabel).toBe("");
     expect(preview.mediaTone).toBe("teal");
+  });
+});
+
+describe("countWords", () => {
+  it("counts whitespace-separated words", () => {
+    expect(countWords("Ege bölgesinden üç haber")).toBe(4);
+  });
+
+  it("ignores leading, trailing and repeated whitespace", () => {
+    expect(countWords("  iki\n\n  kelime  ")).toBe(2);
+  });
+
+  it("returns zero for empty and missing bodies", () => {
+    expect(countWords("")).toBe(0);
+    expect(countWords("   ")).toBe(0);
+    expect(countWords(null)).toBe(0);
+    expect(countWords(undefined)).toBe(0);
+  });
+
+  it("agrees with readingTimeLabel on the words-per-minute boundary", () => {
+    const body = Array.from({ length: WORDS_PER_MINUTE }, () => "kelime").join(" ");
+    expect(countWords(body)).toBe(WORDS_PER_MINUTE);
+    expect(readingTimeLabel(countWords(body))).toBe("1 dk");
   });
 });

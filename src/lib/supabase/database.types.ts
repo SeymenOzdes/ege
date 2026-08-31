@@ -3,6 +3,41 @@ export type Json = string | number | boolean | null | { [key: string]: Json | un
 export type Database = {
   public: {
     Tables: {
+      account_deletion_requests: {
+        Row: {
+          email: string | null;
+          handled_at: string | null;
+          id: string;
+          note: string | null;
+          profile_id: string;
+          requested_at: string;
+        };
+        Insert: {
+          email?: string | null;
+          handled_at?: string | null;
+          id?: string;
+          note?: string | null;
+          profile_id: string;
+          requested_at?: string;
+        };
+        Update: {
+          email?: string | null;
+          handled_at?: string | null;
+          id?: string;
+          note?: string | null;
+          profile_id?: string;
+          requested_at?: string;
+        };
+        Relationships: [
+          {
+            foreignKeyName: "account_deletion_requests_profile_id_fkey";
+            columns: ["profile_id"];
+            isOneToOne: false;
+            referencedRelation: "profiles";
+            referencedColumns: ["id"];
+          },
+        ];
+      };
       ad_placements: {
         Row: {
           created_at: string;

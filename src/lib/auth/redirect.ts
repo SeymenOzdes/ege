@@ -2,6 +2,22 @@ const fallbackOrigin = "https://egenin-nabzi.invalid";
 
 export const authRedirectCookie = "egenin-nabzi-auth-next";
 
+/**
+ * Giriş yapmamış okurun kaydetmek istediği haberin slug'ı. `/auth/confirm`
+ * oturumu kurduktan sonra bu çerezi tüketip kaydı oluşturur, böylece okur
+ * aynı işlemi ikinci kez yapmak zorunda kalmaz.
+ */
+export const pendingBookmarkCookie = "egenin-nabzi-pending-bookmark";
+
+/** İki yönlendirme çerezi de aynı ömrü ve kapsamı paylaşır. */
+export const authCookieOptions = {
+  httpOnly: true,
+  sameSite: "lax",
+  secure: process.env.NODE_ENV === "production",
+  maxAge: 60 * 15,
+  path: "/",
+} as const;
+
 export function getSafeRedirectPath(value: unknown, fallback = "/") {
   if (typeof value !== "string" || !value.startsWith("/")) return fallback;
 
@@ -29,6 +45,13 @@ export function loginNotice(error: string | undefined, sent: string | undefined)
 
   if (error === "link_invalid") {
     return { tone: "error" as const, text: "Bu giriş bağlantısı geçersiz veya süresi dolmuş." };
+  }
+
+  if (error === "dev_login_failed") {
+    return {
+      tone: "error" as const,
+      text: "Yerel geliştirme girişi başarısız oldu. `pnpm supabase:reset` ile seed'i yenileyip tekrar deneyin.",
+    };
   }
 
   if (error === "not_configured") {

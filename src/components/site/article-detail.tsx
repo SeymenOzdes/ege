@@ -37,7 +37,14 @@ function BodyBlock({ block, index }: { block: ArticleBodyBlock; index: number })
   return <p className={index === 0 ? styles.leadParagraph : undefined}>{block.text}</p>;
 }
 
-export function ArticleDetail({ article }: { article: ArticleDetailType }) {
+type ArticleDetailProps = {
+  article: ArticleDetailType;
+  /** Kaydet düğmesinin sunucudan gelen başlangıç durumu. */
+  isSaved: boolean;
+  isSignedIn: boolean;
+};
+
+export function ArticleDetail({ article, isSaved, isSignedIn }: ArticleDetailProps) {
   const articleUrl = new URL(`/haber/${article.slug}`, siteConfig.url).toString();
   const jsonLd = {
     "@context": "https://schema.org",
@@ -109,7 +116,12 @@ export function ArticleDetail({ article }: { article: ArticleDetailType }) {
                 <small>{article.readingTime} okuma</small>
               </p>
             </div>
-            <ArticleActions title={article.title} />
+            <ArticleActions
+              title={article.title}
+              slug={article.slug}
+              initialSaved={isSaved}
+              isSignedIn={isSignedIn}
+            />
           </aside>
         </div>
       </header>

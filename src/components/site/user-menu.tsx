@@ -21,8 +21,9 @@ function labelFor(user: CurrentUser) {
 
 /**
  * Public header account area. Anonymous visitors see the plain login link;
- * verified sessions show their name/email (staff chips deep-link into the
- * editorial panel) next to the sign-out action.
+ * verified sessions show their name/email next to the sign-out action. The chip
+ * deep-links into the editorial panel for staff and into the reader's saved
+ * articles for everyone else.
  */
 export function UserMenu({ user }: { user?: CurrentUser }) {
   if (!user) {
@@ -48,10 +49,14 @@ export function UserMenu({ user }: { user?: CurrentUser }) {
           <span>{label}</span>
         </Link>
       ) : (
-        <span className="login-action" title={`${roleLabels[user.role]} olarak bağlısın`}>
+        <Link
+          className="login-action"
+          href="/kaydedilenler"
+          title={`${roleLabels[user.role]} olarak bağlısın — kaydedilenlere git`}
+        >
           {chipIcon}
           <span>{label}</span>
-        </span>
+        </Link>
       )}
       <form action={signOut}>
         <button className="header-action" type="submit">

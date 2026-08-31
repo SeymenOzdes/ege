@@ -15,11 +15,11 @@ describe("UserMenu", () => {
     expect(screen.queryByRole("button", { name: /Çıkış yap/ })).not.toBeInTheDocument();
   });
 
-  it("okuru yönetim bağlantısı olmadan karşılar ve çıkış sunar", () => {
+  it("okur rozetini kaydedilenlere bağlar, yönetime değil", () => {
     render(<UserMenu user={{ role: "READER" }} />);
 
-    expect(screen.getByText("Okur")).toBeInTheDocument();
-    expect(screen.queryByRole("link", { name: /Okur/ })).not.toBeInTheDocument();
+    expect(screen.getByRole("link", { name: /Okur/ })).toHaveAttribute("href", "/kaydedilenler");
+    expect(screen.queryByRole("link", { name: /yönetim/i })).not.toBeInTheDocument();
     expect(screen.getByRole("button", { name: /Çıkış yap/ })).toBeInTheDocument();
   });
 

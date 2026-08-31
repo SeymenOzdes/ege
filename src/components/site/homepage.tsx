@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { ArrowRight } from "@phosphor-icons/react/dist/ssr/ArrowRight";
 import { BellRinging } from "@phosphor-icons/react/dist/ssr/BellRinging";
+import { NewsletterForm } from "@/components/site/newsletter-form";
 import { EnvelopeSimple } from "@phosphor-icons/react/dist/ssr/EnvelopeSimple";
 import { Sparkle } from "@phosphor-icons/react/dist/ssr/Sparkle";
 import type { ArticlePreview, HomepageContent } from "@/lib/homepage";
@@ -179,9 +180,7 @@ export function Homepage({ content }: { content: HomepageContent }) {
             <h2 className="font-editorial">Bölgenin önemli hikâyeleri doğrudan gelen kutunda.</h2>
             <p>Haftada bir kez; seçilmiş haberler, kültür rotaları ve yerel yaşam notları.</p>
           </div>
-          <Link className="button button-primary" href="/bulten">
-            Bültene katıl <ArrowRight aria-hidden="true" size={17} weight="bold" />
-          </Link>
+          <NewsletterForm idPrefix="anasayfa-bulten" variant="compact" />
         </section>
 
         <AdSlot placement="HOME_INLINE" compact />

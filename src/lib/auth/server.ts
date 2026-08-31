@@ -5,6 +5,7 @@ import { getSafeRedirectPath } from "@/lib/auth/redirect";
 import { getClaimString, getUserRole, isStaffRole, type UserRole } from "@/lib/auth/roles";
 import { hasSupabasePublicConfig } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
+import { isDevAdminAutoLoginEnabled } from "@/lib/auth/dev-access";
 
 export async function getVerifiedUserRole(): Promise<UserRole | undefined> {
   if (!hasSupabasePublicConfig()) return undefined;
@@ -61,7 +62,15 @@ export async function getCurrentUser(): Promise<CurrentUser | undefined> {
 export async function requireStaffRoute(nextPath = "/yonetim") {
   const role = await getVerifiedUserRole();
   if (!role) {
-    redirect(`/giris?next=${encodeURIComponent(getSafeRedirectPath(nextPath, "/yonetim"))}`);
+    const safeNextPath = encodeURIComponent(getSafeRedirectPath(nextPath, "/yonetim"));
+
+    // Yerel geliştirme hızlı girişi: geliştiriciyi seed admin'i ile gerçek bir
+    // oturuma sokar; RLS rolleri gerçek JWT'den okumaya devam eder.
+    if (isDevAdminAutoLoginEnabled()) {
+      redirect(`/auth/dev-login?next=${safeNextPath}`);
+    }
+
+    redirect(`/giris?next=${safeNextPath}`);
   }
 
   if (!isStaffRole(role)) {

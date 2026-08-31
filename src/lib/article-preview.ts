@@ -52,6 +52,18 @@ export function formatPublishedLabel(publishedAt: string | Date, now: Date = new
 /** Average Turkish reading pace used across the editorial surface. */
 export const WORDS_PER_MINUTE = 200;
 
+/**
+ * `search_published_articles` içindeki
+ * `array_length(regexp_split_to_array(btrim(body_text), '\s+'), 1)` ifadesinin
+ * TypeScript karşılığı. Arama RPC'si kelime sayısını kendi döndürür; PostgREST
+ * ile çekilen satırlarda (ör. kaydedilenler listesi) aynı değeri burada üretiriz,
+ * böylece iki yüzeyde farklı okuma süresi görünmez.
+ */
+export function countWords(bodyText: string | null | undefined): number {
+  const trimmed = (bodyText ?? "").trim();
+  return trimmed === "" ? 0 : trimmed.split(/\s+/).length;
+}
+
 export function readingTimeLabel(wordCount: number): string {
   const words = Number.isFinite(wordCount) && wordCount > 0 ? wordCount : 0;
   return `${Math.max(1, Math.ceil(words / WORDS_PER_MINUTE))} dk`;

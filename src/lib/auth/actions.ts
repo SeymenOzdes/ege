@@ -3,7 +3,12 @@
 import { cookies, headers } from "next/headers";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { authRedirectCookie, getSafeRedirectPath } from "@/lib/auth/redirect";
+import {
+  authCookieOptions,
+  authRedirectCookie,
+  getSafeRedirectPath,
+  pendingBookmarkCookie,
+} from "@/lib/auth/redirect";
 import { env } from "@/lib/env";
 import { hasSupabasePublicConfig } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
@@ -40,13 +45,7 @@ export async function sendMagicLink(formData: FormData) {
   const nextValue = formData.get("next");
   const nextPath = getSafeRedirectPath(nextValue, "/");
   const cookieStore = await cookies();
-  cookieStore.set(authRedirectCookie, nextPath, {
-    httpOnly: true,
-    sameSite: "lax",
-    secure: process.env.NODE_ENV === "production",
-    maxAge: 60 * 15,
-    path: "/",
-  });
+  cookieStore.set(authRedirectCookie, nextPath, authCookieOptions);
 
   const supabase = await createClient();
   const { error } = await supabase.auth.signInWithOtp({
@@ -71,5 +70,6 @@ export async function signOut() {
 
   const cookieStore = await cookies();
   cookieStore.delete(authRedirectCookie);
+  cookieStore.delete(pendingBookmarkCookie);
   redirect("/");
 }

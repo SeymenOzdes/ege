@@ -204,7 +204,9 @@
   border: 1px solid rgb(255 255 255 / 60%);
   border-radius: 1.35rem;
   background: rgb(252 250 246 / 62%);
-  box-shadow: 0 14px 32px rgb(13 27 42 / 15%), inset 0 1px 0 rgb(255 255 255 / 62%);
+  box-shadow:
+    0 14px 32px rgb(13 27 42 / 15%),
+    inset 0 1px 0 rgb(255 255 255 / 62%);
   color: var(--color-ink);
   backdrop-filter: blur(22px) saturate(145%);
   -webkit-backdrop-filter: blur(22px) saturate(145%);
@@ -592,10 +594,11 @@
   line-height: 1.6;
 }
 
-.newsletter > a {
+/* Form global sınıflarla gelir (paylaşılan NewsletterForm), bu yüzden :global. */
+.newsletter > :global(.newsletter-form) {
   align-self: end;
   justify-self: start;
-  gap: 0.4rem;
+  width: min(100%, 24rem);
 }
 
 .statePanel {
@@ -679,7 +682,7 @@
     align-items: center;
   }
 
-  .newsletter > a {
+  .newsletter > :global(.newsletter-form) {
     justify-self: end;
   }
 }

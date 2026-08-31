@@ -73,3 +73,25 @@ Her modül tamamlandığında aşağıdakiler eklenir:
 - **Doğrulama:** `pnpm supabase:reset`, `pnpm supabase:types`, `pnpm supabase:lint` ve `pnpm supabase:test` (2 dosyada 28 test, yeni `turkish_search` süiti dahil) geçti. `pnpm typecheck`, `pnpm lint`, `pnpm test` (15 dosyada 73 test) ve `pnpm build` başarılı. `pnpm test:e2e arama.spec.ts` masaüstü ve Pixel 7 görünümünde 14 test ile geçti. Elle doğrulama: `IZMIR`/`İzmir`/`izmir` aynı iki haberi döndürdü, filtreler sonucu daralttı, sayfalama `q` ve filtreleri korudu, sonuçsuz sorgular `search_queries` içine yazıldı, sonuçlu sorgular yazılmadı.
 - **Not:** Modül 4'ün iki pgTAP testi tüm tabloyu sayıyordu ve seed'e yayımlanmış haber eklenince kırıldı; kendi fixture'larına daraltılarak seed hacminden bağımsız hâle getirildi.
 - **Sonraki modül:** Okur hesapları ve kaydedilenler; `/haber/[slug]` veritabanına bağlandığında arama sonuçlarındaki bağlantılar da tamamlanacak.
+
+## Module 13 — Reader Accounts and Bookmarks
+
+- **Tarih:** 2026-08-28
+- **Durum:** Tamamlandı; yerel migration, tür üretimi, pgTAP, birim ve uçtan uca testler doğrulandı.
+- **Kapsam:** Kaydetme düğmesinin örnek oturumdan gerçek veritabanına taşınması, `/kaydedilenler`, başlıkta okur hesabı durumu, girişten geçen kaydetme ve hesap silme talebi.
+- **Uygulananlar:** `account_deletion_requests` tablosu, `src/lib/bookmarks/` (saf mesajlar, `server-only` sorgular, sunucu eylemleri), `useOptimistic` ile geri alınabilir kaydetme, oturumsuz ziyaretçi için form tabanlı giriş yönlendirmesi, `egenin-nabzi-pending-bookmark` çerezini tüketen `/auth/confirm`, `/kaydedilenler` listesi ve "Hesabım" bölümü, mobil menü ve okur rozeti bağlantıları.
+- **Veri ve güvenlik:** Kaydetme slug ile çalışır ve UUID'yi okurun kendi istemcisiyle çözer; `articles_public_select` sayesinde taslak haber kaydedilemez. Liste secret key kullanmaz, RLS'e dayanır. Sahip kimliği yalnızca doğrulanmış `sub` claim'inden okunur. Silme talebi silmeyi uygulamaz; kapalı tabloya yazılır ve personel elle yürütür.
+- **Doğrulama:** `pnpm supabase:reset`, `pnpm supabase:types` ve `pnpm supabase:test` (2 dosyada 41 test) geçti. `pnpm typecheck`, `pnpm lint`, `pnpm test` ve `pnpm build` başarılı. Elle uçtan uca: oturumsuz kaydet → `/giris` → Mailpit'ten magic link → haber `?bilgi=kaydedildi` ile kaydedilmiş döndü; ikinci tarayıcı bağlamı aynı listeyi gördü; kaldırma listeyi boş duruma döndürdü; silme talebi tek satır yazıp oturumu kapattı.
+- **Not:** `isArticleBookmarked` ilk yazımda süzgeci gömülü kaynağın takma adı yerine tablo adıyla veriyordu; PostgREST bunu çözemediği için kaydedilmiş haber kaydedilmemiş görünüyordu. Sorgu `articles` üzerinden yeniden kuruldu.
+- **Sonraki modül:** Bülten abonelikleri.
+
+## Module 14 — Newsletter Subscriptions
+
+- **Tarih:** 2026-08-28
+- **Durum:** Tamamlandı; abonelik, onay ve ayrılma uçtan uca doğrulandı.
+- **Kapsam:** Ana sayfa ve `/bulten` formları, ayrı bülten rızası, Resend ile onay e-postası, tek kullanımlık özetli onay, tek tıkla ayrılma ve yönetimde abone listesi.
+- **Uygulananlar:** `newsletter_flow` migration'ı (özet indeksleri + e-posta kısıtı düzeltmesi), `src/lib/newsletter/` (jetonlar, mesajlar, e-posta şablonu, sunucu eylemi), bağımlılık eklemeyen `src/lib/email/` Resend sarmalayıcısı, `/bulten` sayfası, paylaşılan `NewsletterForm`, `/bulten/onay` ve `/bulten/ayril` Route Handler'ları (GET + RFC 8058 POST) ve `/yonetim/aboneler`.
+- **Veri ve güvenlik:** Tablo politikasız ve grant'siz kalır; tüm erişim secret key ile yapılır. Her dal aynı `onay_bekleniyor` yanıtını verdiği için abone numaralandırılamaz; `PENDING` kayıtta beş dakikalık bekleme süresi gelen kutusu taşkınını engeller. Onay jetonu tek kullanımlıktır, ayrılma jetonu bilerek kalıcıdır. `/yonetim/aboneler` kişisel veri listelediği için `requireAdminRoute` ile korunur.
+- **Doğrulama:** Yukarıdaki komut kümesine ek olarak elle uçtan uca: abonelik `onay_bekleniyor` döndürdü ve tek satır yazdı; aynı adresle ikinci gönderim aynı yanıtı verdi ve ikinci e-posta üretmedi; onay bağlantısı satırı `CONFIRMED` yaptı ve özeti temizledi; aynı bağlantının tekrarı `gecersiz` döndü; `POST /bulten/ayril` 200 döndü, tekrarı yine 200 döndü ve rıza/onay zaman damgaları korundu.
+- **Not:** Modül 4'teki `newsletter_subscriptions_email_format` kısıtı `\\.` yazımı yüzünden hiçbir geçerli e-postayı kabul etmiyordu; tabloya hiç satır yazılamıyordu. İleri yönlü bir migration ile düzeltildi. Ayrıca `supabase/config.toml` içindeki `additional_redirect_urls` yol taşıyan hedefleri izinli kılmadığından yerel magic link `/auth/confirm` yerine ana sayfaya bağlanıyordu; `/**` kalıpları eklendi.
+- **Sonraki modül:** Premium reklam yönetimi.

@@ -4,6 +4,7 @@ import { useState, type ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { BellIcon } from "@phosphor-icons/react/dist/ssr/Bell";
+import { EnvelopeSimpleIcon } from "@phosphor-icons/react/dist/ssr/EnvelopeSimple";
 import { GearSixIcon } from "@phosphor-icons/react/dist/ssr/GearSix";
 import { HouseIcon } from "@phosphor-icons/react/dist/ssr/House";
 import { ImageIcon } from "@phosphor-icons/react/dist/ssr/Image";
@@ -14,7 +15,7 @@ import { XIcon } from "@phosphor-icons/react/dist/ssr/X";
 import { Brand } from "@/components/site/brand";
 import { signOut } from "@/lib/auth/actions";
 import type { UserRole } from "@/lib/auth/roles";
-import { getAdminNavigation } from "@/lib/admin/navigation";
+import { getActiveAdminHref, getAdminNavigation } from "@/lib/admin/navigation";
 
 type AdminShellProps = { children: ReactNode; role: UserRole };
 
@@ -23,30 +24,27 @@ const navigationIcons = {
   "/yonetim/haberler": NewspaperIcon,
   "/yonetim/haberler/yeni": PlusIcon,
   "/yonetim/medya": ImageIcon,
+  "/yonetim/aboneler": EnvelopeSimpleIcon,
   "/yonetim/anasayfa": GearSixIcon,
 };
 
-function isActivePath(pathname: string, href: string) {
-  return href === "/yonetim"
-    ? pathname === href
-    : pathname === href || pathname.startsWith(`${href}/`);
-}
-
 function NavigationLinks({ role, onNavigate }: { role: UserRole; onNavigate?: () => void }) {
   const pathname = usePathname();
+  // Etkin girdi menü kaydından çözülür: aynı anda yalnızca biri işaretlenir.
+  const activeHref = getActiveAdminHref(pathname);
 
   return (
     <nav aria-label="Yönetim menüsü" className="grid gap-1">
       {getAdminNavigation(role).map((item) => {
         const Icon = navigationIcons[item.href as keyof typeof navigationIcons];
-        const active = isActivePath(pathname, item.href);
+        const active = item.href === activeHref;
         return (
           <Link
             aria-current={active ? "page" : undefined}
             className={`flex items-center gap-3 rounded-[16px] px-3 py-3 text-sm font-semibold transition ${
               active
                 ? "bg-[var(--color-ink)] text-white"
-                : "text-[var(--color-ink-muted)] hover:bg-[var(--color-paper)] hover:text-[var(--color-ink)]"
+                : "text-[var(--color-ink-muted)] hover:bg-[var(--color-ink)] hover:text-white"
             }`}
             href={item.href}
             key={item.href}

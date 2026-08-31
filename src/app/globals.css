@@ -37,8 +37,10 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-a {
-  color: inherit;
+@layer base {
+  a {
+    color: inherit;
+  }
 }
 
 button,
@@ -627,6 +629,56 @@ button.header-action {
 .text-input:focus {
   border-color: var(--color-teal);
   box-shadow: 0 0 0 3px rgb(12 124 134 / 14%);
+}
+
+/* Bülten formu: ana sayfa çağrısı ve /bulten aynı bileşeni paylaşır. */
+.newsletter-form {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.newsletter-field {
+  display: grid;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-ink);
+}
+
+.newsletter-consent {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: 0.6rem;
+  align-items: start;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  color: var(--color-ink-muted);
+}
+
+.newsletter-consent input {
+  width: 1.05rem;
+  height: 1.05rem;
+  margin-top: 0.15rem;
+  accent-color: var(--color-teal);
+}
+
+.newsletter-consent a {
+  color: var(--color-teal);
+  text-decoration: underline;
+}
+
+.newsletter-form > button {
+  justify-self: start;
+}
+
+/* Ana sayfadaki dar sütunda etiket görsel olarak gizlenir; erişilebilir ad korunur. */
+.newsletter-form.compact .newsletter-field > span {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
 }
 
 .badge {
