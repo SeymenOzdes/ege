@@ -1,6 +1,17 @@
+import type { Metadata } from "next";
 import { ArticleCard, Badge, Button, LoadingCard, TextInput } from "@/components/site/ui";
 import { HomepageState } from "@/components/site/homepage";
 import type { ArticlePreview } from "@/lib/homepage";
+
+/**
+ * İç tasarım belgesi: herkese açık ama arama sonuçlarında haberlerin arasında
+ * görünmesi istenmiyor. `robots.txt` de bu yolu kapatıyor; ikisi birlikte hem
+ * taramayı hem dizine girmeyi engelliyor.
+ */
+export const metadata: Metadata = {
+  title: "Stil Rehberi",
+  robots: { index: false, follow: false },
+};
 
 /**
  * The style guide documents the card component, not the newsroom, so it keeps its

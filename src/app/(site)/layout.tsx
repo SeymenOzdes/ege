@@ -1,5 +1,7 @@
 import type { ReactNode } from "react";
+import { JsonLd } from "@/components/site/json-ld";
 import { PublicShell } from "@/components/site/public-shell";
+import { siteJsonLd } from "@/lib/json-ld";
 
 /**
  * No route-segment override here on purpose.
@@ -9,5 +11,16 @@ import { PublicShell } from "@/components/site/public-shell";
  * resolves in the browser, so each page underneath decides its own caching.
  */
 export default function SiteLayout({ children }: Readonly<{ children: ReactNode }>) {
-  return <PublicShell>{children}</PublicShell>;
+  return (
+    <PublicShell>
+      {/*
+       * `WebSite` + `NewsMediaOrganization`, kök düzende değil burada: kök düzen
+       * yönetim panelini de sarıyor ve yayının kimlik bilgisini `noindex` bir
+       * panelde tekrarlamanın anlamı yok. Sabit veriden üretiliyor, sayfanın
+       * statik kalmasını engellemiyor.
+       */}
+      <JsonLd data={siteJsonLd()} />
+      {children}
+    </PublicShell>
+  );
 }

@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArchiveList } from "@/components/site/archive-list";
+import { JsonLd } from "@/components/site/json-ld";
 import { getCategoryArchive, type CategoryArchive } from "@/lib/archives";
+import { breadcrumbJsonLd } from "@/lib/json-ld";
 import { parsePageNumber } from "@/lib/pagination";
 
 type PageProps = {
@@ -39,16 +41,27 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
   if (!archive) notFound();
 
   return (
-    <ArchiveList
-      eyebrow={describeKind(archive.kind)}
-      title={archive.name}
-      description={describeArchive(archive)}
-      entries={archive.page.entries}
-      basePath={`/kategori/${archive.slug}`}
-      currentPage={archive.page.currentPage}
-      totalPages={archive.page.totalPages}
-      total={archive.page.total}
-      loadError={archive.page.loadError}
-    />
+    <>
+      {/* Arama sonucunda "Ana sayfa › Gündem" yolunu gösterir. Sayfa numarası
+          bilerek yok: kırıntı yolu arşivin kendisini tanımlıyor, kaçıncı
+          sayfasında olunduğunu değil. */}
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Ana sayfa", path: "/" },
+          { name: archive.name, path: `/kategori/${archive.slug}` },
+        ])}
+      />
+      <ArchiveList
+        eyebrow={describeKind(archive.kind)}
+        title={archive.name}
+        description={describeArchive(archive)}
+        entries={archive.page.entries}
+        basePath={`/kategori/${archive.slug}`}
+        currentPage={archive.page.currentPage}
+        totalPages={archive.page.totalPages}
+        total={archive.page.total}
+        loadError={archive.page.loadError}
+      />
+    </>
   );
 }

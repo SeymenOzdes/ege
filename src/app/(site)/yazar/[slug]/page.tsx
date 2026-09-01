@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArchiveList } from "@/components/site/archive-list";
+import { JsonLd } from "@/components/site/json-ld";
 import { getAuthorArticles, getAuthorBySlug } from "@/lib/archives";
+import { breadcrumbJsonLd } from "@/lib/json-ld";
 import { parsePageNumber } from "@/lib/pagination";
 
 type PageProps = {
@@ -34,16 +36,24 @@ export default async function AuthorPage({ params, searchParams }: PageProps) {
   if (!page) notFound();
 
   return (
-    <ArchiveList
-      eyebrow={author.role}
-      title={author.name}
-      description={author.bio}
-      entries={page.entries}
-      basePath={`/yazar/${author.slug}`}
-      currentPage={page.currentPage}
-      totalPages={page.totalPages}
-      total={page.total}
-      loadError={page.loadError}
-    />
+    <>
+      <JsonLd
+        data={breadcrumbJsonLd([
+          { name: "Ana sayfa", path: "/" },
+          { name: author.name, path: `/yazar/${author.slug}` },
+        ])}
+      />
+      <ArchiveList
+        eyebrow={author.role}
+        title={author.name}
+        description={author.bio}
+        entries={page.entries}
+        basePath={`/yazar/${author.slug}`}
+        currentPage={page.currentPage}
+        totalPages={page.totalPages}
+        total={page.total}
+        loadError={page.loadError}
+      />
+    </>
   );
 }
