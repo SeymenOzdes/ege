@@ -1,9 +1,10 @@
 import { Suspense } from "react";
 import type { Metadata } from "next";
-import { notFound } from "next/navigation";
+import { notFound, permanentRedirect, redirect } from "next/navigation";
 import { ArticleDetail } from "@/components/site/article-detail";
 import { BookmarkNotice } from "@/components/site/bookmark-notice";
 import { getArticleBySlug, getArticleMetadata, getPublishedArticleSlugs } from "@/lib/articles";
+import { getRedirectTarget } from "@/lib/redirects";
 
 /**
  * Yayımlanan bir haber nadiren değişir, ama düzeltme aynı adreste yayımlanır; beş
@@ -36,7 +37,19 @@ export default async function ArticlePage({ params }: { params: Promise<{ slug: 
   const { slug } = await params;
   const article = await getArticleBySlug(slug);
 
-  if (!article) notFound();
+  if (!article) {
+    // Adresi değişmiş bir haber olabilir. Sorgu yalnızca bu yolda çalışıyor;
+    // bulunan her habere bir gidiş-dönüş daha eklemenin anlamı yok.
+    const target = await getRedirectTarget(`/haber/${slug}`);
+    if (target) {
+      if (target.statusCode === 301 || target.statusCode === 308) {
+        permanentRedirect(target.toPath);
+      }
+      redirect(target.toPath);
+    }
+
+    notFound();
+  }
 
   return (
     <>

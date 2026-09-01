@@ -4,9 +4,10 @@ import { ArrowRight } from "@phosphor-icons/react/dist/ssr/ArrowRight";
 import { Clock } from "@phosphor-icons/react/dist/ssr/Clock";
 import { MapPin } from "@phosphor-icons/react/dist/ssr/MapPin";
 import { NotePencil } from "@phosphor-icons/react/dist/ssr/NotePencil";
-import type { ArticleBodyBlock, ArticleDetail as ArticleDetailType } from "@/lib/articles";
+import type { ArticleDetail as ArticleDetailType } from "@/lib/articles";
 import { siteConfig } from "@/lib/site";
 import { ArticleActions } from "@/components/site/article-actions";
+import { BodyBlock } from "@/components/site/article-body";
 import styles from "./article-detail.module.css";
 
 function AdSlot({ placement }: { placement: "ARTICLE_MID" | "ARTICLE_END" }) {
@@ -17,23 +18,6 @@ function AdSlot({ placement }: { placement: "ARTICLE_MID" | "ARTICLE_END" }) {
       <small>{placement}</small>
     </aside>
   );
-}
-
-function BodyBlock({ block, index }: { block: ArticleBodyBlock; index: number }) {
-  if (block.type === "heading") {
-    return <h2>{block.text}</h2>;
-  }
-
-  if (block.type === "quote") {
-    return (
-      <blockquote>
-        <p>“{block.text}”</p>
-        <cite>{block.attribution}</cite>
-      </blockquote>
-    );
-  }
-
-  return <p className={index === 0 ? styles.leadParagraph : undefined}>{block.text}</p>;
 }
 
 export function ArticleDetail({ article }: { article: ArticleDetailType }) {
