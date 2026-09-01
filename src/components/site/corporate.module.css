@@ -1,0 +1,209 @@
+/*
+ * Kurumsal sayfaların ortak tipografisi. Haber detayının okuma sütunuyla aynı
+ * ölçüde (42rem) duruyor ki künye ile haber aynı siteden okunuyormuş gibi
+ * hissettirsin; ama başlık ortalanmıyor — bunlar belge, manşet değil.
+ */
+.document {
+  width: min(100% - 2rem, 42rem);
+  margin-inline: auto;
+  padding-block: clamp(2.5rem, 5vw, 4rem) clamp(4rem, 8vw, 6rem);
+}
+
+.header {
+  padding-bottom: 1.9rem;
+  border-bottom: 1px solid rgb(13 27 42 / 14%);
+}
+
+.header > .eyebrow {
+  color: var(--color-teal);
+}
+
+.title {
+  margin: 0.6rem 0 0;
+  font-size: clamp(2rem, 4.4vw, 2.85rem);
+  font-weight: 520;
+  letter-spacing: -0.03em;
+  line-height: 1.12;
+}
+
+.lede {
+  margin: 1rem 0 0;
+  color: var(--color-ink-muted);
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-size: clamp(1.08rem, 1.5vw, 1.25rem);
+  line-height: 1.55;
+  text-wrap: pretty;
+}
+
+.prose {
+  margin-top: 2.4rem;
+}
+
+.prose h2 {
+  margin: 2.6rem 0 0.85rem;
+  font-family: var(--font-newsreader), Georgia, serif;
+  font-size: clamp(1.35rem, 2.2vw, 1.6rem);
+  font-weight: 550;
+  letter-spacing: -0.03em;
+  line-height: 1.25;
+}
+
+.prose h2:first-child {
+  margin-top: 0;
+}
+
+.prose h3 {
+  margin: 1.8rem 0 0.5rem;
+  font-size: 1.02rem;
+  font-weight: 750;
+}
+
+.prose p {
+  margin: 0 0 1.1rem;
+  font-size: 0.97rem;
+  line-height: 1.72;
+}
+
+.prose ul,
+.prose ol {
+  margin: 0 0 1.2rem;
+  padding-left: 1.15rem;
+}
+
+.prose li {
+  margin-bottom: 0.55rem;
+  font-size: 0.97rem;
+  line-height: 1.65;
+}
+
+.prose a {
+  color: var(--color-teal);
+  font-weight: 650;
+  text-underline-offset: 3px;
+}
+
+.prose strong {
+  font-weight: 750;
+}
+
+/* Çerez adları gibi birebir yazılması gereken değerler. */
+.prose code {
+  padding: 0.1rem 0.35rem;
+  border-radius: 0.35rem;
+  background: rgb(13 27 42 / 7%);
+  font-size: 0.88em;
+}
+
+/*
+ * Künye ve iletişim bilgileri: iki sütunlu bir künye tablosu değil, etiket +
+ * değer çiftleri. Değerlerin çoğu şu an yer tutucu, bu yüzden satırlar arası
+ * boşluk cömert — doldurulunca da aynı ölçüde okunur kalıyor.
+ */
+.factList {
+  display: grid;
+  gap: 0.95rem;
+  margin: 0 0 1.6rem;
+}
+
+.factList > div {
+  display: grid;
+  gap: 0.2rem;
+  padding-bottom: 0.95rem;
+  border-bottom: 1px solid rgb(13 27 42 / 10%);
+}
+
+.factList > div:last-child {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+
+.factList dt {
+  color: var(--color-ink-muted);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.13em;
+  text-transform: uppercase;
+}
+
+.factList dd {
+  margin: 0;
+  font-size: 0.97rem;
+  line-height: 1.6;
+}
+
+@media (min-width: 640px) {
+  .factList > div {
+    grid-template-columns: 12rem minmax(0, 1fr);
+    align-items: baseline;
+    gap: 1.5rem;
+  }
+}
+
+/*
+ * Doldurulmamış gerçek bilgi. `mark` ile işaretli: hem ekranda göze çarpıyor
+ * hem de "bu metin taslak" bilgisi biçimlendirme kapalıyken de kayboluyor
+ * değil. `data-doldurulacak` ile sayfada kaç tane kaldığı sayılabiliyor:
+ * `document.querySelectorAll("[data-doldurulacak]").length`
+ */
+.placeholder {
+  padding: 0.12rem 0.4rem;
+  border: 1px dashed rgb(201 140 58 / 65%);
+  border-radius: 0.4rem;
+  background: rgb(201 140 58 / 14%);
+  color: #7c5119;
+  font-size: 0.85em;
+  font-weight: 750;
+  white-space: normal;
+}
+
+/* Sayfa başındaki "bu metin henüz onaylanmadı" uyarısı. */
+.draftNotice {
+  display: grid;
+  gap: 0.4rem;
+  margin-top: 1.6rem;
+  padding: 1rem 1.15rem;
+  border: 1px dashed rgb(201 140 58 / 55%);
+  border-radius: var(--radius-control);
+  background: rgb(201 140 58 / 9%);
+}
+
+.draftNotice > span {
+  color: #7c5119;
+}
+
+.draftNotice > p {
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: 0.83rem;
+  line-height: 1.6;
+}
+
+/* Belgenin sonundaki kardeş sayfa bağlantıları. */
+.related {
+  margin-top: 3rem;
+  padding-top: 1.6rem;
+  border-top: 1px solid rgb(13 27 42 / 14%);
+}
+
+.relatedLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+}
+
+.relatedLinks a {
+  padding: 0.45rem 0.85rem;
+  border: 1px solid rgb(13 27 42 / 14%);
+  border-radius: var(--radius-pill);
+  background: var(--color-white);
+  font-size: 0.78rem;
+  font-weight: 750;
+  text-decoration: none;
+}
+
+.relatedLinks a:hover {
+  border-color: var(--color-teal);
+  background: rgb(12 124 134 / 7%);
+  color: var(--color-teal);
+}
