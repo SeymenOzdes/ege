@@ -8,6 +8,9 @@
   --color-ink-muted: #52606d;
   --color-teal: #0c7c86;
   --color-ochre: #c98c3a;
+  /* Kart, input ve ayraç çizgileri. Kağıt tonuyla uyumlu yumuşak bir çizgi;
+     tanımsız kaldığında kenarlıklar currentColor'a, arka planlar şeffafa düşer. */
+  --color-line: #e3ddd2;
   --color-white: #ffffff;
   --radius-control: 1.125rem;
   --radius-media: 1.5rem;

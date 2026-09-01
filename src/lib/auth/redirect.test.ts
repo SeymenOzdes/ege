@@ -16,6 +16,7 @@ describe("auth redirect safety", () => {
 describe("login notices", () => {
   it("maps configured authentication error states to user-safe text", () => {
     expect(loginNotice("link_invalid", undefined)?.tone).toBe("error");
+    expect(loginNotice("google_failed", undefined)?.tone).toBe("error");
     expect(loginNotice(undefined, "1")?.tone).toBe("success");
     expect(loginNotice("unexpected", undefined)).toBeUndefined();
   });

@@ -68,5 +68,12 @@ export function loginNotice(error: string | undefined, sent: string | undefined)
     };
   }
 
+  if (error === "google_failed") {
+    return {
+      tone: "error" as const,
+      text: "Google ile giriş tamamlanamadı. Lütfen tekrar deneyin veya e-posta bağlantısını kullanın.",
+    };
+  }
+
   return undefined;
 }

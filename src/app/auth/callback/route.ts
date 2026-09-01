@@ -5,25 +5,30 @@ import {
   getSafeRedirectPath,
   pendingBookmarkCookie,
 } from "@/lib/auth/redirect";
+import { savePendingBookmark } from "@/lib/auth/pending-bookmark";
 import { hasSupabasePublicConfig } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
-import { savePendingBookmark } from "@/lib/auth/pending-bookmark";
 
+/**
+ * Google, kullanıcıyı onay verdikten sonra `code` (ve hata durumunda `error`)
+ * parametreleriyle bu adrese geri döner. Kod, Supabase'in PKCE oturum
+ * çerezleriyle takas edilir; akış `/auth/confirm` rotasını birebir izler.
+ */
 export async function GET(request: NextRequest) {
   if (!hasSupabasePublicConfig()) {
     return NextResponse.redirect(new URL("/giris?error=not_configured", request.url));
   }
 
-  const tokenHash = request.nextUrl.searchParams.get("token_hash");
-  const type = request.nextUrl.searchParams.get("type");
-  if (!tokenHash || type !== "email") {
-    return NextResponse.redirect(new URL("/giris?error=link_invalid", request.url));
+  const oauthError = request.nextUrl.searchParams.get("error");
+  const code = request.nextUrl.searchParams.get("code");
+  if (oauthError || !code) {
+    return NextResponse.redirect(new URL("/giris?error=google_failed", request.url));
   }
 
   const supabase = await createClient();
-  const { error } = await supabase.auth.verifyOtp({ token_hash: tokenHash, type: "email" });
+  const { error } = await supabase.auth.exchangeCodeForSession(code);
   if (error) {
-    return NextResponse.redirect(new URL("/giris?error=link_invalid", request.url));
+    return NextResponse.redirect(new URL("/giris?error=google_failed", request.url));
   }
 
   const cookieStore = await cookies();

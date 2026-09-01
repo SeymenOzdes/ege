@@ -62,6 +62,35 @@ export async function sendMagicLink(formData: FormData) {
   redirect("/giris?sent=1");
 }
 
+export async function signInWithGoogle(formData: FormData) {
+  if (!hasSupabasePublicConfig()) {
+    redirect("/giris?error=not_configured");
+  }
+
+  const nextPath = getSafeRedirectPath(formData.get("next"), "/");
+  const cookieStore = await cookies();
+  cookieStore.set(authRedirectCookie, nextPath, authCookieOptions);
+
+  const supabase = await createClient();
+  const { data, error } = await supabase.auth.signInWithOAuth({
+    provider: "google",
+    options: {
+      // Google, kullanıcıyı onay verdikten sonra bu adrese `code` parametresiyle
+      // geri döner; oturum takası /auth/callback rotasında yapılır.
+      redirectTo: `${await requestOrigin()}/auth/callback`,
+    },
+  });
+
+  if (error || !data.url) {
+    redirect("/giris?error=google_failed");
+  }
+
+  // Sunucu tarafında tarayıcı yönlendirmesi yapılmaz; `skipBrowserRedirect`
+  // varsayılanı zaten budur. `redirect()` harici adres için tam sayfa
+  // navigasyonu tetikler ve okuru Google onay ekranına götürür.
+  redirect(data.url);
+}
+
 export async function signOut() {
   if (hasSupabasePublicConfig()) {
     const supabase = await createClient();
