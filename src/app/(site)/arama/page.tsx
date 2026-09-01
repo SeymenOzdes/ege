@@ -6,7 +6,7 @@ import { MagnifyingGlass } from "@phosphor-icons/react/dist/ssr/MagnifyingGlass"
 import { ArticleCard } from "@/components/site/article-card";
 import { Pager } from "@/components/site/archive-list";
 import { HighlightedText } from "@/components/site/highlighted-text";
-import { parsePageNumber } from "@/lib/archives";
+import { parsePageNumber } from "@/lib/pagination";
 import { getSearchFacets, searchArticles } from "@/lib/search";
 import {
   SEARCH_QUERY_MAX_LENGTH,

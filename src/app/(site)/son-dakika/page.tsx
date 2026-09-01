@@ -1,7 +1,13 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArchiveList } from "@/components/site/archive-list";
-import { getLatestArticles, paginateEntries, parsePageNumber } from "@/lib/archives";
+import { getLatestArticles } from "@/lib/archives";
+import { parsePageNumber } from "@/lib/pagination";
+
+// Arşiv sayfalaması `?sayfa=` ile yapılıyor; arama parametresi okuyan bir rota
+// Next'te istek zamanlıdır, dolayısıyla burada `revalidate` yazmak yanıltıcı olurdu.
+// Bu sayfaları da önbelleğe almak sayfalamayı yol parçasına taşımayı gerektirir
+// (`/son-dakika/sayfa/2`) — ayrı bir iş, adres değişikliği demek.
 
 export const metadata: Metadata = {
   title: "Son Dakika",
@@ -14,8 +20,7 @@ export default async function SonDakikaPage({
 }: {
   searchParams: Promise<{ sayfa?: string }>;
 }) {
-  const latest = getLatestArticles();
-  const page = paginateEntries(latest, parsePageNumber((await searchParams).sayfa));
+  const page = await getLatestArticles(parsePageNumber((await searchParams).sayfa));
 
   if (!page) notFound();
 
@@ -29,6 +34,7 @@ export default async function SonDakikaPage({
       currentPage={page.currentPage}
       totalPages={page.totalPages}
       total={page.total}
+      loadError={page.loadError}
     />
   );
 }

@@ -1,6 +1,36 @@
+import type { Metadata } from "next";
 import { ArticleCard, Badge, Button, LoadingCard, TextInput } from "@/components/site/ui";
 import { HomepageState } from "@/components/site/homepage";
-import { homepagePreviewArticle } from "@/lib/homepage";
+import type { ArticlePreview } from "@/lib/homepage";
+
+/**
+ * İç tasarım belgesi: herkese açık ama arama sonuçlarında haberlerin arasında
+ * görünmesi istenmiyor. `robots.txt` de bu yolu kapatıyor; ikisi birlikte hem
+ * taramayı hem dizine girmeyi engelliyor.
+ */
+export const metadata: Metadata = {
+  title: "Stil Rehberi",
+  robots: { index: false, follow: false },
+};
+
+/**
+ * The style guide documents the card component, not the newsroom, so it keeps its
+ * own fixture rather than reading the database — a quiet news day must never leave
+ * this page blank.
+ */
+const previewArticle: ArticlePreview = {
+  id: "style-guide-preview",
+  slug: "izmirin-kiyi-rotalari",
+  title: "Körfezin iki yakasında sabah: İzmir'in yeni kıyı rotaları",
+  summary:
+    "Deniz ulaşımı, yaya yolları ve kıyı yaşamını aynı hatta buluşturan yeni bir kent ritmi.",
+  topic: "Kent",
+  topicSlug: "gundem",
+  location: "İzmir",
+  publishedLabel: "09:42",
+  readingTime: "4 dk",
+  mediaTone: "teal",
+};
 
 export default function StyleGuidePage() {
   return (
@@ -49,7 +79,7 @@ export default function StyleGuidePage() {
         </section>
         <section className="style-panel">
           <h2>Haber kartı</h2>
-          <ArticleCard article={homepagePreviewArticle} variant="topic" />
+          <ArticleCard article={previewArticle} variant="topic" />
         </section>
         <section className="style-panel">
           <h2>Medya ve yükleniyor</h2>

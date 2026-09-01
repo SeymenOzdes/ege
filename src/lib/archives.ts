@@ -1,8 +1,15 @@
-import type { ArticlePreview } from "@/lib/homepage";
-import { allPreviewArticles } from "@/lib/homepage";
+import "server-only";
 
-/** Entries shown per archive page. */
-export const ARCHIVE_PAGE_SIZE = 6;
+import { cache } from "react";
+import {
+  ARTICLE_PREVIEW_SELECTION,
+  articleRowToPreview,
+  type ArticleJoinRow,
+} from "@/lib/article-preview";
+import type { ArticlePreview } from "@/lib/homepage";
+import { ARCHIVE_PAGE_SIZE, normalizeArchiveSlug, pageRange } from "@/lib/pagination";
+import { createAnonClient } from "@/lib/supabase/anon";
+import { hasSupabasePublicConfig } from "@/lib/supabase/config";
 
 export type ArchiveAuthor = {
   name: string;
@@ -11,17 +18,12 @@ export type ArchiveAuthor = {
   bio: string;
 };
 
-export type ArchiveArticle = ArticlePreview & {
-  authorSlug: string;
-  /** ISO 8601 timestamp with timezone offset; drives archive ordering. */
-  publishedAt: string;
-};
-
 export type ArchivePage = {
-  entries: ArchiveArticle[];
+  entries: ArticlePreview[];
   currentPage: number;
   totalPages: number;
   total: number;
+  loadError: boolean;
 };
 
 export type CategoryArchive = {
@@ -29,191 +31,220 @@ export type CategoryArchive = {
   kind: "topic" | "location";
   name: string;
   description: string | null;
-  articles: ArchiveArticle[];
+  page: ArchivePage;
 };
 
-const authors: Record<string, ArchiveAuthor> = {
-  "ece-aksoy": {
-    name: "Ece Aksoy",
-    slug: "ece-aksoy",
-    role: "Yerel yaşam muhabiri",
-    bio: "Ege'nin şehirlerinde yerel yaşam, dayanışma ve kent kültürü üzerine haberler hazırlıyor.",
-  },
-  "elif-demir": {
-    name: "Elif Demir",
-    slug: "elif-demir",
-    role: "Ekonomi muhabiri",
-    bio: "Üretimi, emeği ve zanaatı sahadan izliyor; Ege'nin tarlalarını ve atölyelerini takip ediyor.",
-  },
-  "kerem-aydin": {
-    name: "Kerem Aydın",
-    slug: "kerem-aydin",
-    role: "Kent ve ulaşım muhabiri",
-    bio: "Kamusal yaşam, kıyı hatları ve raylı sistemler üzerine haberler hazırlıyor.",
-  },
-};
-
-// Demo-day enrichment for the homepage preview catalog. When a preview is added
-// to the homepage catalog, it must receive catalog metadata here as well.
-const catalogMetadata: Record<string, { authorSlug: string; publishedAt: string }> = {
-  "izmirin-kiyi-rotalari": { authorSlug: "kerem-aydin", publishedAt: "2026-08-27T09:42:00+03:00" },
-  "zeytinin-yeni-hasat-hikayesi": {
-    authorSlug: "elif-demir",
-    publishedAt: "2026-08-27T09:18:00+03:00",
-  },
-  "antik-kentlerde-yaz-aksamlari": {
-    authorSlug: "ece-aksoy",
-    publishedAt: "2026-08-26T08:55:00+03:00",
-  },
-  "ege-hattinda-rayli-ulasim": {
-    authorSlug: "kerem-aydin",
-    publishedAt: "2026-08-26T08:12:00+03:00",
-  },
-  "kiyi-koylerinde-deniz-nobetleri": {
-    authorSlug: "ece-aksoy",
-    publishedAt: "2026-08-25T07:48:00+03:00",
-  },
-  "yerel-tasarim-atolyeleri": { authorSlug: "elif-demir", publishedAt: "2026-08-24T07:20:00+03:00" },
-  "gediz-ovasinda-toprak-takibi": {
-    authorSlug: "elif-demir",
-    publishedAt: "2026-08-23T06:58:00+03:00",
-  },
-  "mahallede-ortak-sofra": { authorSlug: "ece-aksoy", publishedAt: "2026-08-22T06:30:00+03:00" },
-  "mahalle-pazarlarinda-yerel-urun": {
-    authorSlug: "ece-aksoy",
-    publishedAt: "2026-08-18T08:37:00+03:00",
-  },
-};
-
-// Canonical topic names/descriptions mirror the seeded database topics.
-const topicsBySlug: Record<string, { name: string; description: string }> = {
-  gundem: { name: "Gündem", description: "Ege Bölgesi gündemi ve kamusal yaşam." },
-  ekonomi: { name: "Ekonomi", description: "Yerel ekonomi, üretim ve emek." },
-  "kultur-sanat": { name: "Kültür-Sanat", description: "Kültür, sanat ve tarih." },
-  yasam: { name: "Yaşam", description: "Günlük yaşam, çevre ve topluluk." },
-};
-
-// Canonical Aegean provinces mirror the seeded database locations.
-const locationsBySlug: Record<string, string> = {
-  izmir: "İzmir",
-  aydin: "Aydın",
-  mugla: "Muğla",
-  manisa: "Manisa",
-  denizli: "Denizli",
-  balikesir: "Balıkesir",
-};
-
-function sortByPublishedDesc(items: ArchiveArticle[]): ArchiveArticle[] {
-  // Same-offset ISO timestamps sort chronologically without parsing.
-  return [...items].sort((a, b) =>
-    a.publishedAt < b.publishedAt ? 1 : a.publishedAt > b.publishedAt ? -1 : 0,
-  );
+function errorPage(currentPage: number): ArchivePage {
+  return { entries: [], currentPage, totalPages: 1, total: 0, loadError: true };
 }
 
-function buildCatalog(): ArchiveArticle[] {
-  return allPreviewArticles.map((preview) => {
-    const meta = catalogMetadata[preview.slug];
-    if (!meta) {
-      throw new Error(`Missing archive metadata for "${preview.slug}". Add it to catalogMetadata.`);
-    }
-    return { ...preview, authorSlug: meta.authorSlug, publishedAt: meta.publishedAt };
-  });
-}
+type SupabaseClient = ReturnType<typeof createAnonClient>;
 
-const catalog = sortByPublishedDesc(buildCatalog());
-
-const articlesByAuthorSlug: Map<string, ArchiveArticle[]> = (() => {
-  const buckets = new Map<string, ArchiveArticle[]>();
-  for (const article of catalog) {
-    const bucket = buckets.get(article.authorSlug) ?? [];
-    bucket.push(article);
-    buckets.set(article.authorSlug, bucket);
-  }
-  return buckets;
-})();
-
-/** Newest-first catalog across all demo articles. */
-export function getLatestArticles(): ArchiveArticle[] {
-  return catalog;
-}
-
-/** Lowercases slugs so Turkish route segments stay case-insensitive. */
-export function normalizeArchiveSlug(slug: string): string {
-  return slug.toLowerCase();
-}
-
-export function getAuthorBySlug(slug: string): ArchiveAuthor | undefined {
-  return authors[normalizeArchiveSlug(slug)];
-}
-
-export function getAuthorArticles(slug: string): ArchiveArticle[] {
-  const articles = articlesByAuthorSlug.get(normalizeArchiveSlug(slug)) ?? [];
-  return sortByPublishedDesc(articles);
-}
+type CountedRows = { data: unknown; count: number | null; error: { code?: string } | null };
 
 /**
- * Resolves `/kategori/[slug]` archives. Topics take precedence; otherwise the
- * slug is treated as a province so the header city navigation works.
+ * PostgREST answers an offset past the last row with 416 `PGRST103` rather than an
+ * empty page. That is a page number out of range, not a broken query, so it has to
+ * reach the not-found boundary instead of the "connection failed" panel.
  */
-export function getCategoryArchive(slug: string): CategoryArchive | undefined {
-  const normalized = normalizeArchiveSlug(slug);
-
-  const topic = topicsBySlug[normalized];
-  if (topic) {
-    return {
-      slug: normalized,
-      kind: "topic",
-      name: topic.name,
-      description: topic.description,
-      articles: sortByPublishedDesc(catalog.filter((a) => a.topicSlug === normalized)),
-    };
-  }
-
-  const locationName = locationsBySlug[normalized];
-  if (locationName) {
-    return {
-      slug: normalized,
-      kind: "location",
-      name: locationName,
-      description: null,
-      articles: sortByPublishedDesc(catalog.filter((a) => a.location === locationName)),
-    };
-  }
-
-  return undefined;
-}
-
-/** Related stories newest-first, excluding the current article. */
-export function getRelatedArticles(currentSlug: string, limit = 2): ArticlePreview[] {
-  return catalog.filter((article) => article.slug !== currentSlug).slice(0, limit);
-}
-
-/** Normalizes a raw `sayfa` query value into a usable page number. */
-export function parsePageNumber(value: string | undefined): number {
-  if (!value) return 1;
-  const parsed = Number.parseInt(value, 10);
-  return Number.isInteger(parsed) && parsed >= 1 && parsed <= 10_000 ? parsed : 1;
-}
+const RANGE_NOT_SATISFIABLE = "PGRST103";
 
 /**
- * Slices an archive into pages. Returns `undefined` for out-of-range requests
- * so routes can render the permanent not-found boundary.
+ * Shared newest-first, counted page over `articles`.
+ *
+ * Paging happens in the database rather than by slicing an array in memory, so an
+ * archive costs one bounded query no matter how large the catalogue grows. Returns
+ * `undefined` for an out-of-range page so routes can render the not-found boundary,
+ * and never throws — a failed query comes back as `loadError`.
  */
-export function paginateEntries(
-  items: ArchiveArticle[],
+async function readArchivePage(
   pageNumber: number,
-): ArchivePage | undefined {
-  const total = items.length;
-  const totalPages = Math.max(1, Math.ceil(total / ARCHIVE_PAGE_SIZE));
+  run: (supabase: SupabaseClient) => PromiseLike<CountedRows>,
+): Promise<ArchivePage | undefined> {
   const currentPage = Number.isInteger(pageNumber) && pageNumber >= 1 ? pageNumber : 1;
+  if (!hasSupabasePublicConfig()) return errorPage(currentPage);
 
+  const supabase = createAnonClient();
+  const { data, count, error } = await run(supabase);
+
+  if (error) {
+    if (error.code === RANGE_NOT_SATISFIABLE) return undefined;
+    return errorPage(currentPage);
+  }
+
+  const total = count ?? 0;
+  const totalPages = Math.max(1, Math.ceil(total / ARCHIVE_PAGE_SIZE));
+  // An empty archive still has a valid first page; anything beyond is a 404.
   if (currentPage > totalPages) return undefined;
 
-  const start = (currentPage - 1) * ARCHIVE_PAGE_SIZE;
+  const now = new Date();
   return {
-    entries: items.slice(start, start + ARCHIVE_PAGE_SIZE),
+    entries: ((data ?? []) as ArticleJoinRow[]).map((row) => articleRowToPreview(row, now)),
     currentPage,
     totalPages,
     total,
+    loadError: false,
   };
+}
+
+/** Newest-first feed across every published article. */
+export const getLatestArticles = cache(
+  async (page: number): Promise<ArchivePage | undefined> =>
+    readArchivePage(page, (supabase) =>
+      supabase
+        .from("articles")
+        .select(ARTICLE_PREVIEW_SELECTION, { count: "exact" })
+        .order("published_at", { ascending: false })
+        .range(...pageRange(page)),
+    ),
+);
+
+export const getAuthorBySlug = cache(async (slug: string): Promise<ArchiveAuthor | undefined> => {
+  if (!hasSupabasePublicConfig()) return undefined;
+
+  const supabase = createAnonClient();
+  const { data } = await supabase
+    .from("authors")
+    .select("name, slug, role_label, bio")
+    .eq("slug", normalizeArchiveSlug(slug))
+    .maybeSingle();
+
+  if (!data) return undefined;
+
+  return {
+    name: data.name,
+    slug: data.slug,
+    role: data.role_label ?? "Muhabir",
+    bio: data.bio ?? "",
+  };
+});
+
+export const getAuthorArticles = cache(
+  async (slug: string, page: number): Promise<ArchivePage | undefined> =>
+    readArchivePage(page, (supabase) =>
+      supabase
+        .from("articles")
+        // Filtering an embedded resource needs `!inner`, otherwise the join is a
+        // left join and unrelated articles survive the filter as null authors.
+        .select(`${ARTICLE_PREVIEW_SELECTION}, author:authors!inner(slug)`, { count: "exact" })
+        .eq("author.slug", normalizeArchiveSlug(slug))
+        .order("published_at", { ascending: false })
+        .range(...pageRange(page)),
+    ),
+);
+
+/**
+ * Resolves `/kategori/[slug]` archives. Topics take precedence; otherwise the slug
+ * is treated as a province so the header city navigation works.
+ */
+export const getCategoryArchive = cache(
+  async (slug: string, page: number): Promise<CategoryArchive | undefined> => {
+    if (!hasSupabasePublicConfig()) return undefined;
+
+    const normalized = normalizeArchiveSlug(slug);
+    const supabase = createAnonClient();
+
+    const { data: topic } = await supabase
+      .from("topics")
+      .select("id, name, slug, description")
+      .eq("slug", normalized)
+      .maybeSingle();
+
+    if (topic) {
+      const archivePage = await readArchivePage(page, (db) =>
+        db
+          .from("articles")
+          .select(ARTICLE_PREVIEW_SELECTION, { count: "exact" })
+          .eq("topic_id", topic.id)
+          .order("published_at", { ascending: false })
+          .range(...pageRange(page)),
+      );
+
+      if (!archivePage) return undefined;
+
+      return {
+        slug: topic.slug,
+        kind: "topic",
+        name: topic.name,
+        description: topic.description,
+        page: archivePage,
+      };
+    }
+
+    const { data: location } = await supabase
+      .from("locations")
+      .select("id, name, slug")
+      .eq("slug", normalized)
+      .maybeSingle();
+
+    if (!location) return undefined;
+
+    const archivePage = await readArchivePage(page, (db) =>
+      db
+        .from("articles")
+        .select(ARTICLE_PREVIEW_SELECTION, { count: "exact" })
+        .eq("location_id", location.id)
+        .order("published_at", { ascending: false })
+        .range(...pageRange(page)),
+    );
+
+    if (!archivePage) return undefined;
+
+    return {
+      slug: location.slug,
+      kind: "location",
+      name: location.name,
+      description: null,
+      page: archivePage,
+    };
+  },
+);
+
+/**
+ * Related stories for the article detail page: same topic first, newest-first,
+ * excluding the current article. Falls back to the general feed when the topic is
+ * too thin (or absent) so the section is never left half-filled.
+ */
+export async function getRelatedArticles(
+  articleId: string,
+  topicId: string | null,
+  limit = 2,
+): Promise<ArticlePreview[]> {
+  if (!hasSupabasePublicConfig()) return [];
+
+  const supabase = createAnonClient();
+  const now = new Date();
+  const collected = new Map<string, ArticlePreview>();
+
+  const absorb = (rows: unknown) => {
+    for (const row of (rows ?? []) as ArticleJoinRow[]) {
+      if (collected.size >= limit) return;
+      if (row.id === articleId || collected.has(row.id)) continue;
+      collected.set(row.id, articleRowToPreview(row, now));
+    }
+  };
+
+  if (topicId) {
+    const { data } = await supabase
+      .from("articles")
+      .select(ARTICLE_PREVIEW_SELECTION)
+      .eq("topic_id", topicId)
+      .neq("id", articleId)
+      .order("published_at", { ascending: false })
+      .limit(limit);
+    absorb(data);
+  }
+
+  if (collected.size < limit) {
+    const { data } = await supabase
+      .from("articles")
+      .select(ARTICLE_PREVIEW_SELECTION)
+      .neq("id", articleId)
+      .order("published_at", { ascending: false })
+      // Over-fetch so same-topic rows already collected can be skipped.
+      .limit(limit * 2);
+    absorb(data);
+  }
+
+  return [...collected.values()];
 }

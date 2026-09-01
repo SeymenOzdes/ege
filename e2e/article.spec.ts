@@ -9,9 +9,10 @@ test("opens the sample article from the homepage card", async ({ page }) => {
   await expect(page).toHaveURL(/\/haber\/mahalle-pazarlarinda-yerel-urun$/);
   await expect(page.getByRole("heading", { name: articleTitle, level: 1 })).toBeVisible();
   await expect(page.getByRole("link", { name: "Ece Aksoy" })).toBeVisible();
-  await expect(
-    page.getByRole("img", { name: /Manisa'daki bir mahalle pazarında üretici/i }),
-  ).toBeVisible();
+  // No hero figure yet: `hero_media_id` is null on every seeded article, so the
+  // figure is omitted rather than rendering a broken image.
+  await expect(page.locator("figure img")).toHaveCount(0);
+  // Headings come from the stored `body` jsonb, not from a hardcoded fixture.
   await expect(page.getByRole("heading", { name: "Dört ilçede ortak rota" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "İlgili hikâyeler" })).toBeVisible();
   await expect(page.getByText("ARTICLE_MID")).toBeVisible();

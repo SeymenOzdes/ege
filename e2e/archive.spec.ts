@@ -58,8 +58,13 @@ test("serves topic, city and author archives from existing links", async ({ page
   await expect(page.getByText("Yerel yaşam muhabiri").first()).toBeVisible();
 });
 
-test("marks sponsored sample content on the article page", async ({ page }) => {
+test("labels an article with its topic and city from the database", async ({ page }) => {
   await page.goto("/haber/mahalle-pazarlarinda-yerel-urun");
 
-  await expect(page.getByText("Sponsorlu içerik")).toBeVisible();
+  // These came from a hardcoded preview before; they are now the article's joined
+  // topic and location rows. Scoped to the article so the collapsed mobile nav's
+  // own "Yaşam" category link cannot satisfy the assertion.
+  const labels = page.locator("article").first();
+  await expect(labels.getByText("Yaşam").first()).toBeVisible();
+  await expect(labels.getByText("Manisa").first()).toBeVisible();
 });

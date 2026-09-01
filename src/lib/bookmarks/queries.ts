@@ -1,7 +1,11 @@
 import "server-only";
 
-import { ARCHIVE_PAGE_SIZE } from "@/lib/archives";
-import { countWords, toArticlePreview } from "@/lib/article-preview";
+import { ARCHIVE_PAGE_SIZE } from "@/lib/pagination";
+import {
+  ARTICLE_PREVIEW_SELECTION,
+  articleRowToPreview,
+  type ArticleJoinRow,
+} from "@/lib/article-preview";
 import type { ArticlePreview } from "@/lib/homepage";
 import { hasSupabasePublicConfig } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
@@ -20,40 +24,15 @@ export type BookmarkListResult = {
  * tarafında ise `articles_public_select` çalışır: arşivlenen veya yayından
  * kaldırılan bir haber listeden sessizce düşer, kayıt satırı ise durur.
  */
-const selection =
-  "created_at, article:articles!inner(id, slug, title, summary, published_at, body_text," +
-  " topic:topics(name, slug), location:locations(name, slug))";
+const selection = `created_at, article:articles!inner(${ARTICLE_PREVIEW_SELECTION})`;
 
 type BookmarkRow = {
   created_at: string;
-  article: {
-    id: string;
-    slug: string;
-    title: string;
-    summary: string | null;
-    published_at: string | null;
-    body_text: string | null;
-    topic: { name: string; slug: string } | null;
-    location: { name: string; slug: string } | null;
-  } | null;
+  article: ArticleJoinRow | null;
 };
 
 function toPreview(row: BookmarkRow): ArticlePreview | undefined {
-  const article = row.article;
-  if (!article) return undefined;
-
-  return toArticlePreview({
-    id: article.id,
-    slug: article.slug,
-    title: article.title,
-    summary: article.summary,
-    topic_name: article.topic?.name ?? null,
-    topic_slug: article.topic?.slug ?? null,
-    location_name: article.location?.name ?? null,
-    location_slug: article.location?.slug ?? null,
-    published_at: article.published_at,
-    word_count: countWords(article.body_text),
-  });
+  return row.article ? articleRowToPreview(row.article) : undefined;
 }
 
 const emptyResult: BookmarkListResult = {
@@ -91,22 +70,6 @@ export async function getBookmarkedArticles(page = 1): Promise<BookmarkListResul
   };
 }
 
-/**
- * Haber sayfasındaki kaydet düğmesinin başlangıç durumu.
- *
- * Sorgu `articles` üzerinden kurulur, `bookmarks` üzerinden değil: süzgeç böylece
- * gömülü kaynağın takma adına değil üst tablonun kendi sütununa uygulanır.
- * `bookmarks` gömülüsü RLS ile zaten okurun kendi satırlarına daralır.
- */
-export async function isArticleBookmarked(slug: string): Promise<boolean> {
-  if (!hasSupabasePublicConfig()) return false;
-
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("articles")
-    .select("id, bookmarks(article_id)")
-    .eq("slug", slug)
-    .maybeSingle();
-
-  return (data?.bookmarks?.length ?? 0) > 0;
-}
+// `isArticleBookmarked` buradan kaldırıldı: kaydet düğmesinin başlangıç durumu artık
+// `ArticleActions` içinde tarayıcıda çözülüyor. Sunucuda okunması haber sayfasını
+// istek zamanlı yapıyordu ve sayfa hiç önbelleğe alınamıyordu.

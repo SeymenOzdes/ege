@@ -97,6 +97,7 @@ export function FeaturedCarousel({
               key={slide.id}
               tone={slide.mediaTone}
               label={slide.location}
+              hero={slide.hero}
               className={styles.deckLayerMedia}
             />
           </div>
@@ -107,6 +108,8 @@ export function FeaturedCarousel({
             key={`media-${activeSlide.id}`}
             tone={activeSlide.mediaTone}
             label={activeSlide.location}
+            hero={activeSlide.hero}
+            priority
             className={styles.carouselMedia}
           />
           <div className={styles.carouselStory} key={`story-${activeSlide.id}`} aria-live="off">

@@ -3,11 +3,11 @@ import Link from "next/link";
 import { ArrowRight } from "@phosphor-icons/react/dist/ssr/ArrowRight";
 import { Clock } from "@phosphor-icons/react/dist/ssr/Clock";
 import { MapPin } from "@phosphor-icons/react/dist/ssr/MapPin";
-import { MegaphoneSimple } from "@phosphor-icons/react/dist/ssr/MegaphoneSimple";
 import { NotePencil } from "@phosphor-icons/react/dist/ssr/NotePencil";
-import type { ArticleBodyBlock, ArticleDetail as ArticleDetailType } from "@/lib/articles";
+import type { ArticleDetail as ArticleDetailType } from "@/lib/articles";
 import { siteConfig } from "@/lib/site";
 import { ArticleActions } from "@/components/site/article-actions";
+import { BodyBlock } from "@/components/site/article-body";
 import styles from "./article-detail.module.css";
 
 function AdSlot({ placement }: { placement: "ARTICLE_MID" | "ARTICLE_END" }) {
@@ -20,31 +20,7 @@ function AdSlot({ placement }: { placement: "ARTICLE_MID" | "ARTICLE_END" }) {
   );
 }
 
-function BodyBlock({ block, index }: { block: ArticleBodyBlock; index: number }) {
-  if (block.type === "heading") {
-    return <h2>{block.text}</h2>;
-  }
-
-  if (block.type === "quote") {
-    return (
-      <blockquote>
-        <p>“{block.text}”</p>
-        <cite>{block.attribution}</cite>
-      </blockquote>
-    );
-  }
-
-  return <p className={index === 0 ? styles.leadParagraph : undefined}>{block.text}</p>;
-}
-
-type ArticleDetailProps = {
-  article: ArticleDetailType;
-  /** Kaydet düğmesinin sunucudan gelen başlangıç durumu. */
-  isSaved: boolean;
-  isSignedIn: boolean;
-};
-
-export function ArticleDetail({ article, isSaved, isSignedIn }: ArticleDetailProps) {
+export function ArticleDetail({ article }: { article: ArticleDetailType }) {
   const articleUrl = new URL(`/haber/${article.slug}`, siteConfig.url).toString();
   const jsonLd = {
     "@context": "https://schema.org",
@@ -54,11 +30,15 @@ export function ArticleDetail({ article, isSaved, isSignedIn }: ArticleDetailPro
     datePublished: article.publishedAt,
     dateModified: article.updatedAt ?? article.publishedAt,
     mainEntityOfPage: articleUrl,
-    image: [new URL(article.hero.src, siteConfig.url).toString()],
+    // `JSON.stringify` drops undefined members, so an article without a hero
+    // simply omits `image` rather than emitting a broken URL.
+    image: article.hero ? [new URL(article.hero.src, siteConfig.url).toString()] : undefined,
     author: {
       "@type": "Person",
       name: article.author.name,
-      url: new URL(`/yazar/${article.author.slug}`, siteConfig.url).toString(),
+      url: article.author.slug
+        ? new URL(`/yazar/${article.author.slug}`, siteConfig.url).toString()
+        : undefined,
     },
     publisher: {
       "@type": "Organization",
@@ -87,11 +67,6 @@ export function ArticleDetail({ article, isSaved, isSignedIn }: ArticleDetailPro
             <span>
               <MapPin aria-hidden="true" size={14} weight="fill" /> {article.location}
             </span>
-            {article.sponsored ? (
-              <span>
-                <MegaphoneSimple aria-hidden="true" size={13} weight="fill" /> Sponsorlu içerik
-              </span>
-            ) : null}
           </div>
           <h1 className="font-editorial">{article.title}</h1>
           <p className={styles.summary}>{article.summary}</p>
@@ -104,36 +79,40 @@ export function ArticleDetail({ article, isSaved, isSignedIn }: ArticleDetailPro
             <span>{article.readingTime} okuma</span>
           </p>
 
-          <ArticleActions
-            title={article.title}
-            slug={article.slug}
-            initialSaved={isSaved}
-            isSignedIn={isSignedIn}
-          />
+          <ArticleActions title={article.title} slug={article.slug} />
         </div>
       </header>
 
-      <figure className={styles.hero}>
-        <div className={styles.heroImage}>
-          <Image
-            src={article.hero.src}
-            alt={article.hero.alt}
-            fill
-            priority
-            sizes="(max-width: 640px) calc(100vw - 2rem), (max-width: 1088px) calc(100vw - 4rem), 1024px"
-          />
-        </div>
-        <figcaption>
-          <span>{article.hero.caption}</span>
-          <small>{article.hero.credit}</small>
-        </figcaption>
-      </figure>
+      {article.hero && (
+        <figure className={styles.hero}>
+          <div className={styles.heroImage}>
+            <Image
+              src={article.hero.src}
+              alt={article.hero.alt}
+              fill
+              priority
+              sizes="(max-width: 640px) calc(100vw - 2rem), (max-width: 1088px) calc(100vw - 4rem), 1024px"
+              style={{ objectFit: "cover", objectPosition: article.hero.objectPosition }}
+            />
+          </div>
+          {/* Caption and credit are optional on the asset; an empty figcaption would
+              otherwise leave a stray gap under every uncredited photograph. */}
+          {(article.hero.caption || article.hero.credit) && (
+            <figcaption>
+              {article.hero.caption ? <span>{article.hero.caption}</span> : null}
+              {article.hero.credit ? <small>{article.hero.credit}</small> : null}
+            </figcaption>
+          )}
+        </figure>
+      )}
 
       <div className={styles.readingLayout}>
-        <aside className={styles.readingAside}>
-          <span className="eyebrow">Dosya</span>
-          <p>Yerel üretim, mahalle ekonomisi ve gıda dayanışması üzerine.</p>
-        </aside>
+        {article.topicDescription && (
+          <aside className={styles.readingAside}>
+            <span className="eyebrow">Dosya</span>
+            <p>{article.topicDescription}</p>
+          </aside>
+        )}
 
         <div className={styles.articleBody}>
           {article.body.map((block, index) => (
@@ -173,16 +152,18 @@ export function ArticleDetail({ article, isSaved, isSignedIn }: ArticleDetailPro
         </dl>
       </footer>
 
-      <section className={styles.correction} aria-labelledby="correction-title">
-        <NotePencil aria-hidden="true" size={24} weight="duotone" />
-        <div>
-          <span className="eyebrow">Şeffaflık notu</span>
-          <h2 id="correction-title" className="font-editorial">
-            Düzeltmeler
-          </h2>
-          <p>{article.correction}</p>
-        </div>
-      </section>
+      {article.correction && (
+        <section className={styles.correction} aria-labelledby="correction-title">
+          <NotePencil aria-hidden="true" size={24} weight="duotone" />
+          <div>
+            <span className="eyebrow">Şeffaflık notu</span>
+            <h2 id="correction-title" className="font-editorial">
+              Düzeltmeler
+            </h2>
+            <p>{article.correction}</p>
+          </div>
+        </section>
+      )}
 
       <section className={styles.related} aria-labelledby="related-title">
         <div className={styles.relatedHeading}>

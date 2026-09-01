@@ -35,4 +35,6 @@ Yerelde pnpm kullanılır. GitHub Actions; tür denetimi, lint, birim testleri v
 
 ## Tasarım temeli
 
-Tasarım dili; Ege mürekkebi, sıcak kırık beyaz, deniz mavisi ve kontrollü hardal vurgusuna dayanır. Newsreader editoryal metin, Inter arayüz metni için kullanılır. Keskin kutular yerine yumuşak köşeler, boşluk, ince ayırıcılar ve tipografi tercih edilir.
+Tasarım dili; Ege mürekkebi, sıcak kırık beyaz, deniz mavisi ve kontrollü hardal vurgusuna dayanır. Keskin kutular yerine yumuşak köşeler, boşluk, ince ayırıcılar ve tipografi tercih edilir.
+
+Tek yazı tipi kullanılır: **Montserrat**, `next/font/google` ile `latin-ext` alt kümesiyle yüklenir (`src/app/layout.tsx`) ve `--font-montserrat` değişkenini tanımlar. `globals.css` bunun üzerine iki rol değişkeni kurar — `--font-body` arayüz metni, `--font-display` başlık ve editoryal metin için. İkisi de bugün aynı aileye çözülüyor; ayrı durmalarının sebebi, ikinci bir aile eklenmek istenirse tek noktadan değiştirilebilmesi.

@@ -3,6 +3,7 @@ import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { getSafeRedirectPath } from "@/lib/auth/redirect";
 import { getClaimString, getUserRole, isStaffRole, type UserRole } from "@/lib/auth/roles";
+import { toCurrentUser, type CurrentUser } from "@/lib/auth/session";
 import { hasSupabasePublicConfig } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
 import { isDevAdminAutoLoginEnabled } from "@/lib/auth/dev-access";
@@ -17,17 +18,14 @@ export async function getVerifiedUserRole(): Promise<UserRole | undefined> {
   return getUserRole(data.claims);
 }
 
-export type CurrentUser = {
-  role: UserRole;
-  email?: string;
-  displayName?: string;
-};
+export type { CurrentUser };
 
 /**
- * Display-only identity for the public header. Any verifiable session counts
- * as signed in; readers whose `app_metadata.role` is not assigned yet surface
- * as READERS. Route-level authorization keeps using requireStaffRoute, which
- * never guesses roles.
+ * Display-only identity, resolved from cookies.
+ *
+ * The public shell no longer calls this — it resolves the reader in the browser via
+ * `useCurrentUser` so the pages stay cacheable. This remains for routes that render
+ * per request anyway and want the identity without a client round-trip.
  */
 export async function getCurrentUser(): Promise<CurrentUser | undefined> {
   if (!hasSupabasePublicConfig()) return undefined;
@@ -46,17 +44,12 @@ export async function getCurrentUser(): Promise<CurrentUser | undefined> {
 
   const claims = data.claims;
   const userId = getClaimString(claims, "sub");
-  const email = getClaimString(claims, "email");
 
   const { data: profile } = userId
     ? await supabase.from("profiles").select("display_name").eq("id", userId).maybeSingle()
     : { data: null };
 
-  return {
-    role: getUserRole(claims) ?? "READER",
-    email,
-    displayName: profile?.display_name ?? undefined,
-  };
+  return toCurrentUser(claims, profile?.display_name);
 }
 
 export async function requireStaffRoute(nextPath = "/yonetim") {
