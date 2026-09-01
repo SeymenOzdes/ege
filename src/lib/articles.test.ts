@@ -85,6 +85,7 @@ describe("getArticleMetadata", () => {
           credit: "Ege'nin Nabzı",
           width: 1586,
           height: 992,
+          objectPosition: "50% 50%",
         },
       }),
     );

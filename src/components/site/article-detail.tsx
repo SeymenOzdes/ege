@@ -120,12 +120,17 @@ export function ArticleDetail({ article, isSaved, isSignedIn }: ArticleDetailPro
               fill
               priority
               sizes="(max-width: 640px) calc(100vw - 2rem), (max-width: 1088px) calc(100vw - 4rem), 1024px"
+              style={{ objectFit: "cover", objectPosition: article.hero.objectPosition }}
             />
           </div>
-          <figcaption>
-            <span>{article.hero.caption}</span>
-            <small>{article.hero.credit}</small>
-          </figcaption>
+          {/* Caption and credit are optional on the asset; an empty figcaption would
+              otherwise leave a stray gap under every uncredited photograph. */}
+          {(article.hero.caption || article.hero.credit) && (
+            <figcaption>
+              {article.hero.caption ? <span>{article.hero.caption}</span> : null}
+              {article.hero.credit ? <small>{article.hero.credit}</small> : null}
+            </figcaption>
+          )}
         </figure>
       )}
 

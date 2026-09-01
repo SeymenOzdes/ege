@@ -127,6 +127,11 @@
   text-transform: uppercase;
 }
 
+/* Backdrop behind a real hero, visible only while the image decodes. */
+.mediaImage {
+  background: color-mix(in srgb, var(--color-ink) 14%, var(--color-paper));
+}
+
 .mediaTeal {
   background: #157f87;
 }

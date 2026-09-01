@@ -7,9 +7,10 @@ import {
   formatFullDateTime,
   toArticlePreview,
   type ArticlePreviewRow,
+  type MediaAssetRow,
 } from "@/lib/article-preview";
 import { getRelatedArticles } from "@/lib/archives";
-import type { ArticlePreview } from "@/lib/homepage";
+import type { ArticleImage, ArticlePreview } from "@/lib/homepage";
 import { hasSupabasePublicConfig } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
 
@@ -19,13 +20,10 @@ export type ArticleAuthor = {
   role: string;
 };
 
-export type ArticleMedia = {
-  src: string;
-  alt: string;
-  caption: string;
-  credit: string;
-  width: number;
-  height: number;
+/** A hero image plus the credit line only the detail page has room for. */
+export type ArticleMedia = ArticleImage & {
+  caption?: string;
+  credit?: string;
 };
 
 export type ArticleBodyBlock =
@@ -49,11 +47,14 @@ export type ArticleDetail = ArticlePreview & {
   related: ArticlePreview[];
 };
 
+// The hero embed names its foreign key: `articles` reaches `media_assets` through both
+// `hero_media_id` and `social_media_id`, and PostgREST rejects the ambiguity.
 const ARTICLE_DETAIL_SELECTION =
   "id, slug, title, summary, body, body_text, published_at, updated_at," +
   " topic:topics(id, name, slug, description)," +
   " location:locations(name, slug)," +
-  " author:authors(name, slug, role_label)";
+  " author:authors(name, slug, role_label)," +
+  " hero:media_assets!articles_hero_media_id_fkey(object_path, alt_text, caption, credit, width, height, focal_point_x, focal_point_y)";
 
 type ArticleDetailRow = {
   id: string;
@@ -67,6 +68,7 @@ type ArticleDetailRow = {
   topic: { id: string; name: string; slug: string; description: string | null } | null;
   location: { name: string; slug: string } | null;
   author: { name: string; slug: string; role_label: string | null } | null;
+  hero: (MediaAssetRow & { caption: string | null; credit: string | null }) | null;
 };
 
 /**
@@ -104,6 +106,7 @@ function toPreviewRow(row: ArticleDetailRow): ArticlePreviewRow {
     location_slug: row.location?.slug ?? null,
     published_at: row.published_at,
     word_count: countWords(row.body_text),
+    hero: row.hero,
   };
 }
 
@@ -135,8 +138,17 @@ export const getArticleBySlug = cache(async (slug: string): Promise<ArticleDetai
   const updatedAt =
     row.updated_at && row.updated_at > publishedAt ? row.updated_at : undefined;
 
+  const preview = toArticlePreview(toPreviewRow(row));
+
   return {
-    ...toArticlePreview(toPreviewRow(row)),
+    ...preview,
+    // The cards need no credit line; the detail figure does, so it is layered on here
+    // rather than widening the shared preview shape.
+    hero: preview.hero && {
+      ...preview.hero,
+      caption: row.hero?.caption ?? undefined,
+      credit: row.hero?.credit ?? undefined,
+    },
     author: {
       name: row.author?.name ?? "Ege'nin Nabzı",
       slug: row.author?.slug ?? "",

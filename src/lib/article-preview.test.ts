@@ -108,6 +108,58 @@ describe("toArticlePreview", () => {
     expect(preview.publishedLabel).toBe("");
     expect(preview.mediaTone).toBe("teal");
   });
+
+  it("leaves the hero unset when no asset is attached, so the colour surface stays", () => {
+    expect(toArticlePreview(row, now).hero).toBeUndefined();
+    expect(toArticlePreview({ ...row, hero: null }, now).hero).toBeUndefined();
+  });
+
+  it("resolves an attached asset into a hero the image component can render", () => {
+    const preview = toArticlePreview(
+      {
+        ...row,
+        hero: {
+          object_path: "2026/08/a1b2.jpg",
+          alt_text: "Aydın'da zeytin hasadı",
+          width: 1600,
+          height: 900,
+          focal_point_x: 0.3,
+          focal_point_y: 0.2,
+        },
+      },
+      now,
+    );
+
+    expect(preview.hero).toEqual({
+      src: "https://proje.supabase.co/storage/v1/object/public/news-media/2026/08/a1b2.jpg",
+      alt: "Aydın'da zeytin hasadı",
+      width: 1600,
+      height: 900,
+      objectPosition: "30% 20%",
+    });
+    // The tone survives alongside it: cards without a hero in the same list still draw.
+    expect(preview.mediaTone).toBe("sage");
+  });
+
+  it("tolerates an asset registered without dimensions", () => {
+    const preview = toArticlePreview(
+      {
+        ...row,
+        hero: {
+          object_path: "2026/08/c3d4.webp",
+          alt_text: "Pazar yeri",
+          width: null,
+          height: null,
+          focal_point_x: null,
+          focal_point_y: null,
+        },
+      },
+      now,
+    );
+
+    expect(preview.hero?.width).toBeUndefined();
+    expect(preview.hero?.objectPosition).toBe("50% 50%");
+  });
 });
 
 describe("countWords", () => {

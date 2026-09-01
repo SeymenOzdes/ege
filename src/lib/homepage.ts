@@ -1,5 +1,16 @@
 export type MediaTone = "teal" | "ochre" | "ink" | "sky" | "sage" | "coral";
 
+/** A `media_assets` row resolved into everything `next/image` needs. */
+export type ArticleImage = {
+  src: string;
+  alt: string;
+  /** Absent when the asset was registered without dimensions. */
+  width?: number;
+  height?: number;
+  /** `object-position`, derived from the asset's focal point. */
+  objectPosition: string;
+};
+
 export type ArticlePreview = {
   id: string;
   slug: string;
@@ -10,6 +21,8 @@ export type ArticlePreview = {
   location: string;
   publishedLabel: string;
   readingTime: string;
+  /** Absent until an editor attaches a hero asset; `mediaTone` then draws the card. */
+  hero?: ArticleImage;
   mediaTone: MediaTone;
 };
 
