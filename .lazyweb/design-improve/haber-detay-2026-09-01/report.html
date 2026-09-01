@@ -1,0 +1,340 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Design Improvement — Haber Detay</title>
+<style>
+  :root {
+    --bg: #f8f6f2; --card: #fff; --ink: #14202c; --muted: #5b6874;
+    --line: #e2ddd4; --accent: #0c7c86; --accent-soft: #e7f2f3; --ochre: #c98c3a;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root { --bg:#12171c; --card:#1a2027; --ink:#e8eaed; --muted:#9aa5b1;
+            --line:#2a323b; --accent:#4dbcc6; --accent-soft:#163033; --ochre:#d9a45c; }
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; padding: 3rem 1.25rem 6rem; background: var(--bg); color: var(--ink);
+    font: 16px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+  main { max-width: 900px; margin: 0 auto; }
+  h1 { font-size: 2.1rem; line-height: 1.2; letter-spacing: -0.02em; margin: 0 0 .4rem; }
+  h2 { font-size: 1.4rem; line-height: 1.25; letter-spacing: -0.015em;
+       margin: 3.2rem 0 1rem; padding-bottom: .5rem; border-bottom: 1px solid var(--line); }
+  h3 { font-size: 1.08rem; line-height: 1.3; margin: 2.2rem 0 .6rem; }
+  p, li { color: var(--ink); }
+  .sub { color: var(--muted); font-size: .9rem; margin: 0 0 2rem; }
+  .tldr { background: var(--accent-soft); border-left: 4px solid var(--accent);
+          border-radius: 0 10px 10px 0; padding: 1.1rem 1.3rem; margin: 0 0 2rem; }
+  .tldr p { margin: 0; }
+  figure { margin: 1.2rem 0 1.8rem; }
+  img { max-width: 100%; height: auto; display: block;
+        border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 6px 20px rgb(0 0 0 / 9%); }
+  figcaption { color: var(--muted); font-size: .84rem; line-height: 1.5; margin-top: .6rem; }
+  .tbl-wrap { overflow-x: auto; margin: 1.2rem 0 1.8rem; }
+  table { border-collapse: collapse; width: 100%; min-width: 520px; font-size: .88rem; }
+  th, td { text-align: left; padding: .55rem .7rem; border-bottom: 1px solid var(--line); }
+  th { background: var(--card); font-weight: 700; font-size: .78rem;
+       text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+  tbody tr.hl td { background: var(--accent-soft); font-weight: 600; }
+  pre { background: var(--card); border: 1px solid var(--line); border-radius: 10px;
+        padding: 1rem 1.1rem; overflow-x: auto; font-size: .8rem; line-height: 1.5; }
+  code { font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: .88em; }
+  p code, li code, td code { background: var(--card); border: 1px solid var(--line);
+        border-radius: 5px; padding: .1em .35em; }
+  .badge { display: inline-block; background: var(--accent); color: #fff; font-size: .68rem;
+        font-weight: 800; letter-spacing: .08em; text-transform: uppercase;
+        padding: .22rem .5rem; border-radius: 999px; vertical-align: middle; margin-left: .4rem; }
+  .grid2 { display: grid; gap: 1.2rem; }
+  @media (min-width: 700px) { .grid2 { grid-template-columns: 1fr 1fr; } }
+  .grid2 figure { margin: 0; }
+  .note { border: 1px dashed var(--line); border-radius: 10px; padding: 1rem 1.2rem;
+          color: var(--muted); font-size: .9rem; }
+</style>
+</head>
+<body>
+<main>
+
+<h1>Design Improvement: Haber Detay Sayfası</h1>
+<p class="sub"><code>/haber/mahalle-pazarlarinda-yerel-urun</code> · 2026-09-01 · <span class="badge">Implemented</span></p>
+
+<div class="tldr">
+<p><strong>TL;DR</strong> — The headline was set at <strong>105px</strong> on a 1440px viewport,
+roughly <strong>1.75× AP News</strong> and <strong>3× The Guardian</strong>, the two extremes of
+mainstream news practice. It consumed the entire first fold on its own. Everything below had been
+scaled up to keep pace, to the point where the "İlgili hikâyeler" section heading (72px) was
+<em>larger than the article's own headline</em>. Bringing the H1 to 60px and rebalancing the
+cascade beneath it recovers <strong>253px of the fold</strong> and cuts total page height by
+<strong>9%</strong>, without giving up the brand's bold display voice.</p>
+</div>
+
+<h2>Before &amp; After</h2>
+<div class="grid2">
+  <figure>
+    <img src="references/current.png" alt="Before: headline fills the entire fold">
+    <figcaption><strong>Before</strong> — 105px headline, 4 lines, 380px tall. The hero photo
+    begins at y≈840, fully below the fold. <code>line-height: 0.9</code> crowds the descenders on
+    <strong>ğ</strong> and <strong>ş</strong> in "dayanışma ağı".</figcaption>
+  </figure>
+  <figure>
+    <img src="references/after.png" alt="After: headline, deck, byline and photo all visible">
+    <figcaption><strong>After</strong> — 60px headline, 2 lines, 127px tall, centred on the
+    hero's axis, with the full byline moved to the article footer. The photo now enters the
+    fold.</figcaption>
+  </figure>
+</div>
+
+<h2>Evidence: what news sites actually do</h2>
+<p>Measured with Playwright at a 1440px viewport, reading computed styles off live article pages
+on 2026-09-01.</p>
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>Site</th><th>H1 size</th><th>line-height</th><th>Lines</th><th>Body</th><th>Column</th><th>Hero ratio</th></tr></thead>
+<tbody>
+<tr><td>AP News</td><td>60px</td><td>64px (1.07)</td><td>3</td><td>18px</td><td>720px</td><td>1.50</td></tr>
+<tr><td>Michelin Guide</td><td>44px</td><td>52.8px (1.20)</td><td>1</td><td>15px</td><td>630px</td><td>—</td></tr>
+<tr><td>The Guardian</td><td>34px</td><td>39.1px (1.15)</td><td>3</td><td>17px</td><td>620px</td><td>1.25</td></tr>
+<tr><td>The Atlantic</td><td>—</td><td>—</td><td>—</td><td>18px</td><td>—</td><td>1.50</td></tr>
+<tr><td>Vox</td><td>—</td><td>—</td><td>—</td><td>—</td><td>—</td><td>1.33</td></tr>
+<tr class="hl"><td>Ege'nin Nabzı (before)</td><td>105px</td><td>94px (0.90)</td><td>4</td><td>21px</td><td>672px</td><td>1.60</td></tr>
+<tr class="hl"><td>Ege'nin Nabzı (after)</td><td>60px</td><td>63.6px (1.06)</td><td>2</td><td>21px</td><td>672px</td><td>1.60</td></tr>
+</tbody>
+</table>
+</div>
+<p>Two patterns hold across every reference:</p>
+<ol>
+<li><strong>No mainstream outlet exceeds ~60px</strong> for an article H1 at desktop width. 105px
+is a magazine <em>cover</em> size applied to an article page.</li>
+<li><strong>The hero is never more than ~1.36× the width of the text column.</strong> AP runs a
+977px hero over a 720px column; The Guardian runs them flush at 620px each. Ege'nin Nabzı was
+running a 1216px hero over a 672px column — a <strong>1.81×</strong> mismatch, which is why the
+photo read as detached from the story.</li>
+</ol>
+
+<h2>Improvement Ideas</h2>
+
+<h3>1. Bring the headline to 60px and loosen the leading ⭐ <span class="badge">highest impact</span></h3>
+<p><code>clamp(3.2rem, 7.3vw, 6.8rem)</code> → <code>clamp(2.4rem, 4.3vw, 3.75rem)</code>,
+<code>line-height: 0.9</code> → <code>1.06</code>, <code>letter-spacing: -0.065em</code> →
+<code>-0.03em</code>, and <code>max-width: 13ch</code> → <code>24ch</code>.</p>
+<p>The <code>13ch</code> cap was the hidden culprit: it forced a break every ~13 characters
+regardless of available width, producing 4 lines out of a headline that comfortably fits 2.</p>
+
+<figure>
+  <img src="references/apnews-article.png" alt="AP News article page">
+  <figcaption><strong>AP News</strong> — 60px / 700 weight / <code>line-height: 1.07</code>,
+  headline over a 980px column with the photo directly beneath. The largest headline among the
+  mainstream outlets measured, which makes it the right ceiling for a brand with a bold display
+  voice. [Web]</figcaption>
+</figure>
+
+<p><strong>Why this works:</strong> matching AP's ceiling rather than the Guardian's floor keeps
+the site's assertive character. The leading change matters more than it looks in Turkish
+specifically — <code>0.9</code> clips the descenders on <strong>ğ</strong>, <strong>ş</strong>
+and <strong>ç</strong>, and "dayanışma ağı" hits two of the three.</p>
+
+<pre><code>BEFORE                          AFTER
+┌────────────────────────┐      ┌────────────────────────┐
+│ ‹ nav ›                │      │ ‹ nav ›                │
+│ Ana sayfa / Yaşam      │      │ Ana sayfa / Yaşam      │
+│ [YAŞAM][MANİSA][SPON]  │      │ [YAŞAM][MANİSA][SPON]  │
+│                        │      │                        │
+│ Mahalle       ┌──────┐ │      │ Mahalle pazarlarında   │
+│ pazarlarında  │ Ece  │ │      │ yerel ürün için yeni   │
+│ yerel ürün    │Aksoy │ │      │ dayanışma ağı  ┌─────┐ │
+│ için yeni     │ tarih│ │      │                │ Ece │ │
+│ dayanışma ağı │ ⧉ ⧉  │ │      │ Üreticiyle...  │Aksoy│ │
+│                        │      │ ...görünür     │ ⧉ ⧉ │ │
+│ Üreticiyle kentliyi    │      │ kılıyor.       └─────┘ │
+│ aracısız buluşturan…   │      │ ┌────────────────────┐ │
+├─ ─ ─ fold ─ ─ ─ ─ ─ ─ ┤      │ │  hero photo        │ │
+│ ┌────────────────────┐ │      ├─│─ ─ ─ fold ─ ─ ─ ─ ─┤ │
+└─│  hero photo (840↓) │─┘      └─└────────────────────┘─┘</code></pre>
+
+<h3>2. Narrow the hero to 64rem so it reads as part of the story</h3>
+<p><code>.hero { width: min(100% - 4rem, 64rem); margin-inline: auto; }</code> — 1216×760 →
+<strong>1024×640</strong>, a <strong>29% area reduction</strong>, with the native
+<code>1586 / 992</code> aspect ratio kept so nothing is cropped.</p>
+
+<div class="grid2">
+  <figure>
+    <img src="references/guardian-article.png" alt="The Guardian article page">
+    <figcaption><strong>The Guardian</strong> — hero photo set flush to the 620px text column, so
+    image and prose read as one object. [Web]</figcaption>
+  </figure>
+  <figure>
+    <img src="references/michelin-article.png" alt="Michelin Guide long-form article">
+    <figcaption><strong>Michelin Guide</strong> — long-form editorial, 44px H1, constrained hero
+    over a 630px reading measure. [Lazyweb — <code>guide.michelin.com</code>, Food &amp; Drink,
+    similarity 0.63]</figcaption>
+  </figure>
+</div>
+
+<p><strong>Why this works:</strong> the hero stays wider than the text (the standard editorial
+"modest bleed", as AP does) without overwhelming it. Idea 4 then pulls the header and body onto
+the same 64rem bounds, so the photo, the headline and the prose all share one frame.</p>
+
+<pre><code>   ┌────────────────────────────────────┐
+   │      headline · deck (centred)     │  64rem  (header)
+   ├──────┌──────────────────────┐──────┤
+   │      │   hero  1024 × 640   │      │  64rem  ← narrowed
+   │      └──────────────────────┘      │
+   │ Dosya    ┌──────────────┐          │
+   │          │  body 672px  │          │  centred on the same axis
+   └──────────└──────────────┘──────────┘</code></pre>
+
+<h3>3. Restore the hierarchy below the headline</h3>
+<p>Once the H1 drops, everything scaled to match the old one is visibly wrong. The section
+heading was the worst offender — at 72px it outranked the article's own title.</p>
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>Element</th><th>Before</th><th>After</th></tr></thead>
+<tbody>
+<tr><td>Deck / <code>.summary</code></td><td>26px</td><td>22px</td></tr>
+<tr><td>Body <code>h2</code></td><td>50px</td><td>30px</td></tr>
+<tr><td>Pull-quote</td><td>34px</td><td>26px</td></tr>
+<tr class="hl"><td>"İlgili hikâyeler" <code>h2</code></td><td>72px</td><td>42px</td></tr>
+<tr><td>Related story <code>h3</code></td><td>40px</td><td>26px</td></tr>
+<tr><td>"Düzeltmeler" <code>h2</code></td><td>32px</td><td>26px</td></tr>
+<tr><td>Drop cap</td><td>60px</td><td>47px</td></tr>
+</tbody>
+</table>
+</div>
+<p>Body paragraphs (21px / <code>line-height: 1.78</code> over a 42rem measure) were left
+untouched — they already sit just above AP's 18px and read well.</p>
+<p><strong>Why this works:</strong> the reader can now tell an article title from a section label
+at a glance, which is the whole job of a type scale.</p>
+
+<h3>4. Centre the header on the hero's axis and move the byline to the footer</h3>
+<p>The header was a two-column grid — headline left, byline rail right — sitting in a 76rem shell
+while the hero sat in 64rem and the body column sat off-centre by 104px. Four different axes on
+one page. Now every block shares <strong>one centre line</strong>, and the header shares the
+hero's exact 64rem bounds:</p>
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>Block</th><th>Left edge</th><th>Width</th><th>Centre</th></tr></thead>
+<tbody>
+<tr><td>Header (<code>h1</code> / deck)</td><td>—</td><td>24ch / 36rem</td><td><strong>720</strong></td></tr>
+<tr><td>Hero</td><td>208</td><td>1024</td><td><strong>720</strong></td></tr>
+<tr><td>Body column</td><td>384</td><td>672</td><td><strong>720</strong></td></tr>
+<tr><td>Side note</td><td>208</td><td>144</td><td>aligned to the hero's left edge</td></tr>
+<tr><td>Byline footer</td><td>384</td><td>672</td><td><strong>720</strong></td></tr>
+<tr><td>Correction</td><td>384</td><td>672</td><td><strong>720</strong></td></tr>
+<tr><td>Related</td><td>208</td><td>1024</td><td><strong>720</strong></td></tr>
+</tbody>
+</table>
+</div>
+<p>The reading layout changed from <code>10rem 42rem</code> (which pushed the body right of
+centre) to <code>minmax(0,1fr) 42rem minmax(0,1fr)</code>, so the body is centred by construction
+at any width and the "Dosya" side note floats in the left gutter, right-aligned against the
+text.</p>
+
+<figure>
+  <img src="references/byline-footer.png" alt="Article footer with byline and correction note">
+  <figcaption><strong>The byline moved to the article footer</strong> — author, role, published
+  date, last-updated timestamp and reading time as a two-column block at the reading measure,
+  directly above the transparency note. [Local capture]</figcaption>
+</figure>
+
+<p>A slim <code>18 Ağustos 2026, 08:37 · 4 dk okuma</code> line stays under the deck — news
+convention is that a reader can judge a story's freshness before committing to it, and the full
+künye at the bottom does not serve that. Share/save also stayed at the top; a single
+<code>ArticleActions</code> instance keeps the optimistic bookmark state in one place.</p>
+
+<pre><code>┌──────────────────────────────────────┐
+│           Ana sayfa / Yaşam          │
+│     [YAŞAM] [MANİSA] [SPONSORLU]     │
+│      Mahalle pazarlarında yerel      │  ← centred, 24ch
+│      ürün için yeni dayanışma ağı    │
+│    Üreticiyle kentliyi aracısız…     │  ← centred, 36rem
+│      🕐 18 Ağustos 2026 · 4 dk       │  ← slim freshness line
+│         [Paylaş]  [Kaydet]           │
+│  ┌────────────────────────────────┐  │
+│  │        hero 1024 × 640         │  │  ← same 64rem bounds
+│  └────────────────────────────────┘  │
+│  Dosya │  body 672px, centred        │
+│        │                             │
+│        ├─────────────────────────┐   │
+│        │ HAZIRLAYAN   YAYIMLANDI │   │  ← künye, article footer
+│        │ Ece Aksoy    SON GÜNCEL.│   │
+│        ├─────────────────────────┤   │
+│        │ Düzeltmeler             │   │
+└────────┴─────────────────────────┴───┘</code></pre>
+
+<h2>Mobile</h2>
+<div class="grid2">
+  <figure>
+    <img src="references/current-mobile.png" alt="Before, mobile">
+    <figcaption><strong>Before</strong> — 58px headline at 390px wide.</figcaption>
+  </figure>
+  <figure>
+    <img src="references/after-mobile.png" alt="After, mobile">
+    <figcaption><strong>After</strong> — 32px headline, 3 lines, 102px tall. No clipped
+    descenders, no horizontal overflow.</figcaption>
+  </figure>
+</div>
+
+<h2>What's Working</h2>
+<p>Four things were already right and were deliberately left alone:</p>
+<ol>
+<li><strong>Source order.</strong> Breadcrumb → labels → headline → deck → byline → hero → body
+matches AP, The Guardian, ProPublica and CNN exactly. No reordering was needed.</li>
+<li><strong>The reading measure.</strong> 42rem (~65ch) at 21px is textbook — wider than The
+Guardian's 620px, narrower than AP's 720px, right in the sweet spot.</li>
+<li><strong>The byline content.</strong> Author, role, timestamp, "Güncellendi" and reading time
+is the right field set — more complete than AP's inline byline. It moved from a header rail to
+the article footer (idea 4), but nothing was dropped.</li>
+<li><strong>The label row and figcaption.</strong> Category / location / sponsored disclosure as
+pills, plus a caption-and-credit pair under the photo, is proper news hygiene.
+<code>NewsArticle</code> JSON-LD is already emitted with the right fields.</li>
+</ol>
+
+<h2>Verified Results</h2>
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>Metric</th><th>Before</th><th>After</th><th>Δ</th></tr></thead>
+<tbody>
+<tr><td>H1 font size (1440px)</td><td>105px</td><td>60px</td><td>−43%</td></tr>
+<tr><td>H1 line count</td><td>4</td><td>2</td><td>−2</td></tr>
+<tr class="hl"><td>H1 block height</td><td>380px</td><td>127px</td><td>−253px</td></tr>
+<tr><td>Hero dimensions</td><td>1216 × 760</td><td>1024 × 640</td><td>−29% area</td></tr>
+<tr><td>Hero top offset</td><td>~840px</td><td>564px</td><td>−276px</td></tr>
+<tr><td>Total page height</td><td>4930px</td><td>4469px</td><td>−9%</td></tr>
+<tr><td>H1 font size (390px)</td><td>58px</td><td>32px</td><td>−45%</td></tr>
+<tr class="hl"><td>Distinct horizontal axes</td><td>4 (76 / 64 / 57+offset)</td><td>1</td><td>—</td></tr>
+<tr><td>Mobile horizontal overflow</td><td>none</td><td>none</td><td>—</td></tr>
+</tbody>
+</table>
+</div>
+<p><code>e2e/article.spec.ts</code> — 7 passed, 1 skipped (the mobile-only projection skip).</p>
+
+<h2>Open Item</h2>
+<p class="note"><code>public/images/mahalle-pazari-dayanisma.png</code> is a <strong>2.4 MB
+PNG</strong> served with <code>priority</code> on this page. Converting it to WebP/AVIF is the
+largest remaining performance win here and is unrelated to sizing — worth a separate pass.</p>
+
+<h2>All References</h2>
+<div class="tbl-wrap">
+<table>
+<thead><tr><th>Reference</th><th>Source</th><th>What it shows</th></tr></thead>
+<tbody>
+<tr><td><code>apnews-article.png</code></td><td>[Web] apnews.com</td><td>60px H1, 1.07 leading, 977px hero over a 720px column — the ceiling for mainstream article headlines</td></tr>
+<tr><td><code>guardian-article.png</code></td><td>[Web] theguardian.com</td><td>34px H1, hero flush to the 620px text column</td></tr>
+<tr><td><code>michelin-article.png</code></td><td>[Lazyweb] guide.michelin.com</td><td>Long-form editorial, 44px H1, constrained hero over a 630px measure</td></tr>
+<tr><td><code>current.png</code> / <code>current-mobile.png</code></td><td>Local capture</td><td>Before, desktop 1440×900 and mobile 390px</td></tr>
+<tr><td><code>after.png</code> / <code>after-mobile.png</code></td><td>Local capture</td><td>After, desktop 1440×900 and mobile 390px</td></tr>
+</tbody>
+</table>
+</div>
+<p class="sub">Lazyweb searches run: <code>news article detail page headline hero image</code>
+(desktop, 25 results) and <code>editorial longform article typography reading column</code>
+(desktop, 12 results). Article-detail matches surfaced: ProPublica, CBC, The Hindu, CNN,
+Politico, Boston Globe, Niantic, Michelin Guide. Live measurement was used in preference to the
+screenshot database for the type-scale numbers, since computed styles are exact where a
+screenshot is not.</p>
+
+</main>
+</body>
+</html>

@@ -22,12 +22,11 @@ export default async function LoginPage({ searchParams }: LoginPageProps) {
   return (
     <section className="shell-container py-14 sm:py-20">
       <div className="mx-auto max-w-xl rounded-[24px] border border-[var(--color-line)] bg-white p-6 shadow-sm sm:p-10">
-        <p className="eyebrow text-[var(--color-teal)]">Okur girişi</p>
         {/* Sayfada iki giriş yöntemi var; başlık ikisini de kapsamalı. */}
-        <h1 className="font-editorial mt-3 text-4xl text-[var(--color-ink)] sm:text-5xl">
+        <h1 className="font-editorial mt-3 text-center text-4xl text-[var(--color-ink)] sm:text-5xl">
           Giriş yap
         </h1>
-        <p className="mt-4 leading-7 text-[var(--color-ink-muted)]">
+        <p className="mt-4 text-center leading-7 text-[var(--color-ink-muted)]">
           Kaydettiğin haberlere her cihazdan eriş, bülteni kaçırma. Parola oluşturman gerekmiyor.
         </p>
 

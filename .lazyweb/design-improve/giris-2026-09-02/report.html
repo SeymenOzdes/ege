@@ -1,0 +1,133 @@
+<!doctype html><html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Giriş Sayfası Tasarım İncelemesi</title><style>
+:root{--bg:#faf8f5;--card:#fff;--ink:#16202b;--muted:#5c6773;--line:#e3ddd2;--teal:#0c7c86;--code:#f3f0ea}
+*{box-sizing:border-box}
+body{margin:0;padding:48px 24px 96px;background:var(--bg);color:var(--ink);
+ font:16px/1.7 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+main{max-width:900px;margin:0 auto}
+h1{font-size:2.1rem;line-height:1.25;margin:0 0 .6em;letter-spacing:-.02em}
+h2{font-size:1.5rem;margin:2.4em 0 .7em;letter-spacing:-.01em}
+h3{font-size:1.18rem;margin:2em 0 .6em}
+p{margin:0 0 1.1em}
+hr{border:0;border-top:1px solid var(--line);margin:2.6em 0}
+a{color:var(--teal)}
+code{background:var(--code);padding:.12em .38em;border-radius:5px;font-size:.88em;
+ font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+pre{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px 18px;
+ overflow-x:auto;font-size:.82rem;line-height:1.5}
+pre code{background:none;padding:0;font-size:inherit}
+figure{margin:1.6em 0}
+figure img{display:block;width:100%;height:auto;border:1px solid var(--line);
+ border-radius:12px;box-shadow:0 8px 26px rgb(13 27 42/9%)}
+figcaption{margin-top:.7em;font-size:.87rem;color:var(--muted);line-height:1.55}
+table{width:100%;border-collapse:collapse;margin:1.4em 0;font-size:.92rem;display:block;overflow-x:auto}
+th,td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top}
+th{background:var(--code);font-weight:600}
+ol{margin:0 0 1.1em;padding-left:1.4em}
+li{margin-bottom:.55em}
+.tldr{background:#eef6f7;border-left:4px solid var(--teal);border-radius:0 12px 12px 0;
+ padding:18px 22px;margin-bottom:1.6em}
+@media (prefers-color-scheme:dark){
+ :root{--bg:#12171d;--card:#1a2027;--ink:#e8eaed;--muted:#9aa4af;--line:#2c343d;--teal:#4bb8c2;--code:#1f262e}
+ .tldr{background:#16292c}
+ figure img{box-shadow:0 8px 26px rgb(0 0 0/35%)}
+}
+</style></head><body><main><h1>Design Improvement: Giriş sayfası (/giris) — Google ile giriş</h1>
+<h2>TL;DR</h2>
+<p class="tldr">Google girişi çalışıyor ama sayfada <strong>ikinci sınıf bir seçenek</strong> gibi duruyor: başlık hâlâ yalnızca magic-link&#x27;i anlatıyor (&quot;Giriş bağlantını al&quot;), Google düğmesi formun altına itilmiş ve &quot;VEYA&quot; ayracının çizgileri <strong>hiç görünmüyor</strong> — çünkü <code>--color-line</code> değişkeni projede hiçbir yerde tanımlı değil. İncelediğim beş referansın dördü Google&#x27;ı e-posta formunun <strong>üstüne</strong> koyuyor ve hepsi düğmelerin altında bir yasal onay satırı taşıyor; bizde o satır hiç yok.</p>
+<hr>
+<h2>Current State</h2>
+<figure><img alt="Mevcut tasarım" src="references/current.png"><figcaption><code>/giris</code> — 1440×1000. Kart içinde: eyebrow, başlık, açıklama, e-posta formu, &quot;VEYA&quot; ayracı, Google düğmesi.</figcaption></figure>
+<figure><img alt="Mevcut tasarım — mobil" src="references/current-mobile.png"><figcaption>390×844. Aynı sıralama; &quot;VEYA&quot; metni ayraç çizgileri olmadan boşlukta duruyor.</figcaption></figure>
+<hr>
+<h2>Improvement Ideas</h2>
+<h3>1. Google&#x27;ı formun üstüne al, başlığı yöntemden bağımsız yap ⭐ (en yüksek etki)</h3>
+<p>Başlık <strong>&quot;Giriş bağlantını al&quot;</strong> sayfada tek bir giriş yöntemi varken doğruydu. Artık iki yöntem var ve başlık bunlardan yalnızca birini tarif ediyor — Google ile girmek isteyen okur, doğru sayfada olduğundan emin olamıyor. Aynı şekilde açıklama metni de yalnızca magic-link mekaniğini anlatıyor.</p>
+<p>Referansların dördü şu sırayı kullanıyor: <strong>yöntemden bağımsız başlık → Google → ayraç → e-posta</strong>. Google tek tıkla bitiyor, magic-link ise &quot;yaz → gönder → e-postana git → bağlantıya tıkla → geri dön&quot; adımlarını gerektiriyor. Hızlı yolu üste koymak standart hâline gelmiş durumda.</p>
+<p><strong>Inspired by:</strong></p>
+<figure><img alt="The San Diego Union-Tribune" src="references/union-tribune-login.png"><figcaption>The San Diego Union-Tribune — haber sitesi girişi: &quot;Log in to continue.&quot; başlığı, üstte Continue with Google / Facebook / Apple, &quot;OR&quot; ayracı, altta e-posta + Continue, en altta Privacy Policy · Terms of Service. [Lazyweb]</figcaption></figure>
+<figure><img alt="Twist" src="references/twist-login.png"><figcaption>Twist — &quot;Sign up or log in&quot; başlığı, Continue with Google ve Continue with Apple üstte, altında e-posta alanı ve &quot;Continue with email&quot;, en altta yasal onay satırı. [Lazyweb]</figcaption></figure>
+<figure><img alt="Function of Beauty" src="references/function-of-beauty-signin.png"><figcaption>Function of Beauty — &quot;Sign in / Sign in or create an account&quot;, üstte sosyal düğmeler, &quot;or&quot; ayracı, altta Email + Continue, en altta &quot;By continuing, you agree to our Terms of service&quot;. [Lazyweb]</figcaption></figure>
+<p><strong>Why this works:</strong> Başlık artık her iki yöntemi de kapsıyor, hızlı yol önce geliyor ve e-posta formu hâlâ tam olarak eskisi kadar erişilebilir — kimseden bir şey alınmıyor, yalnızca sıra değişiyor.</p>
+<p><strong>Dürüst not — bu evrensel değil:</strong> New York Post tam tersini yapıyor, e-postayı üstte tutup sosyal girişi &quot;Social Sign In&quot; ayracının altına koyuyor. Yani sıralama bir tercih; ama başlığın yöntemden bağımsız olması ve yasal satır (fikir 3) her iki düzende de geçerli.</p>
+<p><strong>Sketch:</strong></p>
+<pre><code>┌───────────────────────────────────────┐
+│  OKUR GİRİŞİ                          │
+│  Giriş yap                            │   ← yöntemden bağımsız
+│  Kaydettiğin haberlere ve bültene      │
+│  eriş.                                 │
+│                                        │
+│  ┌──────────────────────────────────┐ │
+│  │  G   Google ile oturum aç        │ │   ← üste taşındı
+│  └──────────────────────────────────┘ │
+│                                        │
+│  ─────────────  veya  ─────────────   │   ← çizgiler artık görünüyor
+│                                        │
+│  E-posta adresi                        │
+│  ┌──────────────────────────────────┐ │
+│  └──────────────────────────────────┘ │
+│  ┌──────────────────────────────────┐ │
+│  │    Giriş bağlantısı gönder       │ │
+│  └──────────────────────────────────┘ │
+│                                        │
+│  Devam ederek Kullanım Şartları ve     │   ← fikir 3
+│  Gizlilik Politikası&#x27;nı kabul edersin. │
+└───────────────────────────────────────┘</code></pre>
+<hr>
+<h3>2. <code>--color-line</code> tanımlı değil — ayraç çizgileri görünmüyor, kenarlıklar mürekkep siyahı 🔴</h3>
+<p>Bu bir tasarım tercihi değil, doğrulanmış bir hata. Tarayıcıda ölçtüm:</p>
+<table><thead><tr><th>Ölçüm</th><th>Beklenen</th><th>Gerçek</th></tr></thead><tbody><tr><td><code>--color-line</code> token değeri</td><td><code>#e5e0d8</code> benzeri yumuşak bir çizgi</td><td><code>&quot;&quot;</code> (tanımsız)</td></tr><tr><td>Ayraç çizgisi <code>background-color</code></td><td>yumuşak gri</td><td><code>rgba(0, 0, 0, 0)</code> — <strong>tamamen şeffaf</strong></td></tr><tr><td>Kart kenarlığı <code>border-color</code></td><td>yumuşak gri</td><td><code>rgb(13, 27, 42)</code> — <code>--color-ink</code>, tam mürekkep</td></tr><tr><td>Input kenarlığı <code>border-color</code></td><td>yumuşak gri</td><td><code>rgb(13, 27, 42)</code> — tam mürekkep</td></tr></tbody></table>
+<p>Sebep: <code>globals.css</code> içinde <code>--color-paper</code>, <code>--color-ink</code>, <code>--color-teal</code>, <code>--color-ochre</code> tanımlı ama <strong><code>--color-line</code> hiç tanımlanmamış</strong>. <code>background-color: var(--color-line)</code> geçersiz kalıyor ve şeffafa düşüyor; <code>border-color</code> ise <code>currentColor</code>&#x27;a düşüp metnin mürekkep rengini alıyor.</p>
+<p>Bu tek satırlık eksik yalnızca giriş sayfasını değil, <strong>projede 29 kullanım yerini</strong> etkiliyor (<code>grep -rn &quot;var(--color-line)&quot;</code> → 29 sonuç, <code>--color-line:</code> → 0 sonuç). Yani yönetim paneli kartları, bülten sayfası, arşiv listeleri hepsi aynı şeyden etkileniyor.</p>
+<p><strong>Düzeltme:</strong> <code>globals.css</code> içindeki <code>:root</code> bloğuna bir satır:</p>
+<pre><code>--color-line: #e3ddd2;   /* --color-paper (#f6f1e8) ile uyumlu yumuşak çizgi */</code></pre>
+<p><strong>Why this works:</strong> Referansların hepsinde ayraç, iki yöntemi görsel olarak ayıran gerçek bir çizgi — Union-Tribune&#x27;de &quot;OR&quot;, Function of Beauty&#x27;de &quot;or&quot;, bizde ise havada asılı duran bir &quot;VEYA&quot;. Çizgi olmadan ayraç işini yapmıyor.</p>
+<hr>
+<h3>3. Düğmelerin altına yasal onay satırı ekle (KVKK)</h3>
+<p>İncelediğim beş referansın <strong>beşi de</strong> kimlik doğrulama düğmelerinin hemen altında bir onay satırı taşıyor. Bizde hiç yok — ne şartlar, ne gizlilik, ne KVKK aydınlatma metni.</p>
+<p><strong>Inspired by:</strong></p>
+<figure><img alt="New York Post" src="references/nypost-login.png"><figcaption>New York Post — düğmelerin altında: &quot;By clicking &#x27;Continue&#x27; or &#x27;Continue With&#x27; above, you agree to the Terms of Use &amp; Privacy Notice.&quot; Ayrıca üstte neden giriş yapılacağını anlatan bir başlık var (bkz. fikir 4). [Lazyweb]</figcaption></figure>
+<figure><img alt="GoFundMe" src="references/gofundme-signin.png"><figcaption>GoFundMe — Google/Apple üstte, e-posta altta; en altta reCAPTCHA ve gizlilik/şartlar bildirimi, ayrıca satır içi doğrulama hata mesajı. [Lazyweb]</figcaption></figure>
+<p><strong>Why this works:</strong> Türkiye&#x27;de yayın yapan bir haber sitesi için KVKK aydınlatma yükümlülüğü var ve Google girişi artık okurun ad-soyad ile e-posta adresini üçüncü bir tarafa taşıyor. Onay satırı bunu karşılıyor ve zaten var olan <code>/gizlilik</code> sayfasına bağlanıyor.</p>
+<p><strong>Sketch:</strong></p>
+<pre><code>  ┌──────────────────────────────────┐
+  │    Giriş bağlantısı gönder       │
+  └──────────────────────────────────┘
+
+  Devam ederek Kullanım Şartları&#x27;nı ve
+  Gizlilik Politikası&#x27;nı kabul etmiş olursun.
+      └──── /kullanim-sartlari   └──── /gizlilik</code></pre>
+<hr>
+<h3>4. Neden giriş yapılacağını söyle</h3>
+<p>Mevcut açıklama yalnızca <em>nasıl</em> girileceğini anlatıyor (&quot;tek kullanımlık bağlantıyla, parola oluşturmadan&quot;). <em>Neden</em> girileceğini söylemiyor — okur giriş yaptığında ne kazanıyor?</p>
+<p>New York Post kartın üstünde tam olarak bunu yapıyor: <strong>&quot;Build your profile, sign up for newsletters and weigh in on stories.&quot;</strong> Bizde karşılığı hazır: kaydedilen haberler (<code>/kaydedilenler</code> sayfası ve <code>bookmarks</code> tablosu zaten var) ve bülten.</p>
+<p><strong>Öneri:</strong> açıklamayı &quot;Kaydettiğin haberlere her cihazdan eriş, bültene abone ol.&quot; gibi bir faydaya çevir; parolasız giriş detayını e-posta düğmesinin yanında ikincil bir nota indir.</p>
+<p><strong>Why this works:</strong> Giriş sayfası bir maliyet ekranı; okura ne aldığını söylemek dönüşümü artırır. Ayrıca bizim durumumuzda giriş çoğu zaman bir haberi kaydetme niyetinden geliyor (<code>pendingBookmark</code> akışı bunu zaten taşıyor) — o niyeti sayfada görünür kılmak tutarlı olur.</p>
+<hr>
+<h3>5. Her iki düğmeye de bekleme durumu ver</h3>
+<p>Google düğmesi bir server action tetikliyor, sonra Google&#x27;a tam sayfa yönlendirme yapıyor. Ağ yavaşsa arada hiçbir geri bildirim yok — okur düğmeye ikinci kez basıyor. Aynı şey magic-link için de geçerli.</p>
+<p><code>useFormStatus</code> ile <code>pending</code> durumunda düğmeyi <code>disabled</code> yapıp metnini değiştirmek yeterli (&quot;Yönlendiriliyor…&quot; / &quot;Gönderiliyor…&quot;). Bu, referanslarda ekran görüntüsünden okunamayan bir davranış — o yüzden görsel referans yerine yalnızca gerekçeyi veriyorum: çift gönderim, magic-link tarafında iki ayrı e-posta demek.</p>
+<hr>
+<h2>Google marka uyumu (küçük düzeltmeler)</h2>
+<p>Google&#x27;ın resmî <a href="https://developers.google.com/identity/branding-guidelines">branding guidelines</a> sayfasından doğruladım:</p>
+<table><thead><tr><th>Kural</th><th>Bizim durum</th></tr></thead><tbody><tr><td>Onaylı metinler: &quot;Sign in with Google&quot;, &quot;Sign up with Google&quot;, &quot;Continue with Google&quot;</td><td>✅ &quot;Google ile oturum aç&quot; karşılığı doğru</td></tr><tr><td>Logo: standart renkli &quot;G&quot;, beyaz zemin üzerinde</td><td>✅ Dört renkli SVG, <code>bg-white</code></td></tr><tr><td>Logodan sonra 10px, metinden sonra 12px sağ boşluk (web)</td><td>⚠️ <code>gap-3</code> = 12px — yakın, kabul edilebilir</td></tr><tr><td>Düğme yüksekliği</td><td>✅ 48px ölçüldü (min 40px&#x27;in üzerinde)</td></tr><tr><td>Yazı: Google Sans Medium 14/20</td><td>⚠️ Montserrat <code>font-semibold</code> 16px — site tipografisiyle tutarlı, kabul edilebilir sapma</td></tr><tr><td>Büyük/küçük harf</td><td>⚠️ &quot;Google ile <strong>O</strong>turum <strong>A</strong>ç&quot; başlık kalıbında; Türkçe cümle kalıbı &quot;Google ile oturum aç&quot;</td></tr></tbody></table>
+<p>Tek gerçek düzeltme sonuncusu: metni <strong>&quot;Google ile oturum aç&quot;</strong> yap.</p>
+<hr>
+<h2>What&#x27;s Working</h2>
+<p>Bunlara dokunmaya gerek yok:</p>
+<ol><li><strong>OAuth akışının kendisi doğru kurulmuş.</strong> <code>signInWithOAuth</code> + <code>skipBrowserRedirect</code> varsayılanı, ayrı <code>/auth/callback</code> rotası ve <code>exchangeCodeForSession</code> ile PKCE takası — Supabase&#x27;in önerdiği yapı birebir bu.</li><li><strong><code>next</code> parametresi her iki yöntemde de korunuyor.</strong> Hem magic-link formunda gizli input olarak, hem Google akışında <code>authRedirectCookie</code> üzerinden. Kullanıcı nereden geldiyse oraya dönüyor.</li><li><strong><code>pendingBookmark</code> akışı Google&#x27;a da bağlanmış.</strong> Callback rotası bekleyen kaydı alıp <code>savePendingBookmark</code> ile işliyor ve <code>?bilgi=kaydedildi</code> ile geri dönüyor — magic-link ile aynı davranış. Bu tür detaylar genelde ikinci yöntem eklenirken unutulur, burada unutulmamış.</li><li><strong>Google SVG&#x27;si inline ve <code>aria-hidden</code>.</strong> Ağ isteği yok, ekran okuyucu için gürültü yok, düğme metni erişilebilir etiketi zaten taşıyor.</li><li><strong>Hata durumları tek yerden yönetiliyor.</strong> <code>loginNotice</code> ile <code>google_failed</code>, <code>not_configured</code> ve <code>sent</code> aynı bildirim bileşeninden geçiyor, <code>role=&quot;alert&quot;</code> / <code>role=&quot;status&quot;</code> doğru ayrılmış.</li></ol>
+<hr>
+<h2>All References</h2>
+<table><thead><tr><th>#</th><th>Kaynak</th><th>Ne gösteriyor</th><th>Provenance</th></tr></thead><tbody><tr><td>1</td><td>The San Diego Union-Tribune</td><td>Haber sitesi girişi; Google/Facebook/Apple üstte, &quot;OR&quot;, e-posta altta, footer&#x27;da Privacy · Terms</td><td>[Lazyweb]</td></tr><tr><td>2</td><td>New York Post</td><td>Haber sitesi girişi; değer önerisi başlığı, e-posta üstte, &quot;Social Sign In&quot; altta, yasal onay satırı</td><td>[Lazyweb]</td></tr><tr><td>3</td><td>AP News</td><td>Haber sitesi modal girişi; &quot;Login or register to continue&quot;, e-posta + Facebook/Google</td><td>[Lazyweb]</td></tr><tr><td>4</td><td>Twist</td><td>Google/Apple üstte, e-posta ve &quot;Continue with email&quot; altta, yasal onay satırı</td><td>[Lazyweb]</td></tr><tr><td>5</td><td>Function of Beauty</td><td>Sosyal düğmeler üstte, &quot;or&quot; ayracı, Email + Continue, &quot;By continuing…&quot; satırı</td><td>[Lazyweb]</td></tr><tr><td>6</td><td>GoFundMe</td><td>Google/Apple üstte, e-posta altta, satır içi doğrulama + reCAPTCHA/gizlilik bildirimi</td><td>[Lazyweb]</td></tr><tr><td>7</td><td>Attio</td><td>Google düğmesi + e-posta + Continue; sade beyaz düzen</td><td>[Lazyweb]</td></tr><tr><td>8</td><td>Linear</td><td>Continue with Google, e-posta, SAML SSO ve passkey — çoklu yöntem düzeni</td><td>[Lazyweb]</td></tr><tr><td>9</td><td>VEED</td><td>Google/Apple/Microsoft veya e-posta; şartlar-gizlilik bağlantıları ve reCAPTCHA notu</td><td>[Lazyweb]</td></tr><tr><td>10</td><td>Grammarly</td><td>Google/Facebook/Apple/SSO + e-posta; reCAPTCHA ve yasal bağlantılar</td><td>[Lazyweb]</td></tr><tr><td>11</td><td>Google Identity branding guidelines</td><td>Onaylı düğme metinleri, logo ve boşluk kuralları</td><td>[Web]</td></tr></tbody></table>
+<p>Referans görselleri <code>references/</code> klasöründe.</p>
+<hr>
+<h2>Uygulandı — Sonuç</h2>
+<p>Beş fikrin beşi de uygulandı.</p>
+<figure><img alt="Sonuç" src="references/after.png"><figcaption><code>/giris</code> sonrası — 1440×1000.</figcaption></figure>
+<figure><img alt="Sonuç — mobil" src="references/after-mobile.png"><figcaption>390×900.</figcaption></figure>
+<h3>Değişen dosyalar</h3>
+<table><thead><tr><th>Dosya</th><th>Değişiklik</th></tr></thead><tbody><tr><td><code>src/app/globals.css</code></td><td><code>--color-line: #e3ddd2</code> tanımlandı (fikir 2)</td></tr><tr><td><code>src/components/site/submit-button.tsx</code></td><td><strong>yeni</strong> — <code>useFormStatus</code> ile bekleme durumu (fikir 5)</td></tr><tr><td><code>src/app/(site)/giris/page.tsx</code></td><td>Başlık, sıralama, ayraç, rıza satırı, düğme metni (fikir 1, 3, 4)</td></tr></tbody></table>
+<h3>Doğrulama</h3>
+<table><thead><tr><th>Kontrol</th><th>Önce</th><th>Sonra</th></tr></thead><tbody><tr><td><code>--color-line</code> token</td><td><code>&quot;&quot;</code></td><td><code>#e3ddd2</code></td></tr><tr><td>Ayraç çizgisi <code>background-color</code></td><td><code>rgba(0, 0, 0, 0)</code></td><td><code>rgb(227, 221, 210)</code></td></tr><tr><td>Kart kenarlığı <code>border-color</code></td><td><code>rgb(13, 27, 42)</code> (ink)</td><td><code>rgb(227, 221, 210)</code></td></tr><tr><td>Google düğmesi bekleme durumu</td><td>yok</td><td>metin <code>Google&#x27;a yönlendiriliyorsun…</code>, <code>disabled=true</code>, <code>aria-busy=true</code></td></tr><tr><td>Form sıralaması</td><td>e-posta → Google</td><td>Google → e-posta</td></tr><tr><td><code>tsc --noEmit</code></td><td>—</td><td>temiz</td></tr><tr><td><code>eslint</code> (değişen dosyalar)</td><td>—</td><td>temiz</td></tr><tr><td><code>vitest run</code></td><td>—</td><td>18 dosya / 99 test geçti</td></tr></tbody></table>
+<p>Ayraç ve kenarlık değerleri tarayıcıda <code>getComputedStyle</code> ile, bekleme durumu ise sunucu eylemi POST&#x27;u asılı bırakılarak gerçek sayfada ölçüldü.</p>
+<h3>Açık kalan konu — rıza satırının bağlantıları 404 veriyor</h3>
+<p>Rıza satırı <code>/kullanim-kosullari</code> ve <code>/gizlilik</code> adreslerine bağlanıyor; bunlar footer&#x27;ın zaten kullandığı adresler. Ancak bu dalda <strong>o sayfalar mevcut değil</strong> — ikisi de 404 dönüyor (<code>/kunye</code> ve <code>/cerezler</code> ile birlikte; footer bu dalda yedi kurumsal bağlantının tamamı için 404 veriyor). Bu, bu görevden önce de var olan bir eksik; bağlantıları footer ile tutarlı bıraktım ki sayfalar geldiğinde giriş sayfasında ek bir iş kalmasın. Sayfaların bu dala taşınması ayrı bir iş.</p></main></body></html>
