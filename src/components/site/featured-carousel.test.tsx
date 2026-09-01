@@ -1,7 +1,11 @@
 import { act, fireEvent, render, screen } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { FeaturedCarousel } from "@/components/site/featured-carousel";
-import { getHomepageContent } from "@/lib/homepage";
+import { composeHomepage } from "@/lib/homepage";
+import { makePreviews } from "@/test/previews";
+
+/** The carousel only ever receives the composed `featured` slides. */
+const { featured } = composeHomepage(makePreviews(3), null, []);
 
 describe("FeaturedCarousel", () => {
   beforeEach(() => {
@@ -16,8 +20,7 @@ describe("FeaturedCarousel", () => {
     vi.useRealTimers();
   });
 
-  it("advances automatically at the configured interval", async () => {
-    const { featured } = await getHomepageContent();
+  it("advances automatically at the configured interval", () => {
     render(<FeaturedCarousel slides={featured} intervalMs={7000} />);
 
     expect(screen.getByRole("heading", { name: featured[0].title })).toBeVisible();
@@ -27,8 +30,7 @@ describe("FeaturedCarousel", () => {
     expect(screen.getByRole("heading", { name: featured[1].title })).toBeVisible();
   });
 
-  it("supports manual navigation without rendering a pause control", async () => {
-    const { featured } = await getHomepageContent();
+  it("supports manual navigation without rendering a pause control", () => {
     render(<FeaturedCarousel slides={featured} intervalMs={7000} />);
 
     fireEvent.click(screen.getByRole("button", { name: "Sonraki manşet" }));
@@ -37,8 +39,7 @@ describe("FeaturedCarousel", () => {
     expect(screen.queryByRole("button", { name: /Otomatik geçişi/ })).not.toBeInTheDocument();
   });
 
-  it("pauses while the carousel is hovered", async () => {
-    const { featured } = await getHomepageContent();
+  it("pauses while the carousel is hovered", () => {
     render(<FeaturedCarousel slides={featured} intervalMs={7000} />);
 
     const carousel = screen.getByRole("region", { name: "Öne çıkan haberler" });
@@ -48,8 +49,7 @@ describe("FeaturedCarousel", () => {
     expect(screen.getByRole("heading", { name: featured[0].title })).toBeVisible();
   });
 
-  it("does not autoplay when reduced motion is preferred", async () => {
-    const { featured } = await getHomepageContent();
+  it("does not autoplay when reduced motion is preferred", () => {
     Object.defineProperty(window, "matchMedia", {
       configurable: true,
       value: () => ({

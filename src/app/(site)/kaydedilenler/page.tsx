@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { ArticleCard } from "@/components/site/article-card";
 import { Pager } from "@/components/site/archive-list";
 import { AccountDeletionForm } from "@/components/site/account-deletion-form";
-import { parsePageNumber } from "@/lib/archives";
+import { parsePageNumber } from "@/lib/pagination";
 import { getCurrentUser } from "@/lib/auth/server";
 import { bookmarkNotice } from "@/lib/bookmarks/messages";
 import { getBookmarkedArticles } from "@/lib/bookmarks/queries";

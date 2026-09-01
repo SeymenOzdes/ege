@@ -105,7 +105,7 @@ export function Homepage({ content }: { content: HomepageContent }) {
   return (
     <div className={styles.home}>
       <div className="shell-container">
-        <BreakingRibbon article={content.breakingNews} />
+        {content.breakingNews && <BreakingRibbon article={content.breakingNews} />}
 
         <section className={styles.heroGrid} aria-label="Günün öne çıkan haberleri">
           <FeaturedCarousel slides={content.featured} />

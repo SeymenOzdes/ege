@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArchiveList } from "@/components/site/archive-list";
-import { getCategoryArchive, paginateEntries, parsePageNumber } from "@/lib/archives";
+import { getCategoryArchive, type CategoryArchive } from "@/lib/archives";
+import { parsePageNumber } from "@/lib/pagination";
 
 type PageProps = {
   params: Promise<{ slug: string }>;
@@ -12,13 +13,15 @@ function describeKind(kind: "topic" | "location"): string {
   return kind === "topic" ? "Haber dosyası" : "Şehir";
 }
 
-function describeArchive(archive: NonNullable<ReturnType<typeof getCategoryArchive>>): string {
+function describeArchive(archive: CategoryArchive): string {
   return archive.description ?? `${archive.name} ilinden güncel haberler ve dosyalar.`;
 }
 
-export async function generateMetadata({ params }: PageProps): Promise<Metadata> {
-  const { slug } = await params;
-  const archive = getCategoryArchive(slug);
+export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {
+  const [{ slug }, query] = await Promise.all([params, searchParams]);
+  // `getCategoryArchive` is wrapped in React `cache()`, so this shares the page
+  // body's queries rather than hitting the database a second time per request.
+  const archive = await getCategoryArchive(slug, parsePageNumber(query.sayfa));
 
   if (!archive) return {};
 
@@ -31,24 +34,21 @@ export async function generateMetadata({ params }: PageProps): Promise<Metadata>
 
 export default async function CategoryPage({ params, searchParams }: PageProps) {
   const [{ slug }, query] = await Promise.all([params, searchParams]);
-  const archive = getCategoryArchive(slug);
+  const archive = await getCategoryArchive(slug, parsePageNumber(query.sayfa));
 
   if (!archive) notFound();
-
-  const page = paginateEntries(archive.articles, parsePageNumber(query.sayfa));
-
-  if (!page) notFound();
 
   return (
     <ArchiveList
       eyebrow={describeKind(archive.kind)}
       title={archive.name}
       description={describeArchive(archive)}
-      entries={page.entries}
+      entries={archive.page.entries}
       basePath={`/kategori/${archive.slug}`}
-      currentPage={page.currentPage}
-      totalPages={page.totalPages}
-      total={page.total}
+      currentPage={archive.page.currentPage}
+      totalPages={archive.page.totalPages}
+      total={archive.page.total}
+      loadError={archive.page.loadError}
     />
   );
 }

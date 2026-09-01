@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArchiveList } from "@/components/site/archive-list";
-import { getLatestArticles, paginateEntries, parsePageNumber } from "@/lib/archives";
+import { getLatestArticles } from "@/lib/archives";
+import { parsePageNumber } from "@/lib/pagination";
 
 export const metadata: Metadata = {
   title: "Son Dakika",
@@ -14,8 +15,7 @@ export default async function SonDakikaPage({
 }: {
   searchParams: Promise<{ sayfa?: string }>;
 }) {
-  const latest = getLatestArticles();
-  const page = paginateEntries(latest, parsePageNumber((await searchParams).sayfa));
+  const page = await getLatestArticles(parsePageNumber((await searchParams).sayfa));
 
   if (!page) notFound();
 
@@ -29,6 +29,7 @@ export default async function SonDakikaPage({
       currentPage={page.currentPage}
       totalPages={page.totalPages}
       total={page.total}
+      loadError={page.loadError}
     />
   );
 }

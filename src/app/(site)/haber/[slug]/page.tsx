@@ -1,16 +1,14 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArticleDetail } from "@/components/site/article-detail";
-import { articleSlugs, getArticleBySlug, getArticleMetadata } from "@/lib/articles";
+import { getArticleBySlug, getArticleMetadata } from "@/lib/articles";
 import { getCurrentUser } from "@/lib/auth/server";
 import { isArticleBookmarked } from "@/lib/bookmarks/queries";
 import { bookmarkNotice } from "@/lib/bookmarks/messages";
 
-export const dynamicParams = false;
-
-export function generateStaticParams() {
-  return articleSlugs.map((slug) => ({ slug }));
-}
+// No `generateStaticParams` / `dynamicParams` pair: the `(site)` group is
+// force-dynamic, so those only ever acted as a slug allowlist. Publishing an
+// article is now enough to make its URL resolve; an unknown slug 404s below.
 
 export async function generateMetadata({
   params,

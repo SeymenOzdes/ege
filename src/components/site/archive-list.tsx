@@ -14,6 +14,8 @@ export type ArchiveListProps = {
   currentPage: number;
   totalPages: number;
   total: number;
+  /** The archive query failed; say so rather than implying an empty archive. */
+  loadError?: boolean;
 };
 
 function pagerHref(basePath: string, page: number): string {
@@ -86,6 +88,7 @@ export function ArchiveList({
   currentPage,
   totalPages,
   total,
+  loadError = false,
 }: ArchiveListProps) {
   return (
     <div className={styles.block}>
@@ -94,12 +97,25 @@ export function ArchiveList({
           <span className="eyebrow">{eyebrow}</span>
           <h1 className={`font-editorial ${styles.title}`}>{title}</h1>
           {description ? <p className={styles.lede}>{description}</p> : null}
-          <p className={styles.count} role="status">
-            {total > 0 ? `${total} haber listeleniyor.` : "Henüz yayınlanmış haber yok."}
-          </p>
+          {!loadError && (
+            <p className={styles.count} role="status">
+              {total > 0 ? `${total} haber listeleniyor.` : "Henüz yayınlanmış haber yok."}
+            </p>
+          )}
         </header>
 
-        {entries.length > 0 ? (
+        {loadError ? (
+          <section className="statePanel" role="alert">
+            <p className="eyebrow">Bağlantı kurulamadı</p>
+            <h2 className={`font-editorial ${styles.emptyHeading}`}>
+              Haber akışına şu anda ulaşamıyoruz.
+            </h2>
+            <p>Sayfayı kısa bir süre sonra yeniden deneyebilirsiniz.</p>
+            <Link className="button button-primary" href="/">
+              Ana sayfaya dön
+            </Link>
+          </section>
+        ) : entries.length > 0 ? (
           <>
             <div className={styles.entries}>
               {entries.map((entry) => (

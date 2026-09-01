@@ -49,6 +49,18 @@ export function formatPublishedLabel(publishedAt: string | Date, now: Date = new
     : dayWithYearFormatter.format(date);
 }
 
+/**
+ * Full dateline for the article detail byline, e.g. `18 Ağustos 2026, 08:37`.
+ * Composed from the same two formatters as the card labels so the timezone and
+ * month names never drift between surfaces.
+ */
+export function formatFullDateTime(publishedAt: string | Date): string {
+  const date = publishedAt instanceof Date ? publishedAt : new Date(publishedAt);
+  if (Number.isNaN(date.getTime())) return "";
+
+  return `${dayWithYearFormatter.format(date)}, ${timeFormatter.format(date)}`;
+}
+
 /** Average Turkish reading pace used across the editorial surface. */
 export const WORDS_PER_MINUTE = 200;
 
@@ -115,4 +127,50 @@ export function toArticlePreview(row: ArticlePreviewRow, now?: Date): ArticlePre
     readingTime: readingTimeLabel(row.word_count),
     mediaTone: topicMediaTone(row.topic_slug),
   };
+}
+
+/**
+ * The columns every public card needs, as a PostgREST selection. `articles_public_select`
+ * already restricts these rows to published, non-archived articles, so no surface repeats
+ * the status filter. Embedded topic/location stay non-inner joins: an article without a
+ * topic still belongs in a listing, it just falls back to the generic labels above.
+ */
+// Kept as a single literal rather than a concatenation: `supabase-js` infers row
+// types from the literal type of this string, and `+` widens it to `string`.
+export const ARTICLE_PREVIEW_SELECTION =
+  "id, slug, title, summary, published_at, body_text, topic:topics(name, slug), location:locations(name, slug)";
+
+/** The row shape `ARTICLE_PREVIEW_SELECTION` returns. */
+export type ArticleJoinRow = {
+  id: string;
+  slug: string;
+  title: string;
+  summary: string | null;
+  published_at: string | null;
+  body_text: string | null;
+  topic: { name: string; slug: string } | null;
+  location: { name: string; slug: string } | null;
+};
+
+/**
+ * Flattens an embedded-join row onto `toArticlePreview`. Reading time is derived
+ * from `body_text` with the same word count the search function computes in SQL,
+ * so a story shows one duration whether it arrives via search or a listing.
+ */
+export function articleRowToPreview(row: ArticleJoinRow, now?: Date): ArticlePreview {
+  return toArticlePreview(
+    {
+      id: row.id,
+      slug: row.slug,
+      title: row.title,
+      summary: row.summary,
+      topic_name: row.topic?.name ?? null,
+      topic_slug: row.topic?.slug ?? null,
+      location_name: row.location?.name ?? null,
+      location_slug: row.location?.slug ?? null,
+      published_at: row.published_at,
+      word_count: countWords(row.body_text),
+    },
+    now,
+  );
 }

@@ -1,4 +1,4 @@
-import { ARCHIVE_PAGE_SIZE } from "@/lib/archives";
+import { ARCHIVE_PAGE_SIZE } from "@/lib/pagination";
 
 /**
  * Pure query helpers for /arama. They live outside `search.ts` because that
