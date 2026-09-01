@@ -3,11 +3,9 @@ import Link from "next/link";
 import { List } from "@phosphor-icons/react/dist/ssr/List";
 import { MapPin } from "@phosphor-icons/react/dist/ssr/MapPin";
 import { NewspaperClipping } from "@phosphor-icons/react/dist/ssr/NewspaperClipping";
+import { AccountMenu, MobileAccountLinks } from "@/components/site/account-menu";
 import { Brand } from "@/components/site/brand";
 import { NewsHeaderActions } from "@/components/site/news-header-actions";
-import { UserMenu } from "@/components/site/user-menu";
-import { signOut } from "@/lib/auth/actions";
-import type { CurrentUser } from "@/lib/auth/server";
 
 const navigation = [
   ["Gündem", "/kategori/gundem"],
@@ -25,12 +23,12 @@ const cityNavigation = [
   ["Balıkesir", "balikesir"],
 ] as const;
 
-type PublicShellProps = {
-  children: ReactNode;
-  user?: CurrentUser;
-};
-
-export function PublicShell({ children, user }: PublicShellProps) {
+/**
+ * The public chrome. It reads no cookies: account state arrives through
+ * `AccountMenu` / `MobileAccountLinks`, which resolve the session in the browser.
+ * That is what lets every page under `(site)` be prerendered and cached.
+ */
+export function PublicShell({ children }: { children: ReactNode }) {
   return (
     <div className="public-site">
       <header className="site-header" id="site-header">
@@ -64,7 +62,7 @@ export function PublicShell({ children, user }: PublicShellProps) {
           </nav>
           <div className="header-tools">
             <NewsHeaderActions />
-            <UserMenu user={user} />
+            <AccountMenu />
             <Link className="header-action" href="/bulten">
               Bültene katıl
             </Link>
@@ -81,18 +79,7 @@ export function PublicShell({ children, user }: PublicShellProps) {
                 </Link>
               ))}
               <Link href="/arama">Arama</Link>
-              {user ? (
-                <>
-                  <Link href="/kaydedilenler">Kaydedilenler</Link>
-                  <form action={signOut}>
-                    <button className="mobile-signout" type="submit">
-                      Çıkış yap
-                    </button>
-                  </form>
-                </>
-              ) : (
-                <Link href="/giris">Giriş</Link>
-              )}
+              <MobileAccountLinks />
               <Link href="/bulten">Bültene katıl</Link>
             </nav>
           </details>

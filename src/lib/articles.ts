@@ -11,8 +11,8 @@ import {
 } from "@/lib/article-preview";
 import { getRelatedArticles } from "@/lib/archives";
 import type { ArticleImage, ArticlePreview } from "@/lib/homepage";
+import { createAnonClient } from "@/lib/supabase/anon";
 import { hasSupabasePublicConfig } from "@/lib/supabase/config";
-import { createClient } from "@/lib/supabase/server";
 
 export type ArticleAuthor = {
   name: string;
@@ -115,11 +115,16 @@ function toPreviewRow(row: ArticleDetailRow): ArticlePreviewRow {
  * a draft, scheduled or archived slug simply comes back empty and the route renders
  * the not-found boundary. Wrapped in `cache()` because the route resolves the same
  * slug twice per request — once for `generateMetadata`, once for the page body.
+ *
+ * Read anonymously on purpose. Carrying the reader's cookies would make the route
+ * request-time and uncacheable, and it would also let a signed-in editor see a draft
+ * through `articles_staff_manage` — a cached page must not vary by who asked for it.
+ * Editors preview unpublished work in the admin panel instead.
  */
 export const getArticleBySlug = cache(async (slug: string): Promise<ArticleDetail | undefined> => {
   if (!hasSupabasePublicConfig()) return undefined;
 
-  const supabase = await createClient();
+  const supabase = createAnonClient();
   const { data } = await supabase
     .from("articles")
     .select(ARTICLE_DETAIL_SELECTION)
@@ -163,6 +168,31 @@ export const getArticleBySlug = cache(async (slug: string): Promise<ArticleDetai
     related: await getRelatedArticles(row.id, row.topic?.id ?? null),
   };
 });
+
+/** How many recent stories `generateStaticParams` prerenders at build time. */
+const PRERENDERED_ARTICLE_COUNT = 100;
+
+/**
+ * Slugs worth prerendering. Deliberately not the full archive: `dynamicParams` stays
+ * on, so an older slug is rendered on its first request and cached from then on.
+ * Returns an empty list on any failure — a build should not fail over a warm-up list.
+ */
+export async function getPublishedArticleSlugs(): Promise<string[]> {
+  if (!hasSupabasePublicConfig()) return [];
+
+  // Cookie-free by necessity: `generateStaticParams` runs at build time with no
+  // request, and the session-carrying client throws there.
+  const supabase = createAnonClient();
+  const { data, error } = await supabase
+    .from("articles")
+    .select("slug")
+    .order("published_at", { ascending: false })
+    .limit(PRERENDERED_ARTICLE_COUNT);
+
+  if (error) return [];
+
+  return (data ?? []).map((row) => row.slug);
+}
 
 export function getArticleMetadata(article: ArticleDetail): Metadata {
   const canonicalPath = `/haber/${article.slug}`;

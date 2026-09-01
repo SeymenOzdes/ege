@@ -1,14 +1,23 @@
+import { Suspense } from "react";
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { ArticleDetail } from "@/components/site/article-detail";
-import { getArticleBySlug, getArticleMetadata } from "@/lib/articles";
-import { getCurrentUser } from "@/lib/auth/server";
-import { isArticleBookmarked } from "@/lib/bookmarks/queries";
-import { bookmarkNotice } from "@/lib/bookmarks/messages";
+import { BookmarkNotice } from "@/components/site/bookmark-notice";
+import { getArticleBySlug, getArticleMetadata, getPublishedArticleSlugs } from "@/lib/articles";
 
-// No `generateStaticParams` / `dynamicParams` pair: the `(site)` group is
-// force-dynamic, so those only ever acted as a slug allowlist. Publishing an
-// article is now enough to make its URL resolve; an unknown slug 404s below.
+/**
+ * Yayımlanan bir haber nadiren değişir, ama düzeltme aynı adreste yayımlanır; beş
+ * dakika, düzeltmenin görünmesi ile CDN'in işini yapması arasında makul bir denge.
+ *
+ * `dynamicParams` varsayılanında bırakıldı: `generateStaticParams` yalnızca son
+ * haberleri önden üretir, arşivdeki her slug ilk istekte üretilip önbelleğe girer.
+ * Bir slug listesi değil, yalnızca ısıtma listesi.
+ */
+export const revalidate = 300;
+
+export async function generateStaticParams() {
+  return (await getPublishedArticleSlugs()).map((slug) => ({ slug }));
+}
 
 export async function generateMetadata({
   params,
@@ -23,37 +32,20 @@ export async function generateMetadata({
   return getArticleMetadata(article);
 }
 
-type ArticlePageProps = {
-  params: Promise<{ slug: string }>;
-  searchParams: Promise<{ bilgi?: string | string[] }>;
-};
-
-export default async function ArticlePage({ params, searchParams }: ArticlePageProps) {
+export default async function ArticlePage({ params }: { params: Promise<{ slug: string }> }) {
   const { slug } = await params;
   const article = await getArticleBySlug(slug);
 
   if (!article) notFound();
 
-  const [user, query] = await Promise.all([getCurrentUser(), searchParams]);
-  const isSignedIn = Boolean(user);
-  const isSaved = isSignedIn ? await isArticleBookmarked(slug) : false;
-  const notice = bookmarkNotice(typeof query.bilgi === "string" ? query.bilgi : undefined);
-
   return (
     <>
-      {notice ? (
-        <p
-          className={`shell-container mt-6 rounded-[18px] px-4 py-3 text-sm ${
-            notice.tone === "success"
-              ? "bg-[color-mix(in_srgb,var(--color-teal)_12%,white)] text-[var(--color-teal)]"
-              : "bg-red-50 text-red-700"
-          }`}
-          role={notice.tone === "error" ? "alert" : "status"}
-        >
-          {notice.text}
-        </p>
-      ) : null}
-      <ArticleDetail article={article} isSaved={isSaved} isSignedIn={isSignedIn} />
+      {/* `?bilgi=` istemcide okunuyor; Suspense sınırı `useSearchParams` için gerekli
+          ve sayfanın geri kalanının önceden render edilmesini sağlıyor. */}
+      <Suspense fallback={null}>
+        <BookmarkNotice />
+      </Suspense>
+      <ArticleDetail article={article} />
     </>
   );
 }

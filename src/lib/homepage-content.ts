@@ -13,8 +13,8 @@ import {
   emptyHomepageContent,
   type HomepageContent,
 } from "@/lib/homepage";
+import { createAnonClient } from "@/lib/supabase/anon";
 import { hasSupabasePublicConfig } from "@/lib/supabase/config";
-import { createClient } from "@/lib/supabase/server";
 
 /**
  * Reads the public front page.
@@ -27,7 +27,7 @@ import { createClient } from "@/lib/supabase/server";
 export async function getHomepageContent(): Promise<HomepageContent> {
   if (!hasSupabasePublicConfig()) return { ...emptyHomepageContent, loadError: true };
 
-  const supabase = await createClient();
+  const supabase = createAnonClient();
 
   const [feed, breaking, topics] = await Promise.all([
     supabase

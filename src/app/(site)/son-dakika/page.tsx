@@ -4,6 +4,11 @@ import { ArchiveList } from "@/components/site/archive-list";
 import { getLatestArticles } from "@/lib/archives";
 import { parsePageNumber } from "@/lib/pagination";
 
+// Arşiv sayfalaması `?sayfa=` ile yapılıyor; arama parametresi okuyan bir rota
+// Next'te istek zamanlıdır, dolayısıyla burada `revalidate` yazmak yanıltıcı olurdu.
+// Bu sayfaları da önbelleğe almak sayfalamayı yol parçasına taşımayı gerektirir
+// (`/son-dakika/sayfa/2`) — ayrı bir iş, adres değişikliği demek.
+
 export const metadata: Metadata = {
   title: "Son Dakika",
   description: "Ege Bölgesi'nden en güncel haberler dakika dakika.",

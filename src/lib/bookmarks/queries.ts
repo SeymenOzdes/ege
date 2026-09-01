@@ -70,22 +70,6 @@ export async function getBookmarkedArticles(page = 1): Promise<BookmarkListResul
   };
 }
 
-/**
- * Haber sayfasındaki kaydet düğmesinin başlangıç durumu.
- *
- * Sorgu `articles` üzerinden kurulur, `bookmarks` üzerinden değil: süzgeç böylece
- * gömülü kaynağın takma adına değil üst tablonun kendi sütununa uygulanır.
- * `bookmarks` gömülüsü RLS ile zaten okurun kendi satırlarına daralır.
- */
-export async function isArticleBookmarked(slug: string): Promise<boolean> {
-  if (!hasSupabasePublicConfig()) return false;
-
-  const supabase = await createClient();
-  const { data } = await supabase
-    .from("articles")
-    .select("id, bookmarks(article_id)")
-    .eq("slug", slug)
-    .maybeSingle();
-
-  return (data?.bookmarks?.length ?? 0) > 0;
-}
+// `isArticleBookmarked` buradan kaldırıldı: kaydet düğmesinin başlangıç durumu artık
+// `ArticleActions` içinde tarayıcıda çözülüyor. Sunucuda okunması haber sayfasını
+// istek zamanlı yapıyordu ve sayfa hiç önbelleğe alınamıyordu.

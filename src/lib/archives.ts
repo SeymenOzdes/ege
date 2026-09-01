@@ -8,8 +8,8 @@ import {
 } from "@/lib/article-preview";
 import type { ArticlePreview } from "@/lib/homepage";
 import { ARCHIVE_PAGE_SIZE, normalizeArchiveSlug, pageRange } from "@/lib/pagination";
+import { createAnonClient } from "@/lib/supabase/anon";
 import { hasSupabasePublicConfig } from "@/lib/supabase/config";
-import { createClient } from "@/lib/supabase/server";
 
 export type ArchiveAuthor = {
   name: string;
@@ -38,7 +38,7 @@ function errorPage(currentPage: number): ArchivePage {
   return { entries: [], currentPage, totalPages: 1, total: 0, loadError: true };
 }
 
-type SupabaseClient = Awaited<ReturnType<typeof createClient>>;
+type SupabaseClient = ReturnType<typeof createAnonClient>;
 
 type CountedRows = { data: unknown; count: number | null; error: { code?: string } | null };
 
@@ -64,7 +64,7 @@ async function readArchivePage(
   const currentPage = Number.isInteger(pageNumber) && pageNumber >= 1 ? pageNumber : 1;
   if (!hasSupabasePublicConfig()) return errorPage(currentPage);
 
-  const supabase = await createClient();
+  const supabase = createAnonClient();
   const { data, count, error } = await run(supabase);
 
   if (error) {
@@ -102,7 +102,7 @@ export const getLatestArticles = cache(
 export const getAuthorBySlug = cache(async (slug: string): Promise<ArchiveAuthor | undefined> => {
   if (!hasSupabasePublicConfig()) return undefined;
 
-  const supabase = await createClient();
+  const supabase = createAnonClient();
   const { data } = await supabase
     .from("authors")
     .select("name, slug, role_label, bio")
@@ -142,7 +142,7 @@ export const getCategoryArchive = cache(
     if (!hasSupabasePublicConfig()) return undefined;
 
     const normalized = normalizeArchiveSlug(slug);
-    const supabase = await createClient();
+    const supabase = createAnonClient();
 
     const { data: topic } = await supabase
       .from("topics")
@@ -212,7 +212,7 @@ export async function getRelatedArticles(
 ): Promise<ArticlePreview[]> {
   if (!hasSupabasePublicConfig()) return [];
 
-  const supabase = await createClient();
+  const supabase = createAnonClient();
   const now = new Date();
   const collected = new Map<string, ArticlePreview>();
 
