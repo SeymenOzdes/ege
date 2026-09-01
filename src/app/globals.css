@@ -1,8 +1,10 @@
 @import "tailwindcss";
 
 :root {
-  --font-inter: var(--font-montserrat), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-newsreader: var(--font-montserrat), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-body:
+    var(--font-montserrat), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display:
+    var(--font-montserrat), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --color-paper: #f6f1e8;
   --color-ink: #0d1b2a;
   --color-ink-muted: #52606d;
@@ -16,8 +18,8 @@
 }
 
 @theme inline {
-  --font-sans: var(--font-inter);
-  --font-editorial: var(--font-newsreader);
+  --font-sans: var(--font-body);
+  --font-editorial: var(--font-display);
 }
 
 * {
@@ -33,7 +35,7 @@ body {
   margin: 0;
   background: var(--color-paper);
   color: var(--color-ink);
-  font-family: var(--font-inter), Arial, sans-serif;
+  font-family: var(--font-body), Arial, sans-serif;
   text-rendering: optimizeLegibility;
 }
 
@@ -54,7 +56,7 @@ input {
 }
 
 .font-editorial {
-  font-family: var(--font-newsreader), Georgia, serif;
+  font-family: var(--font-display), Arial, sans-serif;
 }
 
 .eyebrow {
@@ -181,7 +183,7 @@ input {
 }
 
 .brand-type strong {
-  font-family: var(--font-newsreader), Georgia, serif;
+  font-family: var(--font-display), Arial, sans-serif;
   font-size: 1.3rem;
   font-weight: 700;
   letter-spacing: -0.055em;
@@ -719,7 +721,7 @@ button.header-action {
   padding: 1.25rem;
   background: var(--color-teal);
   color: white;
-  font-family: var(--font-newsreader), Georgia, serif;
+  font-family: var(--font-display), Arial, sans-serif;
   font-size: 1.7rem;
   font-style: italic;
 }
