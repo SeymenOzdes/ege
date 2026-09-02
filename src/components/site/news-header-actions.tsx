@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState, useSyncExternalStore } from "react";
+import { useEffect, useRef, useState } from "react";
 import type { ComponentType, Ref } from "react";
 import { createPortal } from "react-dom";
 import Link from "next/link";
 import { ListIcon } from "@phosphor-icons/react/dist/csr/List";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlass";
 import { XIcon } from "@phosphor-icons/react/dist/csr/X";
+import { useIsClient } from "@/lib/use-is-client";
 
 type PanelId = "search" | "menu";
 
@@ -34,17 +35,6 @@ const panelActions: Readonly<
 };
 
 const panelIds = Object.keys(panelActions) as PanelId[];
-
-const emptySubscribe = () => () => {};
-
-// Hydration-safe "rendered on the client" flag without setState in an effect.
-function useIsClient() {
-  return useSyncExternalStore(
-    emptySubscribe,
-    () => true,
-    () => false,
-  );
-}
 
 function SearchPanel({ inputRef }: { inputRef: Ref<HTMLInputElement> }) {
   return (

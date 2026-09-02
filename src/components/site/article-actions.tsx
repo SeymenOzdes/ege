@@ -91,39 +91,43 @@ export function ArticleActions({ title, slug }: ArticleActionsProps) {
     });
   }
 
+  const buttons = (
+    <div className={styles.actions} aria-label="Haber işlemleri">
+      <button type="button" onClick={shareArticle} aria-label="Haberi paylaş">
+        <ShareNetwork aria-hidden="true" size={19} weight="bold" />
+        <span>Paylaş</span>
+      </button>
+
+      {isSignedIn ? (
+        <button
+          type="button"
+          aria-label={optimisticSaved ? "Haberi kaydedilenlerden çıkar" : "Haberi kaydet"}
+          aria-pressed={optimisticSaved}
+          onClick={toggleSaved}
+        >
+          {optimisticSaved ? (
+            <Check aria-hidden="true" size={19} weight="bold" />
+          ) : (
+            <BookmarkSimple aria-hidden="true" size={19} weight="bold" />
+          )}
+          <span>{optimisticSaved ? "Kaydedildi" : "Kaydet"}</span>
+        </button>
+      ) : (
+        // JavaScript olmadan da çalışsın diye düz bir form: sunucu eylemi
+        // hedef haberi çereze yazıp girişe yönlendirir.
+        <form action={startBookmarkLogin.bind(null, slug)}>
+          <button type="submit" aria-label="Haberi kaydetmek için giriş yap">
+            <SignIn aria-hidden="true" size={19} weight="bold" />
+            <span>Kaydet</span>
+          </button>
+        </form>
+      )}
+    </div>
+  );
+
   return (
     <div className={styles.actionsWrap}>
-      <div className={styles.actions} aria-label="Haber işlemleri">
-        <button type="button" onClick={shareArticle} aria-label="Haberi paylaş">
-          <ShareNetwork aria-hidden="true" size={19} weight="bold" />
-          <span>Paylaş</span>
-        </button>
-
-        {isSignedIn ? (
-          <button
-            type="button"
-            aria-label={optimisticSaved ? "Haberi kaydedilenlerden çıkar" : "Haberi kaydet"}
-            aria-pressed={optimisticSaved}
-            onClick={toggleSaved}
-          >
-            {optimisticSaved ? (
-              <Check aria-hidden="true" size={19} weight="bold" />
-            ) : (
-              <BookmarkSimple aria-hidden="true" size={19} weight="bold" />
-            )}
-            <span>{optimisticSaved ? "Kaydedildi" : "Kaydet"}</span>
-          </button>
-        ) : (
-          // JavaScript olmadan da çalışsın diye düz bir form: sunucu eylemi
-          // hedef haberi çereze yazıp girişe yönlendirir.
-          <form action={startBookmarkLogin.bind(null, slug)}>
-            <button type="submit" aria-label="Haberi kaydetmek için giriş yap">
-              <SignIn aria-hidden="true" size={19} weight="bold" />
-              <span>Kaydet</span>
-            </button>
-          </form>
-        )}
-      </div>
+      {buttons}
       <p className="sr-only" aria-live="polite">
         {status}
       </p>

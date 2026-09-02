@@ -102,11 +102,12 @@
   color: var(--color-teal);
 }
 
-/* Yazı sonu künyesi: okuma sütunuyla aynı ölçüde, metnin kapanışı olarak. */
+/* Reklam/başlık genişliğiyle aynı: künye artık paylaş/kaydet düğmelerini de
+   taşıyor, okuma sütununun 42rem'i yazar bilgisiyle çakışmaya yetmiyordu. */
 .byline {
   display: grid;
   gap: 1.5rem;
-  width: min(100% - 4rem, 42rem);
+  width: min(100% - 4rem, 64rem);
   margin: 2.5rem auto 0;
   padding-top: 1.9rem;
   border-top: 1px solid rgb(13 27 42 / 14%);
@@ -141,7 +142,14 @@
   margin: 0;
 }
 
-.bylineTimes div {
+/* Direct children only — a descendant selector here would also catch the
+   nested actions markup inside .readingTimeRow and force it into a grid. */
+.bylineTimes > div {
+  display: grid;
+  gap: 0.12rem;
+}
+
+.readingTimeMeta {
   display: grid;
   gap: 0.12rem;
 }
@@ -177,16 +185,24 @@
 }
 
 .actionsWrap {
-  display: grid;
-  justify-items: center;
-  gap: 0.55rem;
-  margin-top: 1.6rem;
+  display: inline-flex;
+  align-items: center;
 }
 
 .actions {
   display: flex;
-  justify-content: center;
+  align-items: center;
   gap: 0.55rem;
+}
+
+/* Reading time label/value stays stacked like its sibling meta entries;
+   the share/save buttons sit beside it, on the same row, at every breakpoint.
+   Selector needs `.bylineTimes` prefixed in to outrank `.bylineTimes > div` above. */
+.bylineTimes .readingTimeRow {
+  display: flex;
+  flex-wrap: nowrap;
+  align-items: center;
+  gap: 0.9rem;
 }
 
 .actions button {
@@ -210,13 +226,6 @@
   border-color: rgb(12 124 134 / 32%);
   background: rgb(12 124 134 / 9%);
   color: var(--color-teal);
-}
-
-.actionNote {
-  margin: 0;
-  color: var(--color-ink-muted);
-  font-size: 0.65rem;
-  line-height: 1.45;
 }
 
 /* Görsel, okuma sütunundan geniş ama sayfa kabuğundan dar: metinle bağı korunuyor. */

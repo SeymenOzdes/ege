@@ -78,8 +78,6 @@ export function ArticleDetail({ article }: { article: ArticleDetailType }) {
             <span aria-hidden="true">·</span>
             <span>{article.readingTime} okuma</span>
           </p>
-
-          <ArticleActions title={article.title} slug={article.slug} />
         </div>
       </header>
 
@@ -145,9 +143,12 @@ export function ArticleDetail({ article }: { article: ArticleDetailType }) {
               </dd>
             </div>
           )}
-          <div>
-            <dt>Okuma süresi</dt>
-            <dd>{article.readingTime}</dd>
+          <div className={styles.readingTimeRow}>
+            <div className={styles.readingTimeMeta}>
+              <dt>Okuma süresi</dt>
+              <dd>{article.readingTime}</dd>
+            </div>
+            <ArticleActions title={article.title} slug={article.slug} />
           </div>
         </dl>
       </footer>
