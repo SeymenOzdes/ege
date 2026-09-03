@@ -3,7 +3,7 @@ import { expect, test } from "@playwright/test";
 test("giriş sayfası parola gerektirmeden Magic Link akışını açıklar", async ({ page }) => {
   await page.goto("/giris");
 
-  await expect(page.getByRole("heading", { name: "Giriş bağlantını al" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Giriş yap" })).toBeVisible();
   await expect(page.getByLabel("E-posta adresi")).toHaveAttribute("type", "email");
   await expect(page.getByRole("button", { name: "Giriş bağlantısı gönder" })).toBeVisible();
 });

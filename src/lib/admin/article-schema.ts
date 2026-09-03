@@ -5,7 +5,7 @@
  * formu aynı etiketleri ve aynı kalıpları okuyor.
  */
 import { z } from "zod";
-import { bodyBlockTypes } from "@/lib/admin/article-body";
+import { sanitizeHref } from "@/lib/article-links";
 import type { Database } from "@/lib/supabase/database.types";
 import { normalizeTurkish } from "@/lib/turkish";
 
@@ -136,15 +136,74 @@ const optionalInstant = z
   })
   .transform((value) => (value === "" ? null : toEditorialInstant(value)));
 
+const EMPTY_BLOCK_MESSAGE = "Boş blok kaydedilemez; ya doldurun ya da kaldırın.";
+
+const inlineSpanSchema = z.object({
+  text: z.string(),
+  bold: z.literal(true).optional(),
+  italic: z.literal(true).optional(),
+  underline: z.literal(true).optional(),
+  strike: z.literal(true).optional(),
+  href: z
+    .string()
+    .refine((value) => sanitizeHref(value) !== undefined, {
+      message: "Bağlantı adresi http(s), mailto ya da site içi / ile başlamalı.",
+    })
+    .optional(),
+});
+
+/** Paragraf, ara başlık, alıntı ve liste maddesinin paylaştığı satır içi gövde. */
+const inlineShape = {
+  text: z.string(),
+  spans: z.array(inlineSpanSchema).optional(),
+};
+
+type InlineValue = { text: string; spans?: { text: string }[] };
+
+/**
+ * `text`'i parçalardan yeniden üretir.
+ *
+ * İstemciden gelen `text` ile `spans` ayrışmış olabilir; ayrışırsa `body_text`
+ * ve onun beslediği `search_vector` haberin gerçek metnini göstermezdi. Tek
+ * doğruluk kaynağı parçalar, `text` onlardan türetiliyor.
+ */
+function withDerivedText<T extends InlineValue>(value: T): T {
+  return value.spans
+    ? { ...value, text: value.spans.map((span) => span.text).join("") }
+    : { ...value, text: value.text.trim() };
+}
+
+const listItemSchema = z
+  .object(inlineShape)
+  .transform(withDerivedText)
+  .refine((item) => item.text.trim() !== "", { message: EMPTY_BLOCK_MESSAGE });
+
 const bodyBlockSchema = z
-  .object({
-    type: z.enum(bodyBlockTypes),
-    text: z.string().trim().min(1, "Boş blok kaydedilemez; ya doldurun ya da kaldırın."),
-    attribution: z.string().trim().max(200),
-  })
-  .refine((block) => block.type !== "quote" || block.attribution.length > 0, {
-    message: "Alıntının kime ait olduğunu yazın.",
-    path: ["attribution"],
+  .discriminatedUnion("type", [
+    z.object({ type: z.literal("paragraph"), ...inlineShape }),
+    z.object({
+      type: z.literal("heading"),
+      level: z.union([z.literal(2), z.literal(3)]),
+      ...inlineShape,
+    }),
+    z.object({
+      type: z.literal("quote"),
+      attribution: z
+        .string()
+        .trim()
+        .min(1, "Alıntının kime ait olduğunu yazın.")
+        .max(200, "Alıntının kaynağı en fazla 200 karakter olabilir."),
+      ...inlineShape,
+    }),
+    z.object({
+      type: z.literal("list"),
+      ordered: z.boolean(),
+      items: z.array(listItemSchema).min(1, EMPTY_BLOCK_MESSAGE),
+    }),
+  ])
+  .transform((block) => (block.type === "list" ? block : withDerivedText(block)))
+  .refine((block) => block.type === "list" || block.text.trim() !== "", {
+    message: EMPTY_BLOCK_MESSAGE,
   });
 
 export const articleFormSchema = z
@@ -184,17 +243,26 @@ export const articleFormSchema = z
 export type ArticleFormValues = z.output<typeof articleFormSchema>;
 
 /**
- * `FormData` → şemanın beklediği ham nesne.
+ * Gövde tek bir `body` alanından okunuyor.
  *
- * Bloklar üç paralel alandan okunuyor (`blockType`, `blockText`,
- * `blockAttribution`); editör alıntı olmayan bloklarda da gizli bir
- * `blockAttribution` alanı gönderir, aksi hâlde diziler kayardı.
+ * Satır içi biçimlendirme geldikten sonra paralel `FormData` dizileri
+ * yetmiyordu; editör bloklarını JSON olarak gönderiyor. Bozuk JSON burada
+ * sessizce boş diziye düşüyor ve aşağıdaki `min(1)` kuralının Türkçe hatasını
+ * alıyor — kullanıcıya "gövde boş" demek, "JSON çözümlenemedi" demekten yeğ.
  */
-export function readArticleForm(formData: FormData): unknown {
-  const types = formData.getAll("blockType");
-  const texts = formData.getAll("blockText");
-  const attributions = formData.getAll("blockAttribution");
+function readBodyBlocks(formData: FormData): unknown {
+  const raw = formData.get("body");
+  if (typeof raw !== "string") return [];
 
+  try {
+    return JSON.parse(raw);
+  } catch {
+    return [];
+  }
+}
+
+/** `FormData` → şemanın beklediği ham nesne. */
+export function readArticleForm(formData: FormData): unknown {
   return {
     title: formData.get("title") ?? "",
     slug: formData.get("slug") ?? "",
@@ -210,11 +278,7 @@ export function readArticleForm(formData: FormData): unknown {
     isBreaking: formData.get("isBreaking") !== null,
     breakingExpiresAt: formData.get("breakingExpiresAt") ?? "",
     scheduledAt: formData.get("scheduledAt") ?? "",
-    blocks: types.map((type, index) => ({
-      type,
-      text: texts[index] ?? "",
-      attribution: attributions[index] ?? "",
-    })),
+    blocks: readBodyBlocks(formData),
   };
 }
 

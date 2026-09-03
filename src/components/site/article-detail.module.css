@@ -324,6 +324,49 @@
   line-height: 1.2;
 }
 
+/* h2'nin bir kademe altı; ağırlık biraz yukarıda, yoksa küçük boyda gövdeden
+   ayrışmıyor. */
+.articleBody h3 {
+  margin: 2rem 0 0.7rem;
+  font-family: var(--font-display), Arial, sans-serif;
+  font-size: clamp(1.24rem, 1.7vw, 1.45rem);
+  font-weight: 600;
+  letter-spacing: -0.03em;
+  line-height: 1.25;
+}
+
+/* Listeler gövde paragrafıyla aynı tipografide akıyor: haber metninin içinde
+   bir kesinti değil, aynı sesin madde madde hâli. */
+.articleBody ul,
+.articleBody ol {
+  margin: 0 0 1.65rem;
+  padding-left: 1.6rem;
+  font-family: var(--font-display), Arial, sans-serif;
+  font-size: clamp(1.16rem, 1.8vw, 1.3rem);
+  line-height: 1.78;
+}
+
+.articleBody li {
+  margin-bottom: 0.55rem;
+  padding-left: 0.25rem;
+}
+
+.articleBody li::marker {
+  color: var(--color-teal);
+  font-weight: 700;
+}
+
+.articleBody a {
+  color: var(--color-teal);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.18em;
+}
+
+.articleBody a:hover {
+  text-decoration-thickness: 2px;
+}
+
 .articleBody blockquote {
   margin: 3rem 0;
   padding: 0.25rem 0 0.2rem 1.55rem;

@@ -4,13 +4,20 @@ import {
   articleFormSchema,
   canTransition,
   getAllowedTransitions,
+  getFirstIssueMessage,
   readArticleForm,
   slugify,
   toEditorialInstant,
   toEditorialLocalInput,
 } from "@/lib/admin/article-schema";
 
-function buildFormData(overrides: Record<string, string> = {}, blocks = true) {
+const defaultBlocks = [{ type: "paragraph", text: "İlk sefer sabah 06.00'da yapıldı." }];
+
+/**
+ * Gövde tek bir `body` alanında JSON olarak gidiyor; `blocks` yerine `null`
+ * verilirse alan hiç yazılmıyor, böylece alansız gönderim de sınanabiliyor.
+ */
+function buildFormData(overrides: Record<string, string> = {}, blocks: unknown = defaultBlocks) {
   const formData = new FormData();
   const fields: Record<string, string> = {
     title: "Bornova'da yeni tramvay hattı açıldı",
@@ -21,11 +28,7 @@ function buildFormData(overrides: Record<string, string> = {}, blocks = true) {
   };
   for (const [key, value] of Object.entries(fields)) formData.set(key, value);
 
-  if (blocks) {
-    formData.append("blockType", "paragraph");
-    formData.append("blockText", "İlk sefer sabah 06.00'da yapıldı.");
-    formData.append("blockAttribution", "");
-  }
+  if (blocks !== null) formData.set("body", JSON.stringify(blocks));
 
   return formData;
 }
@@ -89,7 +92,7 @@ describe("articleFormSchema", () => {
     expect(parsed.title).toBe("Bornova'da yeni tramvay hattı açıldı");
     expect(parsed.summary).toBe("Hat, sabah saatlerinde ilk seferini yaptı.");
     expect(parsed.blocks).toEqual([
-      { type: "paragraph", text: "İlk sefer sabah 06.00'da yapıldı.", attribution: "" },
+      { type: "paragraph", text: "İlk sefer sabah 06.00'da yapıldı." },
     ]);
   });
 
@@ -129,17 +132,124 @@ describe("articleFormSchema", () => {
   });
 
   it("gövdesiz haberi reddeder", () => {
-    const result = articleFormSchema.safeParse(readArticleForm(buildFormData({}, false)));
-    expect(result.success).toBe(false);
+    expect(articleFormSchema.safeParse(readArticleForm(buildFormData({}, []))).success).toBe(false);
+    expect(articleFormSchema.safeParse(readArticleForm(buildFormData({}, null))).success).toBe(
+      false,
+    );
   });
 
-  it("kaynağı yazılmamış alıntıyı reddeder", () => {
-    const formData = buildFormData({}, false);
-    formData.append("blockType", "quote");
-    formData.append("blockText", "Hat boyunca üç durak eklendi.");
-    formData.append("blockAttribution", "");
+  it("bozuk gövde JSON'unu gövdesiz gönderim gibi ele alır", () => {
+    // Kullanıcıya "gövde boş" demek, "JSON çözümlenemedi" demekten yeğ.
+    const formData = buildFormData();
+    formData.set("body", "{bozuk");
 
     const result = articleFormSchema.safeParse(readArticleForm(formData));
     expect(result.success).toBe(false);
+    expect(result.error && getFirstIssueMessage(result.error)).toBe(
+      "Haber gövdesi en az bir blok içermeli.",
+    );
+  });
+
+  it("kaynağı yazılmamış alıntıyı reddeder", () => {
+    const result = articleFormSchema.safeParse(
+      readArticleForm(
+        buildFormData({}, [
+          { type: "quote", text: "Hat boyunca üç durak eklendi.", attribution: "  " },
+        ]),
+      ),
+    );
+
+    expect(result.success).toBe(false);
+  });
+
+  it("boş bloğu reddeder", () => {
+    const result = articleFormSchema.safeParse(
+      readArticleForm(buildFormData({}, [{ type: "paragraph", text: "   " }])),
+    );
+
+    expect(result.success).toBe(false);
+  });
+
+  it("liste ve ara başlık düzeyini kabul eder", () => {
+    const parsed = articleFormSchema.parse(
+      readArticleForm(
+        buildFormData({}, [
+          { type: "heading", level: 3, text: "Sefer saatleri" },
+          { type: "list", ordered: true, items: [{ text: "İlk sefer 06.00" }] },
+        ]),
+      ),
+    );
+
+    expect(parsed.blocks).toEqual([
+      { type: "heading", level: 3, text: "Sefer saatleri" },
+      { type: "list", ordered: true, items: [{ text: "İlk sefer 06.00" }] },
+    ]);
+  });
+
+  it("geçersiz ara başlık düzeyini reddeder", () => {
+    const result = articleFormSchema.safeParse(
+      readArticleForm(buildFormData({}, [{ type: "heading", level: 1, text: "Bir" }])),
+    );
+
+    expect(result.success).toBe(false);
+  });
+
+  it("boş maddeli listeyi reddeder", () => {
+    expect(
+      articleFormSchema.safeParse(
+        readArticleForm(buildFormData({}, [{ type: "list", ordered: false, items: [] }])),
+      ).success,
+    ).toBe(false);
+
+    expect(
+      articleFormSchema.safeParse(
+        readArticleForm(
+          buildFormData({}, [{ type: "list", ordered: false, items: [{ text: "  " }] }]),
+        ),
+      ).success,
+    ).toBe(false);
+  });
+
+  it("güvensiz bağlantıyı reddeder", () => {
+    const result = articleFormSchema.safeParse(
+      readArticleForm(
+        buildFormData({}, [
+          {
+            type: "paragraph",
+            text: "tıkla",
+            spans: [{ text: "tıkla", href: "javascript:alert(1)" }],
+          },
+        ]),
+      ),
+    );
+
+    expect(result.success).toBe(false);
+    expect(result.error && getFirstIssueMessage(result.error)).toBe(
+      "Bağlantı adresi http(s), mailto ya da site içi / ile başlamalı.",
+    );
+  });
+
+  it("`text` ile `spans` ayrışmışsa metni sunucuda yeniden üretir", () => {
+    // İstemciye güvenilseydi `body_text` ve `search_vector` haberin gerçek
+    // metnini göstermezdi.
+    const parsed = articleFormSchema.parse(
+      readArticleForm(
+        buildFormData({}, [
+          {
+            type: "paragraph",
+            text: "gizli reklam",
+            spans: [{ text: "Hat " }, { text: "açıldı", bold: true }],
+          },
+        ]),
+      ),
+    );
+
+    expect(parsed.blocks).toEqual([
+      {
+        type: "paragraph",
+        text: "Hat açıldı",
+        spans: [{ text: "Hat " }, { text: "açıldı", bold: true }],
+      },
+    ]);
   });
 });

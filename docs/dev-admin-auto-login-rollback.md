@@ -11,7 +11,7 @@ Bu doküman, yerel geliştirme kolaylığı için eklenen **dev admin otomatik g
 | 3   | `src/lib/auth/server.ts`                    | `requireStaffRoute` içinde dev yönlendirme dalı                    |
 | 4   | `src/lib/auth/redirect.ts`                  | `dev_login_failed` hata mesajı                                     |
 | 5   | `supabase/seed.sql`                         | Yerel `dev-admin@ege.local` ADMIN hesabı (dosyanın sonundaki blok) |
-| 6   | `playwright.config.ts`                      | webServer `env` içinde `DEV_ADMIN_AUTO_LOGIN=false`                |
+| 6   | `playwright.config.ts`                      | webServer `env` içinde `DEV_ADMIN_AUTO_LOGIN=route`                |
 | 7   | `.env.example` / `.env.local`               | `DEV_ADMIN_AUTO_LOGIN` satırı                                      |
 | 8   | `docs/modules/05-authentication-and-rls.md` | “Yerel geliştirme hızlı girişi (dev-only)” bölümü                  |
 
@@ -20,7 +20,8 @@ Bu doküman, yerel geliştirme kolaylığı için eklenen **dev admin otomatik g
 Bu özellik, kod tarafında **iki katmanlı** olarak kilitlidir:
 
 1. `isDevAdminAutoLoginEnabled()` yalnızca `process.env.NODE_ENV === "development"` **ve** `process.env.DEV_ADMIN_AUTO_LOGIN === "true"` iken `true` döner. `next build` + `next start` ile çalıştırılan üretim derlemesinde `NODE_ENV=production` olduğundan bayrak **her koşulda kapalıdır**.
-2. `/auth/dev-login` rotası bayrak kapalıyken `/giris?error=link_invalid` sayfasına yönlenir; oturum açamaz.
+1. Bayrağın üçüncü bir değeri var: `"route"`. Bu değerde `/yonetim`'e oturumsuz girildiğinde **otomatik yönlendirme yapılmaz** (yani `auth.spec.ts` gerçek korumayı doğrulamayı sürdürür), ama `/auth/dev-login` rotası elle çağrılabilir kalır — `isDevAdminLoginRouteEnabled()`. Yönetim e2e testi (`e2e/yonetim.spec.ts`) oturumu bu rotadan açıyor. Next 16 aynı dizinde ikinci bir dev sunucusuna izin vermediği için koruma testiyle yönetim testi tek sunucuyu ve tek bayrak değerini paylaşmak zorunda. Bu kapı da `NODE_ENV === "development"` şartına bağlıdır; üretimde `"route"` de kapalıdır.
+1. `/auth/dev-login` rotası bayrak kapalıyken `/giris?error=link_invalid` sayfasına yönlenir; oturum açamaz.
 
 Ayrıca seed yalnızca yerel `supabase db reset --local` sırasında çalışır; canlı Supabase projesine **asla taşınmaz**.
 
@@ -28,7 +29,7 @@ Ayrıca seed yalnızca yerel `supabase db reset --local` sırasında çalışır
 
 ## 1. Üretim dağıtım öncesi kontrol (yeterli olan minimum adım)
 
-Barındırma ortamında (Vercel vb.) ortam değişkenlerinin arasında `DEV_ADMIN_AUTO_LOGIN` **bulunmadığını** doğrulayın. Varsa silin veya `false` yapın:
+Barındırma ortamında (Vercel vb.) ortam değişkenlerinin arasında `DEV_ADMIN_AUTO_LOGIN` **bulunmadığını** doğrulayın (`true` kadar `route` için de geçerli). Varsa silin veya `false` yapın:
 
 ```bash
 # Vercel CLI ile kontrol
@@ -146,7 +147,7 @@ Silme işleminden sonra dosya, makale seed’ini bitiren `body_text = excluded.b
 
 ```ts
     // E2E, dev bayrağından bağımsız olarak gerçek giriş korumasını doğrular.
-    env: { ...process.env, DEV_ADMIN_AUTO_LOGIN: "false" },
+    env: { ...process.env, DEV_ADMIN_AUTO_LOGIN: "route" },
 ```
 
 ### 2.8. `docs/modules/05-authentication-and-rls.md` — bölümü kaldırın

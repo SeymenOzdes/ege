@@ -1,0 +1,35 @@
+/*
+ * Editörün yazma yüzeyi.
+ *
+ * Tipografi `article-detail.module.css` içindeki `.articleBody`'den geliyor:
+ * editör, haber sayfasının kendi ölçeğiyle yazıyor. Burada yalnızca yazma
+ * yüzeyine özgü olan şeyler var.
+ */
+.editor {
+  min-height: 22rem;
+  padding: 1.4rem 1.5rem 0.4rem;
+  outline: none;
+}
+
+/* Son bloğun alt boşluğu kutunun içinde iki kez sayılmasın. */
+.editor > :last-child {
+  margin-bottom: 1rem;
+}
+
+/*
+ * Placeholder uzantısı boş ilk bloğa `is-editor-empty` sınıfını ve metni
+ * `data-placeholder` özniteliğine koyuyor; sınıf adı TipTap'ten geldiği için
+ * modül dışına çıkmak gerekiyor.
+ */
+.editor :global(.is-editor-empty:first-child)::before {
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  color: var(--color-ink-muted);
+  pointer-events: none;
+}
+
+/* Seçim, alıntı kaynağı alanına geçildiğinde de görünür kalsın. */
+.editor :global(.ProseMirror-selectednode) {
+  outline: 2px solid var(--color-teal);
+}

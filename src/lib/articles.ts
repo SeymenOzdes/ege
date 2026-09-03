@@ -10,6 +10,7 @@ import {
   type MediaAssetRow,
 } from "@/lib/article-preview";
 import { getRelatedArticles } from "@/lib/archives";
+import { sanitizeHref } from "@/lib/article-links";
 import type { ArticleImage, ArticlePreview } from "@/lib/homepage";
 import { createAnonClient } from "@/lib/supabase/anon";
 import { hasSupabasePublicConfig } from "@/lib/supabase/config";
@@ -26,10 +27,31 @@ export type ArticleMedia = ArticleImage & {
   credit?: string;
 };
 
+/**
+ * Bir paragrafın içindeki tek biçimli metin parçası.
+ *
+ * `spans`, blok tek ve işaretsiz bir parçadan ibaretse hiç yazılmaz: TipTap
+ * öncesi kaydedilmiş satırlar böylece bayt bayt aynı kalıyor ve jsonb şişmiyor.
+ * Yazıldığında değişmez şu: `text`, span metinlerinin birleşimine eşittir —
+ * `body_text` ve onun ürettiği `search_vector` bu sayede hiç değişmedi.
+ */
+export type ArticleInlineSpan = {
+  text: string;
+  bold?: true;
+  italic?: true;
+  underline?: true;
+  strike?: true;
+  /** `sanitizeHref`'ten geçmiş adres; ham istemci girdisi buraya ulaşmaz. */
+  href?: string;
+};
+
+export type ArticleListItem = { text: string; spans?: ArticleInlineSpan[] };
+
 export type ArticleBodyBlock =
-  | { type: "paragraph"; text: string }
-  | { type: "heading"; text: string }
-  | { type: "quote"; text: string; attribution: string };
+  | { type: "paragraph"; text: string; spans?: ArticleInlineSpan[] }
+  | { type: "heading"; level: 2 | 3; text: string; spans?: ArticleInlineSpan[] }
+  | { type: "quote"; text: string; attribution: string; spans?: ArticleInlineSpan[] }
+  | { type: "list"; ordered: boolean; items: ArticleListItem[] };
 
 export type ArticleDetail = ArticlePreview & {
   author: ArticleAuthor;
@@ -71,24 +93,92 @@ type ArticleDetailRow = {
   hero: (MediaAssetRow & { caption: string | null; credit: string | null }) | null;
 };
 
+const inlineMarks = ["bold", "italic", "underline", "strike"] as const;
+
+/** Kayıtlı `spans` dizisi → çizilebilir parçalar. Hiç geçerli parça yoksa `undefined`. */
+function parseInlineSpans(value: unknown): ArticleInlineSpan[] | undefined {
+  if (!Array.isArray(value)) return undefined;
+
+  const spans = value.flatMap((entry): ArticleInlineSpan[] => {
+    if (typeof entry !== "object" || entry === null) return [];
+    const record = entry as Record<string, unknown>;
+    if (typeof record.text !== "string" || record.text === "") return [];
+
+    const span: ArticleInlineSpan = { text: record.text };
+    for (const mark of inlineMarks) {
+      if (record[mark] === true) span[mark] = true;
+    }
+
+    // Adres burada da süzülüyor: satır düzgün doğrulanmış bir formdan geçmemiş
+    // olabilir ve `href` sonunda bir `<a>` özniteliğine yazılacak.
+    const href = sanitizeHref(record.href);
+    if (href !== undefined) span.href = href;
+
+    return [span];
+  });
+
+  return spans.length > 0 ? spans : undefined;
+}
+
+/**
+ * Paragraf, ara başlık, alıntı ve liste maddesinin ortak satır içi gövdesi.
+ *
+ * `spans` varsa `text` ondan yeniden üretiliyor; böylece çizilen metin her zaman
+ * çizilen parçaların birleşimi oluyor, kayıtta ikisi ayrışmış olsa bile.
+ */
+function parseInlineContent(
+  record: Record<string, unknown>,
+): { text: string; spans?: ArticleInlineSpan[] } | undefined {
+  const spans = parseInlineSpans(record.spans);
+  if (spans) {
+    const text = spans.map((span) => span.text).join("");
+    return text === "" ? undefined : { text, spans };
+  }
+
+  const { text } = record;
+  return typeof text === "string" && text !== "" ? { text } : undefined;
+}
+
+function parseListItems(value: unknown): ArticleListItem[] {
+  if (!Array.isArray(value)) return [];
+
+  return value.flatMap((entry): ArticleListItem[] => {
+    if (typeof entry !== "object" || entry === null) return [];
+    const item = parseInlineContent(entry as Record<string, unknown>);
+    return item ? [item] : [];
+  });
+}
+
 /**
  * Narrows the stored `body` jsonb onto the block union the renderer understands.
  *
  * The schema only guarantees the column is an array (`articles_body_is_array`), so
  * an unrecognised block is dropped rather than crashing the page — a malformed
  * paragraph should cost one paragraph, not the whole article.
+ *
+ * TipTap editöründen önce yazılmış satırlar olduğu gibi okunuyor: `spans` yoksa
+ * `text` düz basılıyor, `level` taşımayan bir ara başlık H2 sayılıyor.
  */
 export function parseArticleBody(value: unknown): ArticleBodyBlock[] {
   if (!Array.isArray(value)) return [];
 
   return value.flatMap((block): ArticleBodyBlock[] => {
     if (typeof block !== "object" || block === null) return [];
-    const { type, text, attribution } = block as Record<string, unknown>;
-    if (typeof text !== "string" || text === "") return [];
+    const record = block as Record<string, unknown>;
+    const { type } = record;
 
-    if (type === "paragraph" || type === "heading") return [{ type, text }];
-    if (type === "quote" && typeof attribution === "string") {
-      return [{ type, text, attribution }];
+    if (type === "list") {
+      const items = parseListItems(record.items);
+      return items.length > 0 ? [{ type, ordered: record.ordered === true, items }] : [];
+    }
+
+    const inline = parseInlineContent(record);
+    if (!inline) return [];
+
+    if (type === "paragraph") return [{ type, ...inline }];
+    if (type === "heading") return [{ type, level: record.level === 3 ? 3 : 2, ...inline }];
+    if (type === "quote" && typeof record.attribution === "string") {
+      return [{ type, attribution: record.attribution, ...inline }];
     }
     return [];
   });
@@ -140,8 +230,7 @@ export const getArticleBySlug = cache(async (slug: string): Promise<ArticleDetai
   if (!publishedAt) return undefined;
 
   // An article is only "updated" once the edit lands after publication.
-  const updatedAt =
-    row.updated_at && row.updated_at > publishedAt ? row.updated_at : undefined;
+  const updatedAt = row.updated_at && row.updated_at > publishedAt ? row.updated_at : undefined;
 
   const preview = toArticlePreview(toPreviewRow(row));
 

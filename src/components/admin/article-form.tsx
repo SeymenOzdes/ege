@@ -1,8 +1,17 @@
 "use client";
 
-import { useState, type ReactNode } from "react";
+import {
+  useCallback,
+  useDeferredValue,
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react";
+import dynamic from "next/dynamic";
 import { createArticle, updateArticle, transitionArticle } from "@/lib/admin/article-actions";
-import { createBodyBlockDraft, toBodyBlocks, type BodyBlockDraft } from "@/lib/admin/article-body";
 import {
   articleStatusLabels,
   articleTypeLabels,
@@ -12,9 +21,92 @@ import {
   toEditorialLocalInput,
 } from "@/lib/admin/article-schema";
 import type { AdminArticleRecord, ArticleFormOptions } from "@/lib/admin/articles";
-import { BodyBlockEditor } from "@/components/admin/body-block-editor";
+import type { ArticleBodyBlock } from "@/lib/articles";
 import { HeroMediaPicker } from "@/components/admin/hero-media-picker";
 import { articleBodyClassName, BodyBlock } from "@/components/site/article-body";
+
+/**
+ * TipTap yalnızca istemcide ve yalnızca bu form açıldığında yükleniyor.
+ * `ssr: false` bir istemci bileşeninin içinde geçerli (Next 16 lazy-loading
+ * kılavuzu); kamusal sayfaların paketine editörden hiçbir şey girmiyor.
+ */
+const NewsEditor = dynamic(
+  () => import("@/components/admin/news-editor").then((module) => module.NewsEditor),
+  {
+    ssr: false,
+    loading: () => (
+      <div className="grid h-96 place-items-center rounded-[24px] border border-[var(--color-line)] bg-white text-sm text-[var(--color-ink-muted)] shadow-sm">
+        Editör yükleniyor…
+      </div>
+    ),
+  },
+);
+
+/** Otomatik taslak yazma gecikmesi. */
+const DRAFT_SAVE_DELAY = 5000;
+
+type StoredDraft = {
+  savedAt: string;
+  title: string;
+  slug: string;
+  summary: string;
+  blocks: ArticleBodyBlock[];
+};
+
+function draftStorageKey(articleId: string | undefined) {
+  return `ege:haber-taslak:${articleId ?? "yeni"}`;
+}
+
+/**
+ * Yerel taslağı okur. Depolama kapalı, kota dolu ya da kayıt bozuksa
+ * `undefined` döner: otomatik taslak bir kolaylık, formu düşürmemeli.
+ */
+function readStoredDraft(key: string): StoredDraft | undefined {
+  try {
+    const raw = window.localStorage.getItem(key);
+    if (raw === null) return undefined;
+
+    const parsed: unknown = JSON.parse(raw);
+    if (typeof parsed !== "object" || parsed === null) return undefined;
+
+    const draft = parsed as StoredDraft;
+    return typeof draft.savedAt === "string" && Array.isArray(draft.blocks) ? draft : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * Açılış anındaki yerel taslağı bir kez okuyup donduran dış depo.
+ *
+ * `useSyncExternalStore` ile okunuyor: sunucu anlık görüntüsü `undefined`
+ * olduğu için hidrasyon uyuşmazlığı olmuyor ve depoyu okumak için efekt
+ * içinden `setState` çağırmak gerekmiyor. Anlık görüntü bilerek donuyor —
+ * otomatik kayıt aynı anahtarı beş saniyede bir güncelliyor ve canlı okunsaydı
+ * kullanıcı yazarken kurtarma şeridi geri gelirdi.
+ */
+function createDraftStore(key: string) {
+  let hasRead = false;
+  let snapshot: StoredDraft | undefined;
+
+  return {
+    subscribe: () => () => undefined,
+    getSnapshot: () => {
+      if (!hasRead) {
+        hasRead = true;
+        snapshot = readStoredDraft(key);
+      }
+      return snapshot;
+    },
+  };
+}
+
+function formatDraftTime(savedAt: string) {
+  const date = new Date(savedAt);
+  return Number.isNaN(date.getTime())
+    ? ""
+    : new Intl.DateTimeFormat("tr-TR", { dateStyle: "short", timeStyle: "short" }).format(date);
+}
 
 const fieldClassName =
   "w-full rounded-[18px] border border-[var(--color-line)] bg-[var(--color-paper)] px-4 py-3 font-normal";
@@ -89,10 +181,10 @@ export function ArticleForm({
   options: ArticleFormOptions;
 }) {
   const isEdit = article !== undefined;
+  const storageKey = draftStorageKey(article?.id);
+  const initialBlocks = useMemo(() => article?.blocks ?? [], [article]);
 
-  const [blocks, setBlocks] = useState<BodyBlockDraft[]>(
-    article && article.blocks.length > 0 ? article.blocks : [createBodyBlockDraft()],
-  );
+  const [blocks, setBlocks] = useState<ArticleBodyBlock[]>(initialBlocks);
   const [title, setTitle] = useState(article?.title ?? "");
   const [slug, setSlug] = useState(article?.slug ?? "");
   const [slugTouched, setSlugTouched] = useState(isEdit);
@@ -100,12 +192,94 @@ export function ArticleForm({
   const [isBreaking, setIsBreaking] = useState(article?.isBreaking ?? defaultBreaking);
   const [message, setMessage] = useState<string | undefined>(notice);
   const [isPending, setIsPending] = useState(false);
+  const [draftDismissed, setDraftDismissed] = useState(false);
+  // Editör içeriği yalnızca kurulumda okunuyor; taslak geri yüklendiğinde
+  // `generation` değişiyor ve bileşen yeni tohumla yeniden kuruluyor.
+  const [editorSeed, setEditorSeed] = useState<{
+    blocks: readonly ArticleBodyBlock[];
+    generation: number;
+  }>(() => ({ blocks: initialBlocks, generation: 0 }));
 
-  const previewBlocks = toBodyBlocks(blocks);
+  // Gönderim, önizlemenin geciktirilmiş kopyasını değil bu referansı okur:
+  // kaydedilen gövde her koşulda editörün son hâli olmalı.
+  const blocksRef = useRef<ArticleBodyBlock[]>(initialBlocks);
+  const submittedRef = useRef(false);
+
+  const previewBlocks = useDeferredValue(blocks);
+
+  const handleBlocksChange = useCallback((next: ArticleBodyBlock[]) => {
+    blocksRef.current = next;
+    setBlocks(next);
+  }, []);
+
+  const draftStore = useMemo(() => createDraftStore(storageKey), [storageKey]);
+  const storedDraft = useSyncExternalStore(
+    draftStore.subscribe,
+    draftStore.getSnapshot,
+    () => undefined,
+  );
+
+  // Kaydedilmiş sürüm taslaktan yeniyse taslak eskimiştir: başka bir yerden
+  // kaydedilmiş, bu kopya geride kalmıştır.
+  const isStale =
+    article !== undefined &&
+    storedDraft !== undefined &&
+    Date.parse(storedDraft.savedAt) <= Date.parse(article.updatedAt);
+
+  const recoverable = draftDismissed || isStale ? undefined : storedDraft;
+
+  // Sessiz otomatik kayıt. Kurtarma şeridi açıkken duruyor: kullanıcı henüz
+  // hangi sürümü istediğini söylemedi, altındaki kaydı değiştirmek yanlış olur.
+  useEffect(() => {
+    if (recoverable !== undefined) return;
+    if (title.trim() === "" && blocks.length === 0) return;
+
+    const timer = window.setTimeout(() => {
+      if (submittedRef.current) return;
+
+      try {
+        const draft: StoredDraft = {
+          savedAt: new Date().toISOString(),
+          title,
+          slug,
+          summary,
+          blocks: blocksRef.current,
+        };
+        window.localStorage.setItem(storageKey, JSON.stringify(draft));
+      } catch {
+        // Kota dolu ya da depolama kapalı: otomatik taslak sessizce devre dışı.
+      }
+    }, DRAFT_SAVE_DELAY);
+
+    return () => window.clearTimeout(timer);
+  }, [blocks, recoverable, slug, storageKey, summary, title]);
+
+  function restoreDraft() {
+    if (!recoverable) return;
+
+    setTitle(recoverable.title);
+    setSlug(recoverable.slug);
+    setSlugTouched(true);
+    setSummary(recoverable.summary);
+    handleBlocksChange(recoverable.blocks);
+    setEditorSeed((seed) => ({ blocks: recoverable.blocks, generation: seed.generation + 1 }));
+    setDraftDismissed(true);
+  }
+
+  function discardDraft() {
+    window.localStorage.removeItem(storageKey);
+    setDraftDismissed(true);
+  }
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const formData = new FormData(event.currentTarget);
+    formData.set("body", JSON.stringify(blocksRef.current));
+
+    // Kaydetmeye başladığımız an kurtarma kopyası gereksiz: içerik sunucuya
+    // gidiyor. Kayıt başarısız olursa aşağıda geri açılıyor.
+    submittedRef.current = true;
+    window.localStorage.removeItem(storageKey);
 
     setIsPending(true);
     setMessage(undefined);
@@ -114,6 +288,7 @@ export function ArticleForm({
     // döndüğünde aşağıdaki satırlar çalışır.
     const result = isEdit ? await updateArticle(formData) : await createArticle(formData);
 
+    submittedRef.current = false;
     setMessage(result.error ?? result.success ?? "İşlem tamamlanamadı.");
     setIsPending(false);
   }
@@ -133,6 +308,31 @@ export function ArticleForm({
     <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_24rem]">
       <form className="grid gap-6" onSubmit={handleSubmit}>
         {isEdit ? <input name="articleId" type="hidden" value={article.id} /> : null}
+
+        {recoverable ? (
+          <div
+            className="flex flex-wrap items-center gap-3 rounded-[18px] border border-[var(--color-ochre)] bg-[var(--color-paper)] px-4 py-3 text-sm"
+            role="status"
+          >
+            <span className="font-semibold">
+              Kaydedilmemiş bir taslak bulundu ({formatDraftTime(recoverable.savedAt)}).
+            </span>
+            <button
+              className="rounded-full bg-[var(--color-ink)] px-4 py-2 text-xs font-semibold text-white transition hover:bg-[var(--color-teal)]"
+              onClick={restoreDraft}
+              type="button"
+            >
+              Geri yükle
+            </button>
+            <button
+              className="rounded-full border border-[var(--color-line)] px-4 py-2 text-xs font-semibold transition hover:border-[var(--color-teal)] hover:text-[var(--color-teal)]"
+              onClick={discardDraft}
+              type="button"
+            >
+              Yok say
+            </button>
+          </div>
+        ) : null}
 
         <section className={cardClassName}>
           <Field htmlFor="article-title" label="Başlık">
@@ -231,7 +431,11 @@ export function ArticleForm({
           </div>
         </section>
 
-        <BodyBlockEditor blocks={blocks} onChange={setBlocks} />
+        <NewsEditor
+          defaultBlocks={editorSeed.blocks}
+          key={editorSeed.generation}
+          onChange={handleBlocksChange}
+        />
 
         <section className={cardClassName}>
           <div>

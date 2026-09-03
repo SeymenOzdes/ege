@@ -19,17 +19,22 @@ function makeArticle(overrides: Partial<ArticleDetail> = {}): ArticleDetail {
 }
 
 describe("parseArticleBody", () => {
-  it("keeps the three block kinds the renderer understands", () => {
+  it("keeps the block kinds the renderer understands", () => {
     const blocks = parseArticleBody([
       { type: "paragraph", text: "Gövde metni." },
+      // A heading stored before the editor gained H3 carries no level.
       { type: "heading", text: "Ara başlık" },
+      { type: "heading", level: 3, text: "Alt başlık" },
       { type: "quote", text: "Alıntı", attribution: "Nermin Karaca" },
+      { type: "list", ordered: true, items: [{ text: "İlk madde" }] },
     ]);
 
     expect(blocks).toEqual([
       { type: "paragraph", text: "Gövde metni." },
-      { type: "heading", text: "Ara başlık" },
+      { type: "heading", level: 2, text: "Ara başlık" },
+      { type: "heading", level: 3, text: "Alt başlık" },
       { type: "quote", text: "Alıntı", attribution: "Nermin Karaca" },
+      { type: "list", ordered: true, items: [{ text: "İlk madde" }] },
     ]);
   });
 
@@ -39,6 +44,7 @@ describe("parseArticleBody", () => {
       { type: "video", url: "https://example.com" },
       { type: "paragraph", text: "" },
       { type: "quote", text: "Kaynaksız alıntı" },
+      { type: "list", ordered: false, items: [] },
       null,
       "düz metin",
     ]);

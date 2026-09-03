@@ -1,9 +1,8 @@
 import "server-only";
 
 import { z } from "zod";
-import { toBodyDrafts, type BodyBlockDraft } from "@/lib/admin/article-body";
 import { articleStatuses, type ArticleStatus, type ArticleType } from "@/lib/admin/article-schema";
-import { parseArticleBody } from "@/lib/articles";
+import { parseArticleBody, type ArticleBodyBlock } from "@/lib/articles";
 import { getMediaPublicUrl, NEWS_MEDIA_BUCKET } from "@/lib/media";
 import { hasSupabasePublicConfig } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
@@ -157,7 +156,7 @@ export type AdminArticleRecord = {
   publishedAt: string | null;
   archivedAt: string | null;
   updatedAt: string;
-  blocks: BodyBlockDraft[];
+  blocks: ArticleBodyBlock[];
 };
 
 /**
@@ -198,7 +197,7 @@ export async function getAdminArticle(id: string): Promise<AdminArticleRecord | 
     publishedAt: data.published_at,
     archivedAt: data.archived_at,
     updatedAt: data.updated_at,
-    blocks: toBodyDrafts(parseArticleBody(data.body)),
+    blocks: parseArticleBody(data.body),
   };
 }
 

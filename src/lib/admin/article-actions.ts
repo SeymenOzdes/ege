@@ -3,7 +3,7 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { z } from "zod";
-import { toBodyBlocks, toBodyText } from "@/lib/admin/article-body";
+import { toBodyText } from "@/lib/admin/article-body";
 import {
   articleFormSchema,
   articleStatusLabels,
@@ -123,14 +123,12 @@ async function recordAudit(actorId: string, action: string, targetId: string, me
 
 /** Formdaki ilişkileri ve gövdeyi `articles` sütunlarına çevirir. */
 function toArticleColumns(values: ArticleFormValues) {
-  const blocks = toBodyBlocks(values.blocks);
-
   return {
     title: values.title,
     slug: values.slug,
     summary: values.summary,
-    body: blocks,
-    body_text: toBodyText(blocks),
+    body: values.blocks,
+    body_text: toBodyText(values.blocks),
     article_type: values.articleType,
     author_id: values.authorId,
     topic_id: values.topicId,

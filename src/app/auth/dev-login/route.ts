@@ -1,5 +1,5 @@
 import { type NextRequest, NextResponse } from "next/server";
-import { devAdminCredentials, isDevAdminAutoLoginEnabled } from "@/lib/auth/dev-access";
+import { devAdminCredentials, isDevAdminLoginRouteEnabled } from "@/lib/auth/dev-access";
 import { getSafeRedirectPath } from "@/lib/auth/redirect";
 import { hasSupabasePublicConfig } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
@@ -10,10 +10,11 @@ import { createClient } from "@/lib/supabase/server";
  * çerezlerini kurar. Sahte bir sunucu tarafı rolü yerine gerçek bir Supabase
  * oturumu kullanılır; böylece dashboard sorgularındaki RLS kontrolleri
  * (auth.jwt() app_metadata.role) gerçek rolle çalışmaya devam eder.
- * Bayrak kapalıyken veya üretimde rota giriş sayfasına yönlenir.
+ * Bayrak `"true"` ya da `"route"` değilken veya üretimde rota giriş
+ * sayfasına yönlenir.
  */
 export async function GET(request: NextRequest) {
-  if (!isDevAdminAutoLoginEnabled() || !hasSupabasePublicConfig()) {
+  if (!isDevAdminLoginRouteEnabled() || !hasSupabasePublicConfig()) {
     return NextResponse.redirect(new URL("/giris?error=link_invalid", request.url));
   }
 
