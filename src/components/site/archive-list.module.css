@@ -91,6 +91,15 @@
   gap: 0.35rem;
 }
 
+/* Stands in for an elided run of pages; decorative, so it is hidden from
+   assistive tech and never sized like a link. */
+.pagerGap {
+  color: var(--color-ink-muted);
+  font-size: 0.9rem;
+  font-weight: 700;
+  padding: 0.45rem 0.2rem;
+}
+
 .emptyHeading {
   font-size: clamp(1.55rem, 3.6vw, 2.1rem);
   line-height: 1.2;

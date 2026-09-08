@@ -11,12 +11,18 @@ import { useIsClient } from "@/lib/use-is-client";
 
 type PanelId = "search" | "menu";
 
+/**
+ * Hızlı erişim menüsü. Adresler gerçek rotalara bakıyor: eskiden `#son-dakika`
+ * gibi çapa bağlantılarıydı, ama o kimlikler hiçbir sayfada bulunmuyordu —
+ * menüdeki her tıklama okuyucuyu bulunduğu sayfada bırakıyordu. Bölge geneli
+ * için ayrı bir arşiv olmadığından "Ege" yerine Gündem dosyası duruyor.
+ */
 const quickNavigation = [
-  ["Son Dakika", "#son-dakika"],
-  ["İzmir", "#izmir"],
-  ["Ege", "#ege"],
-  ["Ekonomi", "#ekonomi"],
-  ["Yaşam", "#yasam"],
+  ["Son Dakika", "/son-dakika"],
+  ["İzmir", "/kategori/izmir"],
+  ["Gündem", "/kategori/gundem"],
+  ["Ekonomi", "/kategori/ekonomi"],
+  ["Yaşam", "/kategori/yasam"],
 ] as const;
 
 const panelActions: Readonly<

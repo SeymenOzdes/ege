@@ -2,6 +2,7 @@ import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { describe, expect, it, vi } from "vitest";
 import { NewsEditor } from "@/components/admin/news-editor";
+import { readingTimeLabel } from "@/lib/article-preview";
 import type { ArticleBodyBlock } from "@/lib/articles";
 
 /** Yazma yüzeyi: `editorProps` ile verilen erişilebilir ad üzerinden bulunuyor. */
@@ -97,6 +98,25 @@ describe("NewsEditor", () => {
     expect(getSurface().querySelector("a")).toBeNull();
   });
 
+  it("site içi bağlantı adresini kabul eder", async () => {
+    const { user } = await mountEditor();
+
+    await user.click(getSurface());
+    await user.keyboard("kaynak");
+    await user.keyboard("{Control>}a{/Control}");
+    await user.click(screen.getByRole("button", { name: "Bağlantı" }));
+
+    // Alan `type="url"` olsaydı tarayıcı site içi adresi geçersiz sayar ve
+    // içinde durduğu haber formunun kaydedilmesini de engellerdi.
+    const input = screen.getByLabelText("Bağlantı adresi");
+    expect(input).toHaveAttribute("type", "text");
+
+    await user.type(input, "/haber/izmirin-kiyi-rotalari");
+    await user.click(screen.getByRole("button", { name: "Ekle" }));
+
+    expect(getSurface().querySelector("a")).toHaveAttribute("href", "/haber/izmirin-kiyi-rotalari");
+  });
+
   it("kelime ve karakter sayacını gösterir", async () => {
     const { user } = await mountEditor();
 
@@ -105,5 +125,18 @@ describe("NewsEditor", () => {
 
     expect(screen.getByText("2 kelime")).toBeInTheDocument();
     expect(screen.getByText("~1 dk okuma")).toBeInTheDocument();
+  });
+
+  it("okuma süresini yayın yüzeyiyle aynı kuralla yuvarlar", async () => {
+    // 250 kelime, dakikada 200 kelimeye bölününce 1,25 eder: editördeki eski
+    // `Math.round` "1 dk" derken haberin künyesi "2 dk" gösteriyordu.
+    const words = 250;
+    await mountEditor([
+      { type: "paragraph", text: Array.from({ length: words }, () => "kelime").join(" ") },
+    ]);
+
+    expect(screen.getByText(`${words} kelime`)).toBeInTheDocument();
+    expect(screen.getByText("~2 dk okuma")).toBeInTheDocument();
+    expect(screen.getByText(`~${readingTimeLabel(words)} okuma`)).toBeInTheDocument();
   });
 });

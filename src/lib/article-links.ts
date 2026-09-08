@@ -12,18 +12,33 @@
 const allowedProtocols = new Set(["http:", "https:", "mailto:"]);
 
 /**
+ * Tarayıcının adres çözerken yok saydığı ya da eğik çizgi gibi okuduğu
+ * karakterler.
+ *
+ * Ters eğik çizgi özel şemalarda `/` ile eşdeğerdir, sekme ve satır sonu ise
+ * ayrıştırmadan önce tamamen atılır. İkisi de site içi görünen bir adresi dışarı
+ * çıkarabilir: `/\evil.com` tarayıcıda `https://evil.com` olur, `/\tevil.com`
+ * da öyle. `getSafeRedirectPath` aynı tuzağı zaten eliyor.
+ */
+const sneakySeparators = /[\\\t\n\r]/;
+
+/**
  * Bir bağlantı adresini normalleştirir; güvenli değilse `undefined` döner.
  *
  * `javascript:` ve `data:` buradan geçemez — editörden gelen metin sonunda bir
  * `href` özniteliğine yazılıyor ve React'in kendi uyarısına güvenmek yetmez.
  * Site içi yollar (`/haber/...`) olduğu gibi korunuyor; `//baska-site` ise
  * protokolsüz bir dış adres olduğu için reddediliyor.
+ *
+ * `isExternalHref` kararını dönen değerin ilk karakterine dayandırdığından,
+ * `/` ile başlayıp dışarıya çözülen hiçbir adres buradan geçmemeli.
  */
 export function sanitizeHref(value: unknown): string | undefined {
   if (typeof value !== "string") return undefined;
 
   const trimmed = value.trim();
   if (trimmed === "") return undefined;
+  if (sneakySeparators.test(trimmed)) return undefined;
 
   if (trimmed.startsWith("//")) return undefined;
   if (trimmed.startsWith("/")) return trimmed;

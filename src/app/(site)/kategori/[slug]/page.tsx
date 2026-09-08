@@ -15,8 +15,17 @@ function describeKind(kind: "topic" | "location"): string {
   return kind === "topic" ? "Haber dosyası" : "Şehir";
 }
 
+/**
+ * `/kategori/[slug]` hem haber dosyalarını hem şehirleri karşılıyor. Yedek
+ * açıklama bu yüzden türe bakıyor: tek bir "… ilinden" kalıbı, açıklaması
+ * girilmemiş bir dosyayı "Ekonomi ilinden güncel haberler" diye tanıtırdı.
+ */
 function describeArchive(archive: CategoryArchive): string {
-  return archive.description ?? `${archive.name} ilinden güncel haberler ve dosyalar.`;
+  if (archive.description) return archive.description;
+
+  return archive.kind === "topic"
+    ? `${archive.name} dosyasından güncel haberler.`
+    : `${archive.name} ilinden güncel haberler ve dosyalar.`;
 }
 
 export async function generateMetadata({ params, searchParams }: PageProps): Promise<Metadata> {

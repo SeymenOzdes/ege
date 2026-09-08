@@ -64,15 +64,31 @@ export async function getSubscribers(status?: SubscriptionStatus): Promise<Subsc
     .order("created_at", { ascending: false })
     .limit(100);
 
-  const [listResult, countsResult] = await Promise.all([
+  // Durum sayıları satır çekilerek değil `count: "exact"` ile alınıyor:
+  // PostgREST bir yanıtta en fazla `max_rows` satır döndürür (barındırılan
+  // Supabase'de 1000) ve bunu hata olarak bildirmez — satırları sayan bir
+  // sürüm, abone sayısı o eşiği aştığı gün sessizce yanlış rakam gösterirdi.
+  const [listResult, countResults] = await Promise.all([
     status ? listQuery.eq("status", status) : listQuery,
-    admin.from("newsletter_subscriptions").select("status"),
+    Promise.all(
+      subscriptionStatuses.map((value) =>
+        admin
+          .from("newsletter_subscriptions")
+          .select("id", { count: "exact", head: true })
+          .eq("status", value),
+      ),
+    ),
   ]);
 
-  if (listResult.error || countsResult.error) return { ...emptyList, loadError: true };
+  if (listResult.error || countResults.some((result) => result.error)) {
+    return { ...emptyList, loadError: true };
+  }
 
   const counts = { ...emptyCounts };
-  for (const row of countsResult.data ?? []) counts[row.status] += 1;
+  subscriptionStatuses.forEach((value, index) => {
+    counts[value] = countResults[index]?.count ?? 0;
+  });
+  const total = subscriptionStatuses.reduce((sum, value) => sum + counts[value], 0);
 
   return {
     subscribers: (listResult.data ?? []).map((row) => ({
@@ -84,7 +100,7 @@ export async function getSubscribers(status?: SubscriptionStatus): Promise<Subsc
       unsubscribedAt: row.unsubscribed_at,
     })),
     counts,
-    total: (countsResult.data ?? []).length,
+    total,
     loadError: false,
   };
 }

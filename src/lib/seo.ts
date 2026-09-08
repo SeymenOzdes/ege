@@ -16,11 +16,21 @@ import { hasSupabasePublicConfig } from "@/lib/supabase/config";
  * Sitemap'e girecek en fazla haber sayısı.
  *
  * Sitemap protokolünün dosya başına sınırı 50.000 adres; buradaki sınır ondan
- * çok daha düşük tutuldu çünkü tek bir PostgREST isteğiyle çekiliyor. Arşiv bu
- * sayıya yaklaştığında yapılacak iş `generateSitemaps` ile dosyayı bölmek
- * (bkz. Next.js `generateSitemaps` API'si); bugün için gereksiz karmaşıklık.
+ * çok daha düşük tutuldu. Arşiv bu sayıya yaklaştığında yapılacak iş
+ * `generateSitemaps` ile dosyayı bölmek (bkz. Next.js `generateSitemaps`
+ * API'si); bugün için gereksiz karmaşıklık.
  */
 const SITEMAP_ARTICLE_LIMIT = 5000;
+
+/**
+ * Tek PostgREST isteğinde istenecek satır sayısı.
+ *
+ * Sunucunun `max_rows` ayarı (barındırılan Supabase'de 1000) bir yanıtın
+ * döndürebileceği satırı sınırlar ve fazlasını sessizce keser. Sayfa boyutu bu
+ * eşiğin altında tutulup `range()` ile ilerleniyor; yoksa `SITEMAP_ARTICLE_LIMIT`
+ * ne yazılırsa yazılsın sitemap en yeni 1000 haberde biterdi.
+ */
+const SITEMAP_PAGE_SIZE = 500;
 
 export type SitemapArticle = {
   slug: string;
@@ -58,16 +68,16 @@ type SitemapRow = {
 };
 
 /**
- * Sitemap'in ihtiyacı olan her şey tek sorguda.
+ * Sitemap'in ihtiyacı olan her şey tek sorgu dizisiyle.
  *
  * Konu, şehir ve yazar listeleri ayrı ayrı sorgulanmıyor, haber satırlarından
- * türetiliyor. İki faydası var: sorgu sayısı üçe değil bire iniyor ve arşiv
- * listesine yalnızca **gerçekten yayımlanmış haberi olan** slug'lar giriyor.
- * Boş bir arşiv sayfasını arama motoruna göndermenin kimseye faydası yok.
- *
- * Karşılığında, `SITEMAP_ARTICLE_LIMIT`'in ötesinde kalan çok eski bir haberin
- * tek temsilcisi olduğu bir konu listeye girmez. Kabul edilebilir: o konu
- * sayfası zaten sitenin gezinme çubuğundan bağlı.
+ * türetiliyor. İki faydası var: konu/şehir/yazar için ek sorgu gerekmiyor ve
+ * arşiv listesine yalnızca **gerçekten yayımlanmış haberi olan** slug'lar
+ * giriyor. Boş bir arşiv sayfasını arama motoruna göndermenin kimseye faydası
+ * yok. Bunun karşılığı, haberlerin eksiksiz çekilmesi gerektiği: eksik bir
+ * sayfa yalnızca haberleri değil, o haberlerden türeyen arşiv adreslerini de
+ * sitemap'ten düşürür. Bu yüzden satırlar `SITEMAP_ARTICLE_LIMIT`'e ya da arşiv
+ * bitene kadar sayfa sayfa geziliyor.
  *
  * Hiçbir koşulda hata fırlatmıyor — sitemap'i bozuk döndürmektense eksik
  * döndürmek yeğdir; `build` de bir sorgu yüzünden düşmemeli.
@@ -76,15 +86,25 @@ export async function getSitemapContent(): Promise<SitemapContent> {
   if (!hasSupabasePublicConfig()) return EMPTY_CONTENT;
 
   const supabase = createAnonClient();
-  const { data, error } = await supabase
-    .from("articles")
-    .select(SITEMAP_SELECTION)
-    .order("published_at", { ascending: false })
-    .limit(SITEMAP_ARTICLE_LIMIT);
+  const rows: SitemapRow[] = [];
 
-  if (error || !data) return EMPTY_CONTENT;
+  while (rows.length < SITEMAP_ARTICLE_LIMIT) {
+    const pageSize = Math.min(SITEMAP_PAGE_SIZE, SITEMAP_ARTICLE_LIMIT - rows.length);
+    const { data, error } = await supabase
+      .from("articles")
+      .select(SITEMAP_SELECTION)
+      // Aynı `published_at`'e sahip iki haberin sayfalar arasında yer
+      // değiştirmemesi için ikincil ve benzersiz bir sıra anahtarı gerekiyor.
+      .order("published_at", { ascending: false })
+      .order("slug", { ascending: true })
+      .range(rows.length, rows.length + pageSize - 1);
 
-  const rows = data as unknown as SitemapRow[];
+    if (error || !data) return EMPTY_CONTENT;
+
+    rows.push(...(data as unknown as SitemapRow[]));
+    if (data.length < pageSize) break;
+  }
+
   const topicSlugs = new Set<string>();
   const locationSlugs = new Set<string>();
   const authorSlugs = new Set<string>();

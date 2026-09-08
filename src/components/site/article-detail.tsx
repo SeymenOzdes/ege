@@ -125,7 +125,13 @@ export function ArticleDetail({ article }: { article: ArticleDetailType }) {
           <span className="eyebrow" id="byline-title">
             Hazırlayan
           </span>
-          <Link href={`/yazar/${article.author.slug}`}>{article.author.name}</Link>
+          {/* An article with no author row falls back to a blank slug, so the
+              link would land on /yazar/ — a 404. Mirrors the JSON-LD guard above. */}
+          {article.author.slug ? (
+            <Link href={`/yazar/${article.author.slug}`}>{article.author.name}</Link>
+          ) : (
+            <span className={styles.bylineName}>{article.author.name}</span>
+          )}
           <small>{article.author.role}</small>
         </div>
         <dl className={styles.bylineTimes}>
@@ -174,8 +180,11 @@ export function ArticleDetail({ article }: { article: ArticleDetailType }) {
               İlgili hikâyeler
             </h2>
           </div>
+          {/* Etiket haberin kendi dosyasından geliyor. Sabit "Yaşam dosyası"
+              metni, bağlantı `topicSlug`e gittiği için ekonomi haberinde
+              "Yaşam dosyası" yazıp Ekonomi'ye götürüyordu. */}
           <Link href={`/kategori/${article.topicSlug}`}>
-            Yaşam dosyası <ArrowRight aria-hidden="true" size={17} weight="bold" />
+            {article.topic} dosyası <ArrowRight aria-hidden="true" size={17} weight="bold" />
           </Link>
         </div>
         <div className={styles.relatedList}>

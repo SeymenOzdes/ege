@@ -228,6 +228,23 @@ export function ArticleForm({
 
   const recoverable = draftDismissed || isStale ? undefined : storedDraft;
 
+  // Formun o anki halini yerel taslağa yazar. Hem otomatik kayıt hem de
+  // başarısız gönderim sonrası geri yazma bunu kullanıyor.
+  const writeDraft = useCallback(() => {
+    try {
+      const draft: StoredDraft = {
+        savedAt: new Date().toISOString(),
+        title,
+        slug,
+        summary,
+        blocks: blocksRef.current,
+      };
+      window.localStorage.setItem(storageKey, JSON.stringify(draft));
+    } catch {
+      // Kota dolu ya da depolama kapalı: otomatik taslak sessizce devre dışı.
+    }
+  }, [slug, storageKey, summary, title]);
+
   // Sessiz otomatik kayıt. Kurtarma şeridi açıkken duruyor: kullanıcı henüz
   // hangi sürümü istediğini söylemedi, altındaki kaydı değiştirmek yanlış olur.
   useEffect(() => {
@@ -236,23 +253,12 @@ export function ArticleForm({
 
     const timer = window.setTimeout(() => {
       if (submittedRef.current) return;
-
-      try {
-        const draft: StoredDraft = {
-          savedAt: new Date().toISOString(),
-          title,
-          slug,
-          summary,
-          blocks: blocksRef.current,
-        };
-        window.localStorage.setItem(storageKey, JSON.stringify(draft));
-      } catch {
-        // Kota dolu ya da depolama kapalı: otomatik taslak sessizce devre dışı.
-      }
+      writeDraft();
     }, DRAFT_SAVE_DELAY);
 
     return () => window.clearTimeout(timer);
-  }, [blocks, recoverable, slug, storageKey, summary, title]);
+    // `slug`, `summary` ve `storageKey` writeDraft kimliğiyle zaten izleniyor.
+  }, [blocks, recoverable, title, writeDraft]);
 
   function restoreDraft() {
     if (!recoverable) return;
@@ -276,8 +282,9 @@ export function ArticleForm({
     const formData = new FormData(event.currentTarget);
     formData.set("body", JSON.stringify(blocksRef.current));
 
-    // Kaydetmeye başladığımız an kurtarma kopyası gereksiz: içerik sunucuya
-    // gidiyor. Kayıt başarısız olursa aşağıda geri açılıyor.
+    // Kaydetmeye başladığımız an kurtarma kopyası gereksiz: içerik sunucuya gidiyor.
+    // Başarılı oluşturma `redirect` attığı için bu satırdan sonrası hiç çalışmaz,
+    // dolayısıyla silme burada kalmalı; başarısızlıkta aşağıda geri yazılıyor.
     submittedRef.current = true;
     window.localStorage.removeItem(storageKey);
 
@@ -289,6 +296,12 @@ export function ArticleForm({
     const result = isEdit ? await updateArticle(formData) : await createArticle(formData);
 
     submittedRef.current = false;
+
+    // Kayıt reddedildi (örneğin çift slug). Otomatik kayıt efekti yalnızca
+    // kullanıcı yeniden yazdığında tetiklendiği için kurtarma kopyasını hemen geri
+    // yazıyoruz: aksi halde sekme bu noktada kapanırsa gövde tamamen kaybolur.
+    if (result.error) writeDraft();
+
     setMessage(result.error ?? result.success ?? "İşlem tamamlanamadı.");
     setIsPending(false);
   }

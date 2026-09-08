@@ -21,12 +21,10 @@ import { EditorContent, Extension, useEditor, useEditorState, type Editor } from
 import { StarterKit } from "@tiptap/starter-kit";
 import { blocksToTiptapDoc, tiptapDocToBlocks } from "@/lib/admin/article-body";
 import { sanitizeHref } from "@/lib/article-links";
+import { readingTimeLabel } from "@/lib/article-preview";
 import type { ArticleBodyBlock } from "@/lib/articles";
 import { articleBodyClassName } from "@/components/site/article-body";
 import styles from "./news-editor.module.css";
-
-/** Ortalama okuma hızı; künyedeki süreyle aynı varsayım. */
-const WORDS_PER_MINUTE = 200;
 
 /**
  * Yumuşak uzunluk hedefi. Sayaç bunun üstünde uyarı rengine geçiyor ama yazmayı
@@ -281,8 +279,13 @@ function EditorToolbar({ editor }: { editor: Editor }) {
                 event.preventDefault();
                 applyLink();
               }}
-              placeholder="https://…"
-              type="url"
+              // `type="url"` değil: bu alan haberin kaydedildiği formun içinde
+              // duruyor ve tarayıcı `/haber/…` gibi site içi adresleri geçersiz
+              // sayıp kaydı bloke ediyordu. Doğrulamayı `sanitizeHref` yapıyor;
+              // `inputMode` mobilde yine URL klavyesini açıyor.
+              inputMode="url"
+              placeholder="https://… veya /haber/…"
+              type="text"
               value={linkDraft}
             />
             <button
@@ -341,7 +344,10 @@ function EditorMeters({ editor }: { editor: Editor }) {
     }),
   });
 
-  const minutes = Math.max(1, Math.round(words / WORDS_PER_MINUTE));
+  // Okuma süresi `readingTimeLabel` ile üretiliyor: editörün gördüğü süre ile
+  // haberin künyesinde yayımlanan süre aynı olsun diye. Yerel bir sabitle
+  // `Math.round` kullanmak 250 kelimede editöre "1 dk", siteye "2 dk" gösterirdi.
+  const readingTime = readingTimeLabel(words);
   const isLong = characters > BODY_CHARACTER_TARGET;
 
   return (
@@ -350,7 +356,7 @@ function EditorMeters({ editor }: { editor: Editor }) {
       className="flex flex-wrap gap-x-4 gap-y-1 border-t border-[var(--color-line)] px-4 py-2.5 text-xs font-semibold text-[var(--color-ink-muted)]"
     >
       <span>{words} kelime</span>
-      <span>~{minutes} dk okuma</span>
+      <span>~{readingTime} okuma</span>
       <span className={isLong ? "text-[var(--color-ochre)]" : undefined}>
         {characters} / {BODY_CHARACTER_TARGET} karakter
       </span>

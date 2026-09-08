@@ -92,16 +92,27 @@ export async function getAdminArticles(options: {
     .order("updated_at", { ascending: false })
     .range(from, from + ADMIN_ARTICLE_PAGE_SIZE - 1);
 
+  const titleFilter = options.query?.trim() ? toTitleFilter(options.query) : null;
+
   if (options.status) listQuery = listQuery.eq("status", options.status);
-  if (options.query?.trim()) listQuery = listQuery.ilike("title", toTitleFilter(options.query));
+  if (titleFilter) listQuery = listQuery.ilike("title", titleFilter);
 
   // Sayaçlar `dashboard.ts`'teki gibi başlık sorgularıyla alınıyor: tüm
   // satırları çekip TypeScript'te saymak arşiv büyüdükçe pahalılaşırdı.
+  //
+  // Arama terimi sayaçlara da uygulanıyor. Çip bağlantıları `q`yu koruduğu için
+  // sayaç o bağlantının götüreceği listeyi anlatmalı; süzgeçsiz sayarken çip
+  // "Taslak (37)" deyip tıklandığında aramaya uyan iki haber gösteriyordu.
   const [listResult, ...countResults] = await Promise.all([
     listQuery,
-    ...articleStatuses.map((status) =>
-      supabase.from("articles").select("id", { count: "exact", head: true }).eq("status", status),
-    ),
+    ...articleStatuses.map((status) => {
+      const countQuery = supabase
+        .from("articles")
+        .select("id", { count: "exact", head: true })
+        .eq("status", status);
+
+      return titleFilter ? countQuery.ilike("title", titleFilter) : countQuery;
+    }),
   ]);
 
   if (listResult.error || countResults.some((result) => result.error)) {

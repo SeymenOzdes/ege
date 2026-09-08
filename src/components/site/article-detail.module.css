@@ -118,7 +118,10 @@
   gap: 0.22rem;
 }
 
-.bylineAuthor > a {
+/* The name is a link only when the author has a profile slug; `.bylineName`
+   is the unlinked fallback and must read identically. */
+.bylineAuthor > a,
+.bylineName {
   width: fit-content;
   font-family: var(--font-display), Arial, sans-serif;
   font-size: 1.35rem;

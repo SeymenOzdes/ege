@@ -61,6 +61,21 @@ describe("NewsHeaderActions", () => {
     expect(trigger).toHaveFocus();
   });
 
+  it("points every quick-access link at a real route", () => {
+    render(<NewsHeaderActions />);
+
+    fireEvent.click(screen.getByRole("button", { name: "Menüyü aç" }));
+
+    const links = screen.getAllByRole("link");
+    expect(links).toHaveLength(5);
+
+    // These were once "#son-dakika"-style anchors whose ids exist on no page,
+    // so every tap left the reader exactly where they were.
+    for (const link of links) {
+      expect(link.getAttribute("href")).toMatch(/^\/(son-dakika|kategori\/[a-z-]+)$/);
+    }
+  });
+
   it("closes when interacting outside of the header controls", () => {
     render(<NewsHeaderActions />);
 
