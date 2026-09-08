@@ -8,6 +8,7 @@ import {
 } from "@/lib/article-preview";
 import type { ArticlePreview } from "@/lib/homepage";
 import { ARCHIVE_PAGE_SIZE, normalizeArchiveSlug, pageRange } from "@/lib/pagination";
+import type { SearchFacets } from "@/lib/search";
 import { createAnonClient } from "@/lib/supabase/anon";
 import { hasSupabasePublicConfig } from "@/lib/supabase/config";
 
@@ -199,6 +200,29 @@ export const getCategoryArchive = cache(
     };
   },
 );
+
+/**
+ * Topic and city lists for the category page's wayfinding rail.
+ *
+ * `getSearchFacets` answers the same question but runs on the cookie-bound
+ * server client, which opts the caller out of caching. A category archive is
+ * public and anonymous, so it reads through `createAnonClient` instead and
+ * shares one fetch per request via `cache()`.
+ */
+export const getArchiveFacets = cache(async (): Promise<SearchFacets> => {
+  if (!hasSupabasePublicConfig()) return { topics: [], locations: [] };
+
+  const supabase = createAnonClient();
+  const [topics, locations] = await Promise.all([
+    supabase.from("topics").select("name, slug").order("sort_order", { ascending: true }),
+    supabase.from("locations").select("name, slug").order("name", { ascending: true }),
+  ]);
+
+  // A missing rail is a smaller failure than a missing page, so a broken facet
+  // query degrades to no chips rather than taking the archive down with it.
+  if (topics.error || locations.error) return { topics: [], locations: [] };
+  return { topics: topics.data ?? [], locations: locations.data ?? [] };
+});
 
 /**
  * Related stories for the article detail page: same topic first, newest-first,

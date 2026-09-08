@@ -87,8 +87,19 @@
   cursor: default;
 }
 
+/*
+ * The arrows share the pill treatment with the numbered links. They used to pick
+ * up only the border and background from the rule above, so "Sonraki sayfa"
+ * rendered as a square inline box with its arrow wrapping onto a second line.
+ */
 .pagerArrow {
+  align-items: center;
+  border-radius: var(--radius-pill);
+  display: inline-flex;
+  font-size: 0.9rem;
+  font-weight: 700;
   gap: 0.35rem;
+  padding: 0.45rem 0.95rem;
 }
 
 /* Stands in for an elided run of pages; decorative, so it is hidden from

@@ -401,8 +401,8 @@
 }
 
 .articleCardtimeline .articleCardContent {
-  grid-template-columns: minmax(0, 1fr) auto;
-  gap: 0.55rem 1rem;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 0.55rem;
   padding: 1.05rem 0;
 }
 
@@ -416,16 +416,125 @@
   font-size: clamp(1.45rem, 2.6vw, 2rem);
 }
 
+/*
+ * The footer sits on its own full-width row. It used to be a narrow right-hand
+ * column (`grid-column: 2; grid-row: 1 / span 3; align-self: center`), which
+ * vertically centred a one-line date against a two-line headline and left the
+ * two-up archive grid looking like four ragged text columns. The narrow-viewport
+ * rule already collapsed it to this; it is simply the better layout at every
+ * width.
+ */
 .articleCardtimeline .articleFooter {
-  grid-column: 2;
-  grid-row: 1 / span 3;
-  align-self: center;
-  flex-direction: column;
+  grid-column: 1;
+  justify-content: space-between;
+  padding-top: 0.15rem;
+  border: 0;
+}
+
+/*
+ * Archive feed row: picture left, text right. Modelled on `.articleCardsecondary`,
+ * which is the same shape, but this one keeps its summary and lets the media
+ * stretch to the row's height rather than fixing a min-height on the card.
+ */
+.articleCardlist {
+  display: grid;
+  grid-template-columns: minmax(9rem, 15rem) minmax(0, 1fr);
+  align-items: stretch;
+}
+
+.articleCardlist .cardMedia {
+  min-height: 100%;
+}
+
+.articleCardlist h3 {
+  font-size: clamp(1.25rem, 2.2vw, 1.6rem);
+}
+
+/*
+ * Homepage "son gelişmeler" row, modelled on a Financial Times section front: a
+ * dateline gutter, a small landscape thumbnail, then the text. The card chrome is
+ * stripped exactly as `.articleCardtimeline` strips it, so a column of these reads
+ * as one ruled list rather than a stack of boxes.
+ */
+.articleCardfeed {
+  display: grid;
+  grid-template-columns: 6.5rem 8.5rem minmax(0, 1fr);
+  align-items: start;
+  gap: 1.25rem;
+  padding: 1.15rem 0;
+  border: 0;
+  border-bottom: 1px solid rgb(13 27 42 / 11%);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/*
+ * The gutter date. `padding-top` is optical: it drops the small caps down onto the
+ * headline's cap height instead of its line box.
+ */
+.cardDateline {
+  padding-top: 0.2rem;
+  color: var(--color-ink-muted);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  line-height: 1.4;
+  text-transform: uppercase;
+}
+
+/*
+ * A thumbnail, not a card picture: the base `min-height: 11rem` would tower over
+ * two lines of headline, so the row fixes the shape by ratio instead. The media
+ * radius is likewise far too round at this size.
+ */
+.articleCardfeed .cardMedia {
+  min-height: 0;
+  padding: 0;
+  border-radius: 0.35rem;
+  aspect-ratio: 3 / 2;
+}
+
+/*
+ * The placeholder's city chip is sized for a full card and swamps a thumbnail this
+ * small. The surface keeps its `aria-label`, so the picture is still named for a
+ * screen reader — only the painted-on caption goes.
+ */
+.articleCardfeed .cardMedia span {
+  display: none;
+}
+
+.articleCardfeed .articleCardContent {
+  gap: 0.4rem;
+  padding: 0;
+}
+
+/* The base rule pushes meta to the row's edges; here the pair reads as one kicker. */
+.articleCardfeed .articleMetaTop {
+  justify-content: flex-start;
+}
+
+.articleCardfeed h3 {
+  font-size: clamp(1.05rem, 1.6vw, 1.3rem);
+  line-height: 1.18;
+}
+
+.articleCardfeed p {
+  display: -webkit-box;
+  overflow: hidden;
+  font-size: 0.82rem;
+  line-height: 1.5;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}
+
+.articleCardfeed .articleFooter {
+  padding-top: 0;
   border: 0;
 }
 
 .articleCardfeature .cardMedia {
-  min-height: 20rem;
+  min-height: var(--feature-media-height, 20rem);
 }
 
 .articleCardfeature h3 {
@@ -509,6 +618,16 @@
 .latestSection,
 .topicSection {
   scroll-margin-top: 8rem;
+}
+
+/*
+ * The feed is ruled above its first row as well as between rows, so the list has a
+ * top edge under the section heading rather than starting in mid-air.
+ */
+.latestFeed {
+  display: grid;
+  align-content: start;
+  border-top: 1px solid rgb(13 27 42 / 11%);
 }
 
 .latestLayout {
@@ -836,21 +955,41 @@
     font-size: 1.15rem;
   }
 
-  .articleCardsecondary .articleMetaTop span:last-child,
-  .articleCardsecondary .articleFooter span,
-  .articleCardtimeline p {
-    display: none;
-  }
-
-  .articleCardtimeline .articleCardContent {
+  /* A 9rem picture column would leave the headline about 200px on a phone. */
+  .articleCardlist {
     grid-template-columns: minmax(0, 1fr);
   }
 
-  .articleCardtimeline .articleFooter {
+  /*
+   * Three columns do not fit a phone, so the dateline folds out of the gutter and
+   * sits above the text instead, leaving picture | text.
+   */
+  .articleCardfeed {
+    grid-template-columns: 5.5rem minmax(0, 1fr);
+    gap: 0.85rem;
+  }
+
+  .articleCardfeed .cardMedia {
     grid-column: 1;
-    grid-row: auto;
-    flex-direction: row;
-    justify-content: space-between;
+    grid-row: 1 / span 2;
+  }
+
+  .cardDateline {
+    grid-column: 2;
+    grid-row: 1;
+    padding-top: 0;
+  }
+
+  .articleCardfeed .articleCardContent {
+    grid-column: 2;
+    grid-row: 2;
+  }
+
+  .articleCardsecondary .articleMetaTop span:last-child,
+  .articleCardsecondary .articleFooter span,
+  .articleCardfeed p,
+  .articleCardtimeline p {
+    display: none;
   }
 
   .adSlot {

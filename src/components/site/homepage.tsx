@@ -125,9 +125,9 @@ export function Homepage({ content }: { content: HomepageContent }) {
             href="/son-dakika"
           />
           <div className={styles.latestLayout}>
-            <div className={styles.latestTimeline}>
+            <div className={styles.latestFeed}>
               {content.latest.map((article) => (
-                <ArticleCard article={article} variant="timeline" key={article.id} />
+                <ArticleCard article={article} variant="feed" key={article.id} />
               ))}
             </div>
             <aside className={styles.editorNote}>

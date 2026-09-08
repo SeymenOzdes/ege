@@ -5,7 +5,17 @@ import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr/ArrowUpRight";
 import type { ArticleImage, ArticlePreview, MediaTone } from "@/lib/homepage";
 import styles from "./homepage.module.css";
 
-export type ArticleCardVariant = "feature" | "secondary" | "timeline" | "topic";
+/**
+ * `list` is the archive feed row: media on the left, text on the right. It needs
+ * no branch of its own below — it is not `timeline`, so it keeps its picture, and
+ * not `secondary`, so it keeps its summary.
+ *
+ * `feed` is the homepage "son gelişmeler" row: a dateline gutter, then a small
+ * thumbnail, then the text. It is the one variant that leads with the date, so it
+ * does need branches — the gutter has to be a grid child of the card itself, and
+ * the footer must stop repeating a date the row already shows.
+ */
+export type ArticleCardVariant = "feature" | "feed" | "list" | "secondary" | "timeline" | "topic";
 
 const toneClasses: Record<MediaTone, string> = {
   teal: styles.mediaTeal,
@@ -15,6 +25,12 @@ const toneClasses: Record<MediaTone, string> = {
   sage: styles.mediaSage,
   coral: styles.mediaCoral,
 };
+
+/** What a card-sized image is worth downloading, unless the variant knows better. */
+const DEFAULT_MEDIA_SIZES = "(max-width: 640px) calc(100vw - 2rem), (max-width: 1088px) 50vw, 480px";
+
+/** The `feed` row's thumbnail is a fixed 8.5rem column, half that on a phone. */
+const FEED_MEDIA_SIZES = "(max-width: 699px) 88px, 136px";
 
 /**
  * A card's picture. With a hero asset attached this is the real image; without one it
@@ -26,6 +42,7 @@ export function MediaSurface({
   label,
   hero,
   priority = false,
+  sizes = DEFAULT_MEDIA_SIZES,
   className = "",
 }: {
   tone: MediaTone;
@@ -33,6 +50,8 @@ export function MediaSurface({
   hero?: ArticleImage;
   /** Set on the largest above-the-fold card so its image is not lazy-loaded. */
   priority?: boolean;
+  /** Override for variants whose media is far narrower than a full-width card. */
+  sizes?: string;
   className?: string;
 }) {
   if (hero) {
@@ -42,7 +61,7 @@ export function MediaSurface({
           alt={hero.alt}
           fill
           priority={priority}
-          sizes="(max-width: 640px) calc(100vw - 2rem), (max-width: 1088px) 50vw, 480px"
+          sizes={sizes}
           src={hero.src}
           style={{ objectFit: "cover", objectPosition: hero.objectPosition }}
         />
@@ -75,12 +94,14 @@ export function ArticleCard({
 }) {
   return (
     <article className={`${styles.articleCard} ${styles[`articleCard${variant}`]}`}>
+      {variant === "feed" && <time className={styles.cardDateline}>{article.publishedLabel}</time>}
       {variant !== "timeline" && (
         <MediaSurface
           tone={article.mediaTone}
           label={article.location}
           hero={article.hero}
           priority={priority}
+          sizes={variant === "feed" ? FEED_MEDIA_SIZES : undefined}
           className={styles.cardMedia}
         />
       )}
@@ -96,9 +117,10 @@ export function ArticleCard({
           (excerpt ?? (article.summary ? <p>{article.summary}</p> : null))}
         <div className={styles.articleFooter}>
           <span>
-            {article.publishedLabel} · {article.readingTime} okuma
+            {variant !== "feed" && `${article.publishedLabel} · `}
+            {article.readingTime} okuma
           </span>
-          <ArrowUpRight aria-hidden="true" size={17} weight="bold" />
+          {variant !== "feed" && <ArrowUpRight aria-hidden="true" size={17} weight="bold" />}
         </div>
       </div>
     </article>

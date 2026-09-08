@@ -97,6 +97,31 @@ export function topicMediaTone(topicSlug: string | null | undefined): MediaTone 
   return (topicSlug && tonesByTopic[topicSlug]) || "teal";
 }
 
+/**
+ * Cities need their own tones for the same reason topics do. Without this every
+ * `/kategori/<sehir>` archive fell through to teal, so all seven city pages wore
+ * the same accent and read as one undifferentiated page.
+ */
+const tonesByLocation: Record<string, MediaTone> = {
+  izmir: "coral",
+  aydin: "ochre",
+  mugla: "teal",
+  manisa: "sage",
+  denizli: "sky",
+  balikesir: "ink",
+  kutahya: "ochre",
+};
+
+/**
+ * The accent colour for a `/kategori/[slug]` archive. Topics and locations share
+ * one URL namespace, so the kind has to pick the map — a city named like a topic
+ * would otherwise borrow the topic's colour.
+ */
+export function archiveMediaTone(kind: "topic" | "location", slug: string): MediaTone {
+  const tones = kind === "topic" ? tonesByTopic : tonesByLocation;
+  return tones[slug] ?? "teal";
+}
+
 /** The `media_assets` columns every hero embed selects. */
 export type MediaAssetRow = {
   object_path: string;

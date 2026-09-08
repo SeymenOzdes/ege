@@ -1,8 +1,9 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { ArchiveList } from "@/components/site/archive-list";
+import { CategoryArchiveView } from "@/components/site/category-archive";
 import { JsonLd } from "@/components/site/json-ld";
-import { getCategoryArchive, type CategoryArchive } from "@/lib/archives";
+import { getArchiveFacets, getCategoryArchive, type CategoryArchive } from "@/lib/archives";
+import { archiveMediaTone } from "@/lib/article-preview";
 import { breadcrumbJsonLd } from "@/lib/json-ld";
 import { parsePageNumber } from "@/lib/pagination";
 
@@ -45,7 +46,12 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
 
 export default async function CategoryPage({ params, searchParams }: PageProps) {
   const [{ slug }, query] = await Promise.all([params, searchParams]);
-  const archive = await getCategoryArchive(slug, parsePageNumber(query.sayfa));
+  // The rail's chips do not depend on which archive resolved, so the two reads
+  // overlap rather than queueing behind one another.
+  const [archive, facets] = await Promise.all([
+    getCategoryArchive(slug, parsePageNumber(query.sayfa)),
+    getArchiveFacets(),
+  ]);
 
   if (!archive) notFound();
 
@@ -60,11 +66,15 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
           { name: archive.name, path: `/kategori/${archive.slug}` },
         ])}
       />
-      <ArchiveList
+      <CategoryArchiveView
         eyebrow={describeKind(archive.kind)}
         title={archive.name}
         description={describeArchive(archive)}
+        kind={archive.kind}
+        slug={archive.slug}
+        tone={archiveMediaTone(archive.kind, archive.slug)}
         entries={archive.page.entries}
+        facets={facets}
         basePath={`/kategori/${archive.slug}`}
         currentPage={archive.page.currentPage}
         totalPages={archive.page.totalPages}
