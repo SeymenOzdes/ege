@@ -13,6 +13,16 @@ export default defineConfig({
   },
   test: {
     environment: "jsdom",
+    /*
+     * Process CSS modules rather than stubbing them.
+     *
+     * Off (the default), a `*.module.css` import is a proxy that echoes back any
+     * property name, so `styles.whateverYouLike` is a truthy string and no test can
+     * ever notice a class that the stylesheet does not define. That is how
+     * `styles.latestTimeline` reached production as `class="undefined"`. Processed,
+     * a missing class is `undefined` and the assertions that look for it fail.
+     */
+    css: true,
     setupFiles: ["./src/test/setup.ts"],
     include: ["src/**/*.test.{ts,tsx}"],
     env: {

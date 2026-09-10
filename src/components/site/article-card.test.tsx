@@ -1,7 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
-import { ArticleCard } from "@/components/site/article-card";
+import { ArticleCard, type ArticleCardVariant } from "@/components/site/article-card";
 import type { ArticlePreview } from "@/lib/homepage";
+import styles from "@/components/site/homepage.module.css";
 
 // `feed` and `timeline` are the two variants that branch inside the component
 // rather than in CSS alone, and they branch in opposite directions: `feed` leads
@@ -18,6 +19,7 @@ function article(overrides: Partial<ArticlePreview> = {}): ArticlePreview {
     topicSlug: "ekonomi",
     location: "İzmir",
     publishedLabel: "27 Ağustos",
+    publishedAt: "2026-08-27T06:18:00.000Z",
     readingTime: "4 dk",
     hero: {
       src: "https://example.test/liman.jpg",
@@ -29,19 +31,44 @@ function article(overrides: Partial<ArticlePreview> = {}): ArticlePreview {
   };
 }
 
+const VARIANTS: ArticleCardVariant[] = [
+  "feature",
+  "feed",
+  "list",
+  "secondary",
+  "timeline",
+  "topic",
+];
+
 describe("ArticleCard", () => {
+  it.each(VARIANTS)("%s varyantının stil bloğu gerçekten var", (variant) => {
+    /*
+     * The class is assembled from the variant name at render time, so a variant
+     * whose block was never written — or was renamed in the stylesheet alone —
+     * silently ships as `class="undefined"`. `styles.latestTimeline` did exactly
+     * that. This only holds because `vitest.config.mts` processes CSS modules;
+     * with the default stub every name here would be truthy.
+     */
+    expect(styles[`articleCard${variant}`]).toBeTypeOf("string");
+  });
+
   it("feed satırı tarihi kendi sütununda, küçük görselin yanında gösterir", () => {
     const { container } = render(<ArticleCard article={article()} variant="feed" />);
 
     const dateline = container.querySelector("time");
     expect(dateline).not.toBeNull();
     expect(dateline).toHaveTextContent("27 Ağustos");
+    // "27 Ağustos" is a label, not a date. `<time>` is only honest with the
+    // machine-readable instant beside it.
+    expect(dateline).toHaveAttribute("datetime", "2026-08-27T06:18:00.000Z");
 
     expect(screen.getByAltText("Liman görüntüsü")).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 3 })).toHaveTextContent(
       "Ege limanında yeni hat açıldı",
     );
-    expect(screen.getByText("Yeni hattın bölge ihracatına katkısı bekleniyor.")).toBeInTheDocument();
+    expect(
+      screen.getByText("Yeni hattın bölge ihracatına katkısı bekleniyor."),
+    ).toBeInTheDocument();
   });
 
   it("feed satırının altbilgisi tarihi tekrar etmez", () => {
@@ -50,6 +77,44 @@ describe("ArticleCard", () => {
     // The gutter already carries it, so only the reading time is left below.
     expect(screen.queryByText(/27 Ağustos ·/)).not.toBeInTheDocument();
     expect(screen.getByText(/4 dk okuma/)).toBeInTheDocument();
+  });
+
+  it("tarihsiz haberde <time> yerine boş bir sütun bırakır", () => {
+    // No timestamp means nothing valid to put in `datetime`, so the element is not
+    // a `<time>` at all — but the gutter cell stays, or the three-column grid would
+    // pull the thumbnail into it.
+    const { container } = render(
+      <ArticleCard
+        article={article({ publishedLabel: "", publishedAt: undefined })}
+        variant="feed"
+      />,
+    );
+
+    expect(container.querySelector("time")).toBeNull();
+    expect(container.querySelector("article")?.children).toHaveLength(3);
+  });
+
+  it("tarihsiz haberde altbilgide öksüz ayraç bırakmaz", () => {
+    // Every variant but `feed` prints the date in its footer, and " · 4 dk okuma"
+    // with nothing before the bullet reads as a rendering bug.
+    render(
+      <ArticleCard
+        article={article({ publishedLabel: "", publishedAt: undefined })}
+        variant="list"
+      />,
+    );
+
+    expect(screen.getByText(/okuma/)).toHaveTextContent(/^4 dk okuma$/);
+  });
+
+  it("küçük görsel için kart genişliğinde bir dosya istemez", () => {
+    // The thumbnail is a 136px column; the card default would fetch 480px for it.
+    const { container } = render(<ArticleCard article={article()} variant="feed" />);
+
+    expect(container.querySelector("img")).toHaveAttribute(
+      "sizes",
+      "(max-width: 699px) 88px, 136px",
+    );
   });
 
   it("görseli olmayan haberde yer adını taşıyan renk yüzeyine düşer", () => {

@@ -1,5 +1,5 @@
 .block {
-  padding-block: clamp(2.5rem, 5vw, 3.75rem);
+  composes: block from "./archive-shared.module.css";
 }
 
 .breadcrumbs {
@@ -20,14 +20,14 @@
   color: var(--color-teal);
 }
 
-.masthead,
-.mastheadCompact {
-  max-width: 46rem;
+.masthead {
+  composes: header from "./archive-shared.module.css";
   margin-bottom: 2.5rem;
 }
 
 /* Deeper pages keep the name and the position, and drop the sales pitch. */
 .mastheadCompact {
+  composes: header from "./archive-shared.module.css";
   margin-bottom: 1.75rem;
 }
 
@@ -46,10 +46,7 @@
 }
 
 .lede {
-  margin: 0 0 0.9rem;
-  color: var(--color-ink-muted);
-  font-size: 1.02rem;
-  line-height: 1.65;
+  composes: lede from "./archive-shared.module.css";
 }
 
 .meta {
@@ -90,6 +87,10 @@
 
 .accentCoral {
   background: #b76553;
+}
+
+.accentPlum {
+  background: #7a5d86;
 }
 
 .layout {
@@ -154,16 +155,21 @@
   background: rgb(12 124 134 / 8%);
 }
 
-.chipCurrent {
-  border-color: var(--color-ink) !important;
+/*
+ * Qualified by `.chips a` rather than left bare: `.chips a:hover` outranks a lone
+ * `.chipCurrent`, so hovering the chip for the page you are already on repainted it
+ * in the pale hover wash and left white text on a near-white ground. The hover
+ * selector is repeated so the current chip stays inert under the pointer.
+ */
+.chips a.chipCurrent,
+.chips a.chipCurrent:hover {
+  border-color: var(--color-ink);
   background: var(--color-ink);
   color: var(--color-white);
 }
 
 .stateHeading {
-  margin: 0.4rem 0 0.2rem;
-  font-size: clamp(1.55rem, 3.6vw, 2.1rem);
-  line-height: 1.2;
+  composes: stateHeading from "./archive-shared.module.css";
 }
 
 @media (min-width: 1024px) {

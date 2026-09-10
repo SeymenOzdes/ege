@@ -1,10 +1,10 @@
 .block {
-  padding-block: clamp(2.5rem, 5vw, 3.75rem);
+  composes: block from "./archive-shared.module.css";
 }
 
 .header {
+  composes: header from "./archive-shared.module.css";
   margin-bottom: 2rem;
-  max-width: 46rem;
 }
 
 .title {
@@ -16,10 +16,7 @@
 }
 
 .lede {
-  color: var(--color-ink-muted);
-  font-size: 1.02rem;
-  line-height: 1.65;
-  margin: 0 0 0.9rem;
+  composes: lede from "./archive-shared.module.css";
 }
 
 .count {
@@ -112,7 +109,5 @@
 }
 
 .emptyHeading {
-  font-size: clamp(1.55rem, 3.6vw, 2.1rem);
-  line-height: 1.2;
-  margin: 0.4rem 0 0.2rem;
+  composes: stateHeading from "./archive-shared.module.css";
 }

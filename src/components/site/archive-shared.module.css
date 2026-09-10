@@ -1,0 +1,33 @@
+/*
+ * What the two archive families share.
+ *
+ * `/kategori/[slug]` (category-archive.module.css) and /son-dakika, /yazar/[slug]
+ * (archive-list.module.css) render what a reader takes for one page type, so the
+ * frame, the standfirst and the state panels are defined once here and composed
+ * into both. Wording or spacing changes then land on every archive at once.
+ *
+ * What each file deliberately keeps for itself is the type scale of its heading:
+ * the category front is a masthead, the plain archives are not.
+ */
+
+.block {
+  padding-block: clamp(2.5rem, 5vw, 3.75rem);
+}
+
+.header {
+  max-width: 46rem;
+}
+
+.lede {
+  margin: 0 0 0.9rem;
+  color: var(--color-ink-muted);
+  font-size: 1.02rem;
+  line-height: 1.65;
+}
+
+/* The heading inside an empty-archive or failed-query panel. */
+.stateHeading {
+  margin: 0.4rem 0 0.2rem;
+  font-size: clamp(1.55rem, 3.6vw, 2.1rem);
+  line-height: 1.2;
+}

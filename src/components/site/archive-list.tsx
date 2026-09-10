@@ -3,6 +3,7 @@ import { ArrowLeft } from "@phosphor-icons/react/dist/ssr/ArrowLeft";
 import { ArrowRight } from "@phosphor-icons/react/dist/ssr/ArrowRight";
 import { ArticleCard } from "@/components/site/article-card";
 import type { ArticlePreview } from "@/lib/homepage";
+import shared from "./archive-shared.module.css";
 import styles from "./archive-list.module.css";
 
 export type ArchiveListProps = {
@@ -123,6 +124,29 @@ export function Pager({ basePath = "", currentPage, totalPages, buildHref }: Pag
 }
 
 /**
+ * What every archive shows when its query fails.
+ *
+ * Extracted because /son-dakika, /yazar/[slug] and /kategori/[slug] all reach this
+ * state, and separate copies of one copy-deck drift the moment the wording or the
+ * call to action changes — a "connection failed" panel is exactly the sort of text
+ * that gets rewritten once and then found stale on the other two pages.
+ */
+export function ArchiveErrorPanel() {
+  return (
+    <section className="statePanel" role="alert">
+      <p className="eyebrow">Bağlantı kurulamadı</p>
+      <h2 className={`font-editorial ${shared.stateHeading}`}>
+        Haber akışına şu anda ulaşamıyoruz.
+      </h2>
+      <p>Sayfayı kısa bir süre sonra yeniden deneyebilirsiniz.</p>
+      <Link className="button button-primary" href="/">
+        Ana sayfaya dön
+      </Link>
+    </section>
+  );
+}
+
+/**
  * Shared server-rendered archive layout: editorial header, timeline entries
  * and a plain-link pager. Used by /son-dakika, /kategori/[slug] and /yazar/[slug].
  */
@@ -152,16 +176,7 @@ export function ArchiveList({
         </header>
 
         {loadError ? (
-          <section className="statePanel" role="alert">
-            <p className="eyebrow">Bağlantı kurulamadı</p>
-            <h2 className={`font-editorial ${styles.emptyHeading}`}>
-              Haber akışına şu anda ulaşamıyoruz.
-            </h2>
-            <p>Sayfayı kısa bir süre sonra yeniden deneyebilirsiniz.</p>
-            <Link className="button button-primary" href="/">
-              Ana sayfaya dön
-            </Link>
-          </section>
+          <ArchiveErrorPanel />
         ) : entries.length > 0 ? (
           <>
             <div className={styles.entries}>

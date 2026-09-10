@@ -24,13 +24,38 @@ const toneClasses: Record<MediaTone, string> = {
   sky: styles.mediaSky,
   sage: styles.mediaSage,
   coral: styles.mediaCoral,
+  plum: styles.mediaPlum,
 };
 
-/** What a card-sized image is worth downloading, unless the variant knows better. */
-const DEFAULT_MEDIA_SIZES = "(max-width: 640px) calc(100vw - 2rem), (max-width: 1088px) 50vw, 480px";
+/** What a card-sized image is worth downloading, unless the caller knows better. */
+const DEFAULT_MEDIA_SIZES =
+  "(max-width: 640px) calc(100vw - 2rem), (max-width: 1088px) 50vw, 480px";
 
-/** The `feed` row's thumbnail is a fixed 8.5rem column, half that on a phone. */
-const FEED_MEDIA_SIZES = "(max-width: 699px) 88px, 136px";
+/**
+ * What each variant's picture actually measures, so `next/image` fetches that and
+ * not a card-shaped guess. Kept as one map rather than a ternary at the call site:
+ * the sizes are as much a part of a variant's definition as its stylesheet block is,
+ * and a variant added without an entry here is a type error rather than a silent
+ * fall-through to the default.
+ *
+ * Widths come from the grid columns in `homepage.module.css`; the shell caps at
+ * 76rem, so the desktop figures are absolute pixels rather than viewport fractions.
+ */
+const MEDIA_SIZES: Record<ArticleCardVariant, string> = {
+  // Full width of the feature column: the topic layout's 1.4fr, or the archive's
+  // content column beside a 20rem rail.
+  feature: "(max-width: 699px) calc(100vw - 2rem), (max-width: 1023px) calc(100vw - 4rem), 860px",
+  // A 6.5rem gutter and an 8.5rem thumbnail, folding to 5.5rem on a phone.
+  feed: "(max-width: 699px) 88px, 136px",
+  // A `minmax(9rem, 15rem)` column, which goes full width once the row stacks.
+  list: "(max-width: 699px) calc(100vw - 2rem), 240px",
+  // Stacked in the hero rail on desktop; a picture column beside the text below it.
+  secondary: "(max-width: 699px) 40vw, (max-width: 1023px) 45vw, 400px",
+  // Never rendered — `timeline` drops its media entirely — but the map is total.
+  timeline: DEFAULT_MEDIA_SIZES,
+  // Two side stories per row from 700px, then a 0.85fr picture column at 1024px.
+  topic: "(max-width: 699px) calc(100vw - 2rem), (max-width: 1023px) 50vw, 200px",
+};
 
 /**
  * A card's picture. With a hero asset attached this is the real image; without one it
@@ -80,6 +105,27 @@ export function MediaSurface({
   );
 }
 
+/**
+ * The `feed` row's gutter date.
+ *
+ * `<time>` only when the preview carries an ISO timestamp: `publishedLabel` is a
+ * reader's label — "14:32", "27 Ağustos" — which is not a valid datetime string, so
+ * a `<time>` around it with no `dateTime` attribute is invalid HTML. The element is
+ * rendered either way, empty label included, because the row is a three-column grid
+ * and dropping the gutter cell would shift the picture into it.
+ */
+function CardDateline({ article }: { article: ArticlePreview }) {
+  if (!article.publishedAt) {
+    return <span className={styles.cardDateline}>{article.publishedLabel}</span>;
+  }
+
+  return (
+    <time className={styles.cardDateline} dateTime={article.publishedAt}>
+      {article.publishedLabel}
+    </time>
+  );
+}
+
 export function ArticleCard({
   article,
   variant = "topic",
@@ -94,14 +140,14 @@ export function ArticleCard({
 }) {
   return (
     <article className={`${styles.articleCard} ${styles[`articleCard${variant}`]}`}>
-      {variant === "feed" && <time className={styles.cardDateline}>{article.publishedLabel}</time>}
+      {variant === "feed" && <CardDateline article={article} />}
       {variant !== "timeline" && (
         <MediaSurface
           tone={article.mediaTone}
           label={article.location}
           hero={article.hero}
           priority={priority}
-          sizes={variant === "feed" ? FEED_MEDIA_SIZES : undefined}
+          sizes={MEDIA_SIZES[variant]}
           className={styles.cardMedia}
         />
       )}
@@ -117,7 +163,10 @@ export function ArticleCard({
           (excerpt ?? (article.summary ? <p>{article.summary}</p> : null))}
         <div className={styles.articleFooter}>
           <span>
-            {variant !== "feed" && `${article.publishedLabel} · `}
+            {/* The `feed` row already carries the date in its gutter, and an
+                article with no `published_at` has no date at all; neither should
+                leave the separator behind. */}
+            {variant !== "feed" && article.publishedLabel ? `${article.publishedLabel} · ` : null}
             {article.readingTime} okuma
           </span>
           {variant !== "feed" && <ArrowUpRight aria-hidden="true" size={17} weight="bold" />}

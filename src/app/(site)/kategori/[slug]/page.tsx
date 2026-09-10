@@ -46,14 +46,15 @@ export async function generateMetadata({ params, searchParams }: PageProps): Pro
 
 export default async function CategoryPage({ params, searchParams }: PageProps) {
   const [{ slug }, query] = await Promise.all([params, searchParams]);
-  // The rail's chips do not depend on which archive resolved, so the two reads
-  // overlap rather than queueing behind one another.
-  const [archive, facets] = await Promise.all([
-    getCategoryArchive(slug, parsePageNumber(query.sayfa)),
-    getArchiveFacets(),
-  ]);
+  const archive = await getCategoryArchive(slug, parsePageNumber(query.sayfa));
 
+  // Before the rail, not alongside it. The two reads do not depend on one another,
+  // but every crawler hitting a stale or mistyped slug was paying for a topic and a
+  // city query whose results `notFound()` then threw away. Nothing is serialised
+  // except on the path that renders no rail at all.
   if (!archive) notFound();
+
+  const facets = await getArchiveFacets();
 
   return (
     <>

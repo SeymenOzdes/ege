@@ -51,6 +51,20 @@ export function formatPublishedLabel(publishedAt: string | Date, now: Date = new
 }
 
 /**
+ * The machine-readable half of a dateline, for `<time datetime>`.
+ *
+ * Normalised through `Date` rather than passed through: PostgREST sends
+ * `timestamptz` with microsecond precision, and HTML allows a fractional second of
+ * at most three digits, so the raw column value is not a valid datetime string.
+ */
+export function toIsoTimestamp(publishedAt: string | Date | null | undefined): string | undefined {
+  if (!publishedAt) return undefined;
+
+  const date = publishedAt instanceof Date ? publishedAt : new Date(publishedAt);
+  return Number.isNaN(date.getTime()) ? undefined : date.toISOString();
+}
+
+/**
  * Full dateline for the article detail byline, e.g. `18 Ağustos 2026, 08:37`.
  * Composed from the same two formatters as the card labels so the timezone and
  * month names never drift between surfaces.
@@ -101,6 +115,10 @@ export function topicMediaTone(topicSlug: string | null | undefined): MediaTone 
  * Cities need their own tones for the same reason topics do. Without this every
  * `/kategori/<sehir>` archive fell through to teal, so all seven city pages wore
  * the same accent and read as one undifferentiated page.
+ *
+ * One tone per city, with none repeated — two cities sharing an accent is the same
+ * failure in a quieter form. `plum` exists for exactly this: the palette had six
+ * tones for seven provinces, so the seventh had to double up until it was added.
  */
 const tonesByLocation: Record<string, MediaTone> = {
   izmir: "coral",
@@ -109,17 +127,24 @@ const tonesByLocation: Record<string, MediaTone> = {
   manisa: "sage",
   denizli: "sky",
   balikesir: "ink",
-  kutahya: "ochre",
+  kutahya: "plum",
 };
+
+/** The city counterpart to `topicMediaTone`, with the same fallback. */
+export function locationMediaTone(locationSlug: string | null | undefined): MediaTone {
+  return (locationSlug && tonesByLocation[locationSlug]) || "teal";
+}
 
 /**
  * The accent colour for a `/kategori/[slug]` archive. Topics and locations share
  * one URL namespace, so the kind has to pick the map — a city named like a topic
  * would otherwise borrow the topic's colour.
+ *
+ * Delegates rather than looking the slug up itself, so a card and the masthead
+ * above it can never disagree about what colour a topic is.
  */
 export function archiveMediaTone(kind: "topic" | "location", slug: string): MediaTone {
-  const tones = kind === "topic" ? tonesByTopic : tonesByLocation;
-  return tones[slug] ?? "teal";
+  return kind === "topic" ? topicMediaTone(slug) : locationMediaTone(slug);
 }
 
 /** The `media_assets` columns every hero embed selects. */
@@ -187,6 +212,7 @@ export function toArticlePreview(row: ArticlePreviewRow, now?: Date): ArticlePre
     topicSlug: row.topic_slug ?? "gundem",
     location: row.location_name ?? "Ege",
     publishedLabel: row.published_at ? formatPublishedLabel(row.published_at, now) : "",
+    publishedAt: toIsoTimestamp(row.published_at),
     readingTime: readingTimeLabel(row.word_count),
     hero: toArticleImage(row.hero),
     mediaTone: topicMediaTone(row.topic_slug),
