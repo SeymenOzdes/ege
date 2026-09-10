@@ -8,6 +8,18 @@ import type { FeaturedStory } from "@/lib/homepage";
 import { MediaSurface } from "@/components/site/article-card";
 import styles from "./homepage.module.css";
 
+/**
+ * The homepage LCP image. Without this it fell back to `MediaSurface`'s card default,
+ * which caps at 480px, and the browser upscaled that across a stage roughly 800px
+ * wide on a desktop — the site's single most visible picture served at less than
+ * half the resolution it is painted at.
+ *
+ * The stage is the hero grid's 2.05fr column inside a 76rem shell, less the deck's
+ * 3.4rem left inset; below 1024px the grid is a single column.
+ */
+const HERO_MEDIA_SIZES =
+  "(max-width: 699px) calc(100vw - 2rem), (max-width: 1023px) calc(100vw - 4rem), 800px";
+
 export function FeaturedCarousel({
   slides,
   intervalMs = 7000,
@@ -30,11 +42,7 @@ export function FeaturedCarousel({
       slide: slides[(activeIndex - depth + slides.length) % slides.length],
     }));
   const canAutoPlay =
-    slides.length > 1 &&
-    !isHovered &&
-    !hasFocus &&
-    isPageVisible &&
-    !prefersReducedMotion;
+    slides.length > 1 && !isHovered && !hasFocus && isPageVisible && !prefersReducedMotion;
 
   useEffect(() => {
     const mediaQuery = window.matchMedia("(prefers-reduced-motion: reduce)");
@@ -110,6 +118,7 @@ export function FeaturedCarousel({
             label={activeSlide.location}
             hero={activeSlide.hero}
             priority
+            sizes={HERO_MEDIA_SIZES}
             className={styles.carouselMedia}
           />
           <div className={styles.carouselStory} key={`story-${activeSlide.id}`} aria-live="off">

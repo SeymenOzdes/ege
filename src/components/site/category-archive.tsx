@@ -1,9 +1,9 @@
 import Link from "next/link";
 import { ArticleCard } from "@/components/site/article-card";
-import { Pager } from "@/components/site/archive-list";
+import { ArchiveErrorPanel, Pager } from "@/components/site/archive-list";
 import { NewsletterForm } from "@/components/site/newsletter-form";
 import type { ArticlePreview, MediaTone } from "@/lib/homepage";
-import type { SearchFacet, SearchFacets } from "@/lib/search";
+import type { SearchFacet, SearchFacets } from "@/lib/facets";
 import styles from "./category-archive.module.css";
 
 export type CategoryArchiveViewProps = {
@@ -31,6 +31,7 @@ const toneAccents: Record<MediaTone, string> = {
   sky: styles.accentSky,
   sage: styles.accentSage,
   coral: styles.accentCoral,
+  plum: styles.accentPlum,
 };
 
 /**
@@ -102,8 +103,8 @@ export function CategoryArchiveView({
   // A hero on page 4 of an archive is noise, not hierarchy: only the first page
   // leads with a story, and deeper pages compress the masthead to match.
   const isFirstPage = currentPage === 1;
-  const [lead, ...rest] = entries;
-  const feed = isFirstPage ? rest : entries;
+  const lead = isFirstPage ? entries[0] : undefined;
+  const feed = isFirstPage ? entries.slice(1) : entries;
 
   /*
    * No "Dosya hakkında" panel here. `describeArchive` always supplies a
@@ -124,9 +125,7 @@ export function CategoryArchiveView({
       />
       <section className={styles.railPanel}>
         <p className="eyebrow">Takipte kal</p>
-        <p className={styles.railNote}>
-          {title} dosyasındaki gelişmeleri haftalık bültenle alın.
-        </p>
+        <p className={styles.railNote}>{title} dosyasındaki gelişmeleri haftalık bültenle alın.</p>
         <NewsletterForm idPrefix={`kategori-${slug}`} variant="compact" />
       </section>
     </aside>
@@ -157,22 +156,13 @@ export function CategoryArchiveView({
 
         {loadError ? (
           <div className={styles.layout}>
-            <section className="statePanel" role="alert">
-              <p className="eyebrow">Bağlantı kurulamadı</p>
-              <h2 className={`font-editorial ${styles.stateHeading}`}>
-                Haber akışına şu anda ulaşamıyoruz.
-              </h2>
-              <p>Sayfayı kısa bir süre sonra yeniden deneyebilirsiniz.</p>
-              <Link className="button button-primary" href="/">
-                Ana sayfaya dön
-              </Link>
-            </section>
+            <ArchiveErrorPanel />
             {rail}
           </div>
         ) : entries.length > 0 ? (
           <div className={styles.layout}>
             <div className={styles.content}>
-              {isFirstPage && lead ? (
+              {lead ? (
                 <ArticleCard article={lead} priority variant="feature" key={lead.id} />
               ) : null}
               {feed.length > 0 ? (
@@ -195,8 +185,10 @@ export function CategoryArchiveView({
               <h2 className={`font-editorial ${styles.stateHeading}`}>
                 Bu dosyada henüz bir haber yok.
               </h2>
-              <p>Yeni içerikler yayımlandığında burada listelenir. Bu arada diğer dosyalara
-                göz atabilirsiniz.</p>
+              <p>
+                Yeni içerikler yayımlandığında burada listelenir. Bu arada diğer dosyalara göz
+                atabilirsiniz.
+              </p>
               <Link className="button button-primary" href="/">
                 Ana sayfaya dön
               </Link>

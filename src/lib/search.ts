@@ -1,5 +1,6 @@
 import "server-only";
 
+import { emptyFacets, readFacets, type SearchFacets } from "@/lib/facets";
 import type { ArticlePreview } from "@/lib/homepage";
 import { SEARCH_PAGE_SIZE, normalizeSearchQuery } from "@/lib/search-query";
 import { toArticlePreview } from "@/lib/article-preview";
@@ -82,21 +83,9 @@ export async function searchArticles({
   };
 }
 
-export type SearchFacet = { name: string; slug: string };
-export type SearchFacets = { topics: SearchFacet[]; locations: SearchFacet[] };
-
-const emptyFacets: SearchFacets = { topics: [], locations: [] };
-
 /** Topic and location options for the filter selects. */
 export async function getSearchFacets(): Promise<SearchFacets> {
   if (!hasSupabasePublicConfig()) return emptyFacets;
 
-  const supabase = await createClient();
-  const [topics, locations] = await Promise.all([
-    supabase.from("topics").select("name, slug").order("sort_order", { ascending: true }),
-    supabase.from("locations").select("name, slug").order("name", { ascending: true }),
-  ]);
-
-  if (topics.error || locations.error) return emptyFacets;
-  return { topics: topics.data ?? [], locations: locations.data ?? [] };
+  return readFacets(await createClient());
 }

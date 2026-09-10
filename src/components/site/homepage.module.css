@@ -156,6 +156,10 @@
   background: #b76553;
 }
 
+.mediaPlum {
+  background: #7a5d86;
+}
+
 .carouselMedia {
   position: absolute;
   inset: 0;
@@ -958,6 +962,18 @@
   /* A 9rem picture column would leave the headline about 200px on a phone. */
   .articleCardlist {
     grid-template-columns: minmax(0, 1fr);
+  }
+
+  /*
+   * `min-height: 100%` stretched the picture to the text's height while the two sat
+   * side by side. Stacked, the media is its own row in a grid of indefinite height,
+   * so the percentage resolves to `auto` — and a hero renders as an absolutely
+   * positioned `<Image fill>` that adds no height of its own, collapsing the box to
+   * its padding. A ratio gives the now full-width picture a real shape instead.
+   */
+  .articleCardlist .cardMedia {
+    min-height: 0;
+    aspect-ratio: 16 / 9;
   }
 
   /*

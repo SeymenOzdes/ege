@@ -1,4 +1,4 @@
-export type MediaTone = "teal" | "ochre" | "ink" | "sky" | "sage" | "coral";
+export type MediaTone = "teal" | "ochre" | "ink" | "sky" | "sage" | "coral" | "plum";
 
 /** A `media_assets` row resolved into everything `next/image` needs. */
 export type ArticleImage = {
@@ -20,6 +20,13 @@ export type ArticlePreview = {
   topicSlug: string;
   location: string;
   publishedLabel: string;
+  /**
+   * The same instant as `publishedLabel`, as an ISO timestamp, for `<time datetime>`.
+   * `publishedLabel` is a reader's label — "14:32", "27 Ağustos" — which no parser can
+   * read as a date. Absent when the article has no `published_at`, and on the
+   * hand-built previews the style guide and the tests render.
+   */
+  publishedAt?: string;
   readingTime: string;
   /** Absent until an editor attaches a hero asset; `mediaTone` then draws the card. */
   hero?: ArticleImage;

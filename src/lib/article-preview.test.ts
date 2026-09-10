@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import {
   WORDS_PER_MINUTE,
+  archiveMediaTone,
   countWords,
   formatPublishedLabel,
   readingTimeLabel,
@@ -60,6 +61,30 @@ describe("topicMediaTone", () => {
   });
 });
 
+describe("archiveMediaTone", () => {
+  const cities = ["izmir", "aydin", "mugla", "manisa", "denizli", "balikesir", "kutahya"];
+
+  it("gives every city its own accent", () => {
+    // Two cities sharing a colour is the failure this function exists to prevent,
+    // so the assertion is on the set, not on any one city's value.
+    const tones = cities.map((slug) => archiveMediaTone("location", slug));
+
+    expect(new Set(tones).size).toBe(cities.length);
+  });
+
+  it("reads a topic through the same map the cards use", () => {
+    // Delegated rather than re-implemented, so a masthead and the cards beneath it
+    // can never disagree about what colour a topic is.
+    expect(archiveMediaTone("topic", "ekonomi")).toBe(topicMediaTone("ekonomi"));
+    expect(archiveMediaTone("topic", "bilinmeyen")).toBe(topicMediaTone("bilinmeyen"));
+  });
+
+  it("keeps topic and city namespaces apart", () => {
+    // One URL namespace serves both, so the kind has to pick the map.
+    expect(archiveMediaTone("location", "ekonomi")).toBe("teal");
+  });
+});
+
 describe("toArticlePreview", () => {
   const row = {
     id: "11111111-1111-1111-1111-111111111111",
@@ -84,6 +109,8 @@ describe("toArticlePreview", () => {
       topicSlug: "ekonomi",
       location: "Aydın",
       publishedLabel: "09:18",
+      // The label is for a reader, this is for a parser: same instant, ISO, UTC.
+      publishedAt: "2026-08-27T06:18:00.000Z",
       readingTime: "2 dk",
       mediaTone: "sage",
     });
@@ -106,6 +133,9 @@ describe("toArticlePreview", () => {
     expect(preview.topic).toBe("Haber");
     expect(preview.location).toBe("Ege");
     expect(preview.publishedLabel).toBe("");
+    // No label and no timestamp, so a card renders neither a date nor an empty
+    // `<time>` claiming to carry one.
+    expect(preview.publishedAt).toBeUndefined();
     expect(preview.mediaTone).toBe("teal");
   });
 
