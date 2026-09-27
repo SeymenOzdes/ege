@@ -34,6 +34,10 @@ const nextConfig: NextConfig = {
   allowedDevOrigins: ["127.0.0.1", "localhost"],
   images: {
     remotePatterns: supabaseImagePatterns(),
+    // Local Supabase serves the bucket from 127.0.0.1; Next 16's SSRF guard blocks
+    // optimizing from private IPs by default. `remotePatterns` above already scopes
+    // this to that one bucket path, so this only widens which hosts pass that check.
+    dangerouslyAllowLocalIP: true,
   },
 };
 

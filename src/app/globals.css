@@ -5,7 +5,7 @@
     var(--font-montserrat), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
   --font-display:
     var(--font-montserrat), ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --color-paper: #f6f1e8;
+  --color-paper: #ffffff;
   --color-ink: #0d1b2a;
   --color-ink-muted: #52606d;
   --color-teal: #0c7c86;
@@ -92,7 +92,7 @@ input {
   z-index: 40;
   top: 0;
   border-bottom: 1px solid rgb(13 27 42 / 10%);
-  background: rgb(246 241 232 / 94%);
+  background: rgb(255 255 255 / 94%);
   backdrop-filter: blur(16px);
 }
 
