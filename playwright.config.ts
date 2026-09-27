@@ -6,7 +6,10 @@ const ADMIN_SPEC = /yonetim\.spec\.ts/;
 export default defineConfig({
   testDir: "./e2e",
   fullyParallel: true,
-  reporter: "list",
+  // CI'da ilk denemede düşen test bir kez daha koşar; `trace: "on-first-retry"`
+  // ancak böyle bir iz üretir ve rapor artefakt olarak yüklenir.
+  retries: process.env.CI ? 1 : 0,
+  reporter: process.env.CI ? [["github"], ["html", { open: "never" }]] : "list",
   use: {
     // `next dev` normalizes every `request.url`-derived redirect to its canonical
     // "localhost" origin regardless of the Host header a client actually sent
@@ -29,6 +32,8 @@ export default defineConfig({
     command: "pnpm dev",
     url: "http://localhost:3000",
     reuseExistingServer: !process.env.CI,
+    // Soğuk bir runner'da `next dev`'in ilk derlemesi varsayılan 60 saniyeyi aşabiliyor.
+    timeout: 180_000,
     // `"route"`, `/auth/dev-login` rotasını elle çağrılabilir bırakır ama
     // otomatik yönlendirmeyi kapalı tutar: `auth.spec.ts` oturumsuz ziyaretçinin
     // gerçekten giriş sayfasına düştüğünü doğrulamayı sürdürüyor, `yonetim.spec.ts`
