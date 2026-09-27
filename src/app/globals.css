@@ -639,7 +639,73 @@ button.header-action {
   justify-self: start;
 }
 
+/* Ana sayfanın koyu panelinde: e-posta ve düğme yan yana, rıza satırı altta. */
+.newsletter-form.inline {
+  grid-template-areas:
+    "field"
+    "button"
+    "consent";
+  gap: 0.85rem 1.4rem;
+}
+
+.newsletter-form.inline .newsletter-field {
+  grid-area: field;
+}
+
+.newsletter-form.inline > button {
+  grid-area: button;
+  justify-self: stretch;
+  min-height: 3.2rem;
+  padding-inline: 1.4rem;
+  border-radius: 0.55rem;
+  background: var(--newsletter-green-light, var(--color-teal));
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.newsletter-form.inline > button:hover {
+  filter: brightness(1.08);
+}
+
+.newsletter-form.inline .text-input {
+  min-height: 3.2rem;
+  padding-inline: 0.9rem;
+  border-color: white;
+  border-radius: 2px;
+  font-size: 1rem;
+}
+
+.newsletter-form.inline .newsletter-consent {
+  grid-area: consent;
+  color: rgb(255 255 255 / 82%);
+}
+
+.newsletter-form.inline .newsletter-consent input {
+  accent-color: var(--newsletter-green-light, var(--color-teal));
+}
+
+.newsletter-form.inline .newsletter-consent a {
+  color: white;
+}
+
+@media (min-width: 560px) {
+  .newsletter-form.inline {
+    grid-template-columns: minmax(0, 1fr) auto;
+    grid-template-areas:
+      "field button"
+      "consent consent";
+  }
+
+  .newsletter-form.inline > button {
+    justify-self: start;
+  }
+}
+
 /* Ana sayfadaki dar sütunda etiket görsel olarak gizlenir; erişilebilir ad korunur. */
+.newsletter-form.inline .newsletter-field > span,
 .newsletter-form.compact .newsletter-field > span {
   position: absolute;
   width: 1px;

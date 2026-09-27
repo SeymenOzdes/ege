@@ -687,46 +687,119 @@
   gap: 1rem;
 }
 
+/* Koyu yeşil bülten paneli: solda başlık ve form, sağda güncel bir haber kartı. */
 .newsletter {
+  --newsletter-green: #45695e;
+  --newsletter-green-light: #6e9c8b;
+
   display: grid;
-  gap: 1.2rem;
+  gap: 2.5rem;
+  align-items: center;
   margin-top: 6rem;
-  padding: clamp(1.5rem, 4vw, 2.6rem);
-  border-radius: calc(var(--radius-media) + 0.5rem);
-  background: #e2e9df;
+  padding: clamp(2rem, 6vw, 4.5rem) clamp(1.25rem, 6vw, 6rem);
+  background: var(--newsletter-green);
+  color: white;
 }
 
-.newsletterIcon {
-  display: grid;
-  width: 3.3rem;
-  height: 3.3rem;
-  place-items: center;
-  border-radius: 1rem;
-  background: var(--color-white);
-  color: var(--color-teal);
+.newsletterBody {
+  min-width: 0;
 }
 
 .newsletter h2 {
-  max-width: 16ch;
-  margin: 0.55rem 0 0;
-  font-size: clamp(2.2rem, 5vw, 4rem);
-  font-weight: 520;
-  letter-spacing: -0.055em;
-  line-height: 0.96;
+  margin: 0;
+  font-size: clamp(1.75rem, 3.4vw, 2.6rem);
+  font-weight: 650;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
 }
 
-.newsletter p {
+.newsletterBody > p {
   max-width: 42rem;
-  margin: 1rem 0 0;
-  color: var(--color-ink-muted);
+  margin: 0.75rem 0 0;
+  color: rgb(255 255 255 / 88%);
+  font-size: 0.98rem;
   line-height: 1.6;
 }
 
 /* Form global sınıflarla gelir (paylaşılan NewsletterForm), bu yüzden :global. */
-.newsletter > :global(.newsletter-form) {
-  align-self: end;
-  justify-self: start;
-  width: min(100%, 24rem);
+.newsletterBody > :global(.newsletter-form) {
+  max-width: 44rem;
+  margin-top: 1.75rem;
+}
+
+.newsletterSpotlight {
+  position: relative;
+  display: block;
+  overflow: hidden;
+  aspect-ratio: 16 / 9;
+  border-radius: var(--radius-media);
+  color: white;
+  isolation: isolate;
+}
+
+.newsletterSpotlightMedia {
+  position: absolute;
+  inset: 0;
+  min-height: 0;
+  padding: 0;
+  transition: transform 0.5s ease;
+}
+
+.newsletterSpotlight::after {
+  position: absolute;
+  z-index: 1;
+  inset: 0;
+  background: linear-gradient(to top, rgb(8 16 24 / 82%) 0%, rgb(8 16 24 / 35%) 45%, transparent 75%);
+  content: "";
+}
+
+.newsletterSpotlightText {
+  position: absolute;
+  z-index: 2;
+  right: clamp(1.1rem, 3vw, 2.5rem);
+  bottom: clamp(1.1rem, 3vw, 2rem);
+  left: clamp(1.1rem, 3vw, 2.5rem);
+  display: grid;
+  gap: 0.6rem;
+}
+
+.newsletterSpotlightText strong {
+  font-size: clamp(1.1rem, 1.8vw, 1.4rem);
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  line-height: 1.25;
+}
+
+.newsletterSpotlightText time {
+  color: rgb(255 255 255 / 85%);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.newsletterSpotlight:hover .newsletterSpotlightMedia {
+  transform: scale(1.03);
+}
+
+.newsletterSpotlight:hover strong,
+.newsletterSpotlight:focus-visible strong {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.2em;
+}
+
+.newsletterSpotlight:focus-visible {
+  outline: 2px solid white;
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .newsletterSpotlightMedia {
+    transition: none;
+  }
+
+  .newsletterSpotlight:hover .newsletterSpotlightMedia {
+    transform: none;
+  }
 }
 
 .statePanel {
@@ -804,15 +877,6 @@
   .topicSideStories {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
-
-  .newsletter {
-    grid-template-columns: auto minmax(0, 1fr) auto;
-    align-items: center;
-  }
-
-  .newsletter > :global(.newsletter-form) {
-    justify-self: end;
-  }
 }
 
 @media (min-width: 1024px) {
@@ -822,6 +886,11 @@
 
   .heroGrid {
     grid-template-columns: minmax(0, 2.05fr) minmax(18rem, 0.95fr);
+  }
+
+  .newsletter:has(.newsletterSpotlight) {
+    grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);
+    gap: clamp(2.5rem, 5vw, 5rem);
   }
 
   .carouselDeck {

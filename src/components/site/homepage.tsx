@@ -2,10 +2,10 @@ import Link from "next/link";
 import { ArrowRight } from "@phosphor-icons/react/dist/ssr/ArrowRight";
 import { BellRinging } from "@phosphor-icons/react/dist/ssr/BellRinging";
 import { NewsletterForm } from "@/components/site/newsletter-form";
-import { EnvelopeSimple } from "@phosphor-icons/react/dist/ssr/EnvelopeSimple";
 import { Sparkle } from "@phosphor-icons/react/dist/ssr/Sparkle";
+import { formatFullDate } from "@/lib/article-preview";
 import type { ArticlePreview, HomepageContent } from "@/lib/homepage";
-import { ArticleCard } from "@/components/site/article-card";
+import { ArticleCard, MediaSurface } from "@/components/site/article-card";
 import { FeaturedCarousel } from "@/components/site/featured-carousel";
 import styles from "./homepage.module.css";
 
@@ -57,6 +57,51 @@ function AdSlot({ placement, compact = false }: { placement: string; compact?: b
       </p>
       <small>{placement}</small>
     </aside>
+  );
+}
+
+/**
+ * The newsletter panel's picture: the newest story that has a photograph. A
+ * coloured placeholder would read as a hole on the dark panel, so with no
+ * photographed story at all the panel drops the card and the form takes the row.
+ */
+function newsletterSpotlight(content: HomepageContent): ArticlePreview | undefined {
+  return [...content.latest, ...content.featured, ...content.secondary].find(
+    (article) => article.hero,
+  );
+}
+
+function NewsletterPanel({ spotlight }: { spotlight?: ArticlePreview }) {
+  return (
+    <section className={styles.newsletter} aria-labelledby="anasayfa-bulten-baslik">
+      <div className={styles.newsletterBody}>
+        <h2 className="font-editorial" id="anasayfa-bulten-baslik">
+          Ege&apos;nin hikâyeleri gelen kutunuzda
+        </h2>
+        <p>Haftada bir kez; seçilmiş haberler, kültür rotaları ve yerel yaşam notları.</p>
+        <NewsletterForm idPrefix="anasayfa-bulten" variant="inline" />
+      </div>
+
+      {spotlight && (
+        <Link className={styles.newsletterSpotlight} href={`/haber/${spotlight.slug}`}>
+          <MediaSurface
+            tone={spotlight.mediaTone}
+            label={spotlight.location}
+            hero={spotlight.hero}
+            sizes="(max-width: 1023px) calc(100vw - 4rem), 500px"
+            className={styles.newsletterSpotlightMedia}
+          />
+          <span className={styles.newsletterSpotlightText}>
+            <strong className="font-editorial">{spotlight.title}</strong>
+            {spotlight.publishedAt && (
+              <time dateTime={spotlight.publishedAt}>
+                {formatFullDate(spotlight.publishedAt)}
+              </time>
+            )}
+          </span>
+        </Link>
+      )}
+    </section>
   );
 }
 
@@ -158,17 +203,7 @@ export function Homepage({ content }: { content: HomepageContent }) {
           ))}
         </div>
 
-        <section className={styles.newsletter}>
-          <div className={styles.newsletterIcon}>
-            <EnvelopeSimple aria-hidden="true" size={30} weight="duotone" />
-          </div>
-          <div>
-            <span className="eyebrow">Haftalık Ege mektubu</span>
-            <h2 className="font-editorial">Bölgenin önemli hikâyeleri doğrudan gelen kutunda.</h2>
-            <p>Haftada bir kez; seçilmiş haberler, kültür rotaları ve yerel yaşam notları.</p>
-          </div>
-          <NewsletterForm idPrefix="anasayfa-bulten" variant="compact" />
-        </section>
+        <NewsletterPanel spotlight={newsletterSpotlight(content)} />
 
         <AdSlot placement="HOME_INLINE" compact />
       </div>

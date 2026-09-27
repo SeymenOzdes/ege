@@ -2,8 +2,11 @@ import Link from "next/link";
 import { subscribeToNewsletter } from "@/lib/newsletter/actions";
 
 type NewsletterFormProps = {
-  /** Ana sayfa çağrısı dar bir sütunda durur; `/bulten` tam genişlikte. */
-  variant?: "compact" | "page";
+  /**
+   * Ana sayfa çağrısı koyu panelde, e-posta ve düğme yan yana (`inline`);
+   * kategori rayı dar bir sütunda (`compact`); `/bulten` tam genişlikte.
+   */
+  variant?: "compact" | "inline" | "page";
   className?: string;
   idPrefix?: string;
 };

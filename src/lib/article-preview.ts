@@ -62,6 +62,12 @@ export function formatMonthYear(publishedAt: string | Date): string {
   return Number.isNaN(date.getTime()) ? "" : monthYearFormatter.format(date);
 }
 
+/** Day, month and year, e.g. `27 Eylül 2026`, for the newsletter panel's story card. */
+export function formatFullDate(publishedAt: string | Date): string {
+  const date = publishedAt instanceof Date ? publishedAt : new Date(publishedAt);
+  return Number.isNaN(date.getTime()) ? "" : dayWithYearFormatter.format(date);
+}
+
 /**
  * The machine-readable half of a dateline, for `<time datetime>`.
  *
