@@ -869,6 +869,17 @@
     align-items: stretch;
   }
 
+  /* Yan sütun büyük karttan uzun olabiliyor; kart o yüksekliğe gerildiğinde
+     boşluğu metnin altında bırakmak yerine görsel büyüyüp dolduruyor. */
+  .topicLayout > .articleCardfeature {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .topicLayout > .articleCardfeature .cardMedia {
+    flex: 1 0 auto;
+  }
+
   .topicSectionReverse .topicLayout {
     grid-template-columns: minmax(22rem, 0.8fr) minmax(0, 1.4fr);
   }
@@ -887,13 +898,9 @@
     grid-template-columns: 1fr;
   }
 
-  .articleCardtopic {
-    display: grid;
-    grid-template-columns: 0.85fr 1.15fr;
-  }
-
+  /* Hero rail'indeki küçük kartlarla aynı dikey düzen: görsel üstte, metin altta. */
   .articleCardtopic .cardMedia {
-    min-height: 100%;
+    min-height: 12rem;
   }
 
   .loadingHero {

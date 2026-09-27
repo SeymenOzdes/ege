@@ -16,7 +16,7 @@ test("opens the sample article from the homepage card", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Dört ilçede ortak rota" })).toBeVisible();
   await expect(page.getByRole("heading", { name: "İlgili hikâyeler" })).toBeVisible();
   await expect(page.getByText("ARTICLE_MID")).toBeVisible();
-  await expect(page.getByText("ARTICLE_END")).toBeVisible();
+  await expect(page.getByText("ARTICLE_END")).toHaveCount(0);
 });
 
 test("anonim okuru kaydetmeden önce girişe yönlendirir", async ({ page }) => {
@@ -26,7 +26,7 @@ test("anonim okuru kaydetmeden önce girişe yönlendirir", async ({ page }) => 
 
   // Oturum açmamış ziyaretçi için kaydetme, iyimser bir açma/kapama değil giriş
   // akışının başlangıcıdır: hedef haber çerezde taşınır.
-  await page.getByRole("button", { name: "Haberi kaydetmek için giriş yap" }).click();
+  await page.getByRole("button", { name: "Haberi sonra okumak için giriş yap" }).click();
 
   await expect(page).toHaveURL(/\/giris\?next=%2Fhaber%2Fmahalle-pazarlarinda-yerel-urun/);
 });

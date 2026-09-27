@@ -2,9 +2,7 @@
 
 import { startTransition, useEffect, useOptimistic, useState } from "react";
 import { BookmarkSimple } from "@phosphor-icons/react/dist/csr/BookmarkSimple";
-import { Check } from "@phosphor-icons/react/dist/csr/Check";
 import { ShareNetwork } from "@phosphor-icons/react/dist/csr/ShareNetwork";
-import { SignIn } from "@phosphor-icons/react/dist/csr/SignIn";
 import { useCurrentUser } from "@/lib/auth/use-current-user";
 import { startBookmarkLogin, toggleBookmark } from "@/lib/bookmarks/actions";
 import { bookmarkErrorText } from "@/lib/bookmarks/messages";
@@ -23,7 +21,7 @@ type ArticleActionsProps = {
  * Oturum ve kayıt durumu sunucudan prop olarak gelmiyor; ikisi de çerez okuması
  * demekti ve haber sayfasını her istekte yeniden render ettiriyordu. Artık tarayıcıda
  * çözülüyor: sayfa gövdesi önbelleğe alınabilir kalıyor, düğme ilk boyamada
- * "Kaydet" görünüp durumu bir tık sonra yerine oturuyor.
+ * "Sonra oku" görünüp durumu bir tık sonra yerine oturuyor.
  */
 export function ArticleActions({ title, slug }: ArticleActionsProps) {
   const { user } = useCurrentUser();
@@ -87,7 +85,7 @@ export function ArticleActions({ title, slug }: ArticleActionsProps) {
       }
 
       setSaved(result.saved);
-      setStatus(result.saved ? "Haber kaydedildi." : "Haber kaydedilenlerden çıkarıldı.");
+      setStatus(result.saved ? "Haber sonra oku listesine eklendi." : "Haber sonra oku listesinden çıkarıldı.");
     });
   }
 
@@ -101,24 +99,23 @@ export function ArticleActions({ title, slug }: ArticleActionsProps) {
       {isSignedIn ? (
         <button
           type="button"
-          aria-label={optimisticSaved ? "Haberi kaydedilenlerden çıkar" : "Haberi kaydet"}
+          aria-label={
+            optimisticSaved ? "Haberi sonra oku listesinden çıkar" : "Haberi sonra okumak için kaydet"
+          }
           aria-pressed={optimisticSaved}
           onClick={toggleSaved}
         >
-          {optimisticSaved ? (
-            <Check aria-hidden="true" size={19} weight="bold" />
-          ) : (
-            <BookmarkSimple aria-hidden="true" size={19} weight="bold" />
-          )}
-          <span>{optimisticSaved ? "Kaydedildi" : "Kaydet"}</span>
+          {/* Dolu yer imi "listede", çizgili yer imi "listede değil" demek. */}
+          <BookmarkSimple aria-hidden="true" size={20} weight={optimisticSaved ? "fill" : "bold"} />
+          <span>{optimisticSaved ? "Listende" : "Sonra oku"}</span>
         </button>
       ) : (
         // JavaScript olmadan da çalışsın diye düz bir form: sunucu eylemi
         // hedef haberi çereze yazıp girişe yönlendirir.
         <form action={startBookmarkLogin.bind(null, slug)}>
-          <button type="submit" aria-label="Haberi kaydetmek için giriş yap">
-            <SignIn aria-hidden="true" size={19} weight="bold" />
-            <span>Kaydet</span>
+          <button type="submit" aria-label="Haberi sonra okumak için giriş yap">
+            <BookmarkSimple aria-hidden="true" size={20} weight="bold" />
+            <span>Sonra oku</span>
           </button>
         </form>
       )}

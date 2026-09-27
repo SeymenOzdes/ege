@@ -2,7 +2,6 @@ import Image from "next/image";
 import Link from "next/link";
 import { ArrowRight } from "@phosphor-icons/react/dist/ssr/ArrowRight";
 import { Clock } from "@phosphor-icons/react/dist/ssr/Clock";
-import { MapPin } from "@phosphor-icons/react/dist/ssr/MapPin";
 import { NotePencil } from "@phosphor-icons/react/dist/ssr/NotePencil";
 import type { ArticleDetail as ArticleDetailType } from "@/lib/articles";
 import { siteConfig } from "@/lib/site";
@@ -10,7 +9,7 @@ import { ArticleActions } from "@/components/site/article-actions";
 import { BodyBlock } from "@/components/site/article-body";
 import styles from "./article-detail.module.css";
 
-function AdSlot({ placement }: { placement: "ARTICLE_MID" | "ARTICLE_END" }) {
+function AdSlot({ placement }: { placement: "ARTICLE_MID" }) {
   return (
     <aside className={styles.adSlot} aria-label="Reklam alanı">
       <span>Reklam</span>
@@ -55,19 +54,7 @@ export function ArticleDetail({ article }: { article: ArticleDetailType }) {
       />
 
       <header className={styles.articleHeader}>
-        <div className={styles.breadcrumbs} aria-label="İçerik yolu">
-          <Link href="/">Ana sayfa</Link>
-          <span aria-hidden="true">/</span>
-          <Link href={`/kategori/${article.topicSlug}`}>{article.topic}</Link>
-        </div>
-
         <div className={styles.titleBlock}>
-          <div className={styles.storyLabels}>
-            <span>{article.topic}</span>
-            <span>
-              <MapPin aria-hidden="true" size={14} weight="fill" /> {article.location}
-            </span>
-          </div>
           <h1 className="font-editorial">{article.title}</h1>
           <p className={styles.summary}>{article.summary}</p>
 
@@ -132,7 +119,6 @@ export function ArticleDetail({ article }: { article: ArticleDetailType }) {
           ) : (
             <span className={styles.bylineName}>{article.author.name}</span>
           )}
-          <small>{article.author.role}</small>
         </div>
         <dl className={styles.bylineTimes}>
           <div>
@@ -149,11 +135,7 @@ export function ArticleDetail({ article }: { article: ArticleDetailType }) {
               </dd>
             </div>
           )}
-          <div className={styles.readingTimeRow}>
-            <div className={styles.readingTimeMeta}>
-              <dt>Okuma süresi</dt>
-              <dd>{article.readingTime}</dd>
-            </div>
+          <div className={styles.actionsRow}>
             <ArticleActions title={article.title} slug={article.slug} />
           </div>
         </dl>
@@ -204,7 +186,6 @@ export function ArticleDetail({ article }: { article: ArticleDetailType }) {
             </article>
           ))}
         </div>
-        <AdSlot placement="ARTICLE_END" />
       </section>
     </article>
   );

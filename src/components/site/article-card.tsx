@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr/ArrowUpRight";
 import { formatMonthYear } from "@/lib/article-preview";
 import type { ArticleImage, ArticlePreview, MediaTone } from "@/lib/homepage";
 import styles from "./homepage.module.css";
@@ -53,8 +52,8 @@ const MEDIA_SIZES: Record<ArticleCardVariant, string> = {
   secondary: "(max-width: 699px) 40vw, (max-width: 1023px) 45vw, 400px",
   // Never rendered — `timeline` drops its media entirely — but the map is total.
   timeline: DEFAULT_MEDIA_SIZES,
-  // Two side stories per row from 700px, then a 0.85fr picture column at 1024px.
-  topic: "(max-width: 699px) calc(100vw - 2rem), (max-width: 1023px) 50vw, 200px",
+  // Two side stories per row from 700px, then stacked full width in a ~22rem rail.
+  topic: "(max-width: 699px) calc(100vw - 2rem), (max-width: 1023px) 50vw, 400px",
 };
 
 /**
@@ -156,7 +155,6 @@ export function ArticleCard({
               {article.readingTime} okuma
             </span>
           )}
-          {variant !== "feed" && <ArrowUpRight aria-hidden="true" size={17} weight="bold" />}
         </div>
       </div>
     </article>
