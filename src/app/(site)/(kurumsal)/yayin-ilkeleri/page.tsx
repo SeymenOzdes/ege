@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CorporateDocument, Placeholder } from "@/components/site/corporate";
+import { CorporateDocument } from "@/components/site/corporate";
+import { corporateInfo } from "@/lib/corporate-info";
 import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -116,14 +117,15 @@ export default function YayinIlkeleriPage() {
 
       <h2>11. Uyulan meslek ilkeleri</h2>
       <p>
-        Bu ilkeler, <Placeholder>bağlı olunan meslek örgütü / imzalanan bildirge</Placeholder>{" "}
-        metinlerini esas alır. İlkelere aykırı bir yayın gördüğünüzde{" "}
-        <Link href="/iletisim">İletişim</Link> sayfasındaki kanallardan bize yazabilirsiniz.
+        Bu ilkeler, Basın Konseyi’nin Basın Meslek İlkeleri ile Türkiye Gazeteciler Cemiyeti’nin
+        Türkiye Gazetecileri Hak ve Sorumluluk Bildirgesi metinlerini esas alır. İlkelere aykırı bir
+        yayın gördüğünüzde <Link href="/iletisim">İletişim</Link> sayfasındaki kanallardan bize
+        yazabilirsiniz.
       </p>
 
       <h2>Yürürlük</h2>
       <p>
-        Bu metnin yürürlük tarihi: <Placeholder>gg.aa.yyyy</Placeholder>. Değişiklikler bu sayfada
+        Bu metnin yürürlük tarihi: {corporateInfo.effectiveDate}. Değişiklikler bu sayfada
         yayımlanır.
       </p>
     </CorporateDocument>

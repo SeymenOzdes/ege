@@ -139,45 +139,6 @@
   }
 }
 
-/*
- * Doldurulmamış gerçek bilgi. `mark` ile işaretli: hem ekranda göze çarpıyor
- * hem de "bu metin taslak" bilgisi biçimlendirme kapalıyken de kayboluyor
- * değil. `data-doldurulacak` ile sayfada kaç tane kaldığı sayılabiliyor:
- * `document.querySelectorAll("[data-doldurulacak]").length`
- */
-.placeholder {
-  padding: 0.12rem 0.4rem;
-  border: 1px dashed rgb(201 140 58 / 65%);
-  border-radius: 0.4rem;
-  background: rgb(201 140 58 / 14%);
-  color: #7c5119;
-  font-size: 0.85em;
-  font-weight: 750;
-  white-space: normal;
-}
-
-/* Sayfa başındaki "bu metin henüz onaylanmadı" uyarısı. */
-.draftNotice {
-  display: grid;
-  gap: 0.4rem;
-  margin-top: 1.6rem;
-  padding: 1rem 1.15rem;
-  border: 1px dashed rgb(201 140 58 / 55%);
-  border-radius: var(--radius-control);
-  background: rgb(201 140 58 / 9%);
-}
-
-.draftNotice > span {
-  color: #7c5119;
-}
-
-.draftNotice > p {
-  margin: 0;
-  color: var(--color-ink-muted);
-  font-size: 0.83rem;
-  line-height: 1.6;
-}
-
 /* Belgenin sonundaki kardeş sayfa bağlantıları. */
 .related {
   margin-top: 3rem;

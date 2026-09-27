@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CorporateDocument, Fact, FactList, Placeholder } from "@/components/site/corporate";
+import { CorporateDocument, Fact, FactList, MailLink } from "@/components/site/corporate";
+import { corporateInfo } from "@/lib/corporate-info";
 
 export const metadata: Metadata = {
   title: "Gizlilik Politikası",
@@ -10,6 +11,8 @@ export const metadata: Metadata = {
 };
 
 export default function GizlilikPage() {
+  const { hosting, database, email } = corporateInfo.providers;
+
   return (
     <CorporateDocument
       eyebrow="Kurumsal"
@@ -19,21 +22,12 @@ export default function GizlilikPage() {
     >
       <h2>1. Veri sorumlusu</h2>
       <FactList>
-        <Fact label="Veri sorumlusu">
-          <Placeholder>şirketin tam ticaret unvanı</Placeholder>
-        </Fact>
-        <Fact label="Adres">
-          <Placeholder>açık adres</Placeholder>
-        </Fact>
+        <Fact label="Veri sorumlusu">{corporateInfo.legalName}</Fact>
+        <Fact label="Adres">{corporateInfo.address}</Fact>
         <Fact label="E-posta">
-          <Placeholder>kvkk@… adresi</Placeholder>
+          <MailLink address={corporateInfo.email.kvkk} />
         </Fact>
-        <Fact label="KEP adresi">
-          <Placeholder>kayıtlı elektronik posta adresi</Placeholder>
-        </Fact>
-        <Fact label="VERBİS kaydı">
-          <Placeholder>VERBİS sicil numarası — kayıt yükümlülüğü varsa</Placeholder>
-        </Fact>
+        <Fact label="KEP adresi">{corporateInfo.kep}</Fact>
       </FactList>
 
       <h2>2. İşlenen veriler ve hukuki sebepleri</h2>
@@ -137,38 +131,37 @@ export default function GizlilikPage() {
       <p>Veriler aşağıdaki hizmet sağlayıcılar üzerinden işlenir:</p>
       <FactList>
         <Fact label="Veritabanı, kimlik doğrulama, dosya depolama">
-          Supabase — <Placeholder>kurumsal unvan, ülke ve veri merkezi bölgesi</Placeholder>
+          {database.name}, {database.country} — veriler {database.region} bölgesindeki veri
+          merkezinde tutulur
         </Fact>
         <Fact label="E-posta gönderimi">
-          Resend — <Placeholder>kurumsal unvan ve ülke</Placeholder>
+          {email.name}, {email.country}
         </Fact>
         <Fact label="Uygulama barındırma">
-          <Placeholder>barındırma sağlayıcısının unvanı ve ülkesi</Placeholder>
+          {hosting.name}, {hosting.country}
         </Fact>
       </FactList>
       <p>
         Bu sağlayıcıların bir bölümü yurt dışında bulunmaktadır; bu durumda aktarım KVKK m. 9
-        kapsamında{" "}
-        <Placeholder>dayanak: açık rıza / standart sözleşme / yeterlilik kararı</Placeholder>{" "}
-        çerçevesinde yapılır. Veriler bunun dışında, hukuken yetkili kamu kurum ve kuruluşları
-        haricinde üçüncü kişilerle paylaşılmaz, satılmaz ve reklam amacıyla kullandırılmaz.
+        kapsamında Kişisel Verileri Koruma Kurulu’nun ilan ettiği standart sözleşmeler çerçevesinde
+        yapılır. Veriler bunun dışında, hukuken yetkili kamu kurum ve kuruluşları haricinde üçüncü
+        kişilerle paylaşılmaz, satılmaz ve reklam amacıyla kullandırılmaz.
       </p>
 
       <h2>5. Saklama süreleri</h2>
       <FactList>
         <Fact label="Bülten aboneliği">
-          Aboneliğiniz sürdüğü sürece; ayrıldıktan sonra <Placeholder>süre — ör. 6 ay</Placeholder>{" "}
-          boyunca yeniden abone edilmemesi için saklanır.
+          Aboneliğiniz sürdüğü sürece; ayrıldıktan sonra 6 ay boyunca yeniden abone edilmemesi için
+          saklanır.
         </Fact>
         <Fact label="Okur hesabı ve kaydedilenler">
-          Hesabınız açık kaldığı sürece; silme talebinizin ardından{" "}
-          <Placeholder>süre — ör. 30 gün</Placeholder> içinde silinir.
+          Hesabınız açık kaldığı sürece; silme talebinizin ardından 30 gün içinde silinir.
         </Fact>
         <Fact label="Sonuçsuz aramalar">
-          <Placeholder>süre — ör. 12 ay</Placeholder>
+          12 ay; ardından yalnızca arama sayıları toplu olarak tutulur
         </Fact>
         <Fact label="Sunucu erişim kayıtları">
-          <Placeholder>süre — 5651 s. Kanun kapsamındaki trafik bilgisi süresi</Placeholder>
+          1 yıl (5651 sayılı Kanun kapsamındaki trafik bilgisi süresi)
         </Fact>
       </FactList>
 
@@ -214,7 +207,7 @@ export default function GizlilikPage() {
 
       <h2>9. Değişiklikler</h2>
       <p>
-        Bu metin güncellenebilir. Yürürlük tarihi: <Placeholder>gg.aa.yyyy</Placeholder>. Esaslı bir
+        Bu metin güncellenebilir. Yürürlük tarihi: {corporateInfo.effectiveDate}. Esaslı bir
         değişiklikte, bülten abonelerine e-posta ile ayrıca bilgi verilir.
       </p>
     </CorporateDocument>

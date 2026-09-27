@@ -52,11 +52,10 @@ test("bülten formundaki rıza metni gizlilik sayfasına bağlanıyor", async ({
   await expect(page.getByRole("heading", { level: 1, name: "Gizlilik Politikası" })).toBeVisible();
 });
 
-test("kurumsal metinler henüz taslak olduklarını söylüyor", async ({ page }) => {
+test("kurumsal metinlerde taslak uyarısı ve yer tutucu kalmadı", async ({ page }) => {
   await page.goto("/kunye");
 
-  // Gerçek bilgiler doldurulduğunda bu uyarı kaldırılacak; testin düşmesi o
-  // adımı hatırlatan işaret olur.
-  await expect(page.getByText("Taslak metin")).toBeVisible();
-  await expect(page.locator("[data-doldurulacak]").first()).toBeVisible();
+  await expect(page.getByRole("heading", { level: 1, name: "Künye" })).toBeVisible();
+  await expect(page.getByText("Taslak metin")).toHaveCount(0);
+  await expect(page.getByText("DOLDURULACAK")).toHaveCount(0);
 });

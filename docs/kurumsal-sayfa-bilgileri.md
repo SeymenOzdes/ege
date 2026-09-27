@@ -2,7 +2,13 @@
 
 - **Oluşturma:** 2026-09-01 (launch hazırlığı, Faz 3)
 - **Kapsam:** `src/app/(site)/(kurumsal)/` altındaki yedi sayfa
-- **Durum:** Metinler tam, gerçek bilgiler **eksik**. Sayfalar yayına hazır değil.
+- **Durum (2026-09-27):** Tüm yer tutucular **örnek bir şirketle** dolduruldu, "Taslak metin"
+  uyarısı ve `Placeholder` bileşeni kaldırıldı. Değerlerin hepsi tek dosyada:
+  `src/lib/corporate-info.ts`. Şirket, kişi, sicil, telefon ve e-posta bilgileri **örnektir**;
+  gerçek yayına geçmeden önce aşağıdaki listeye göre gerçek kayıtlarla değiştirilmeli.
+  Hizmet sağlayıcı unvan/adresleri (Vercel, Supabase Pte. Ltd., Plus Five Five, Inc.)
+  sağlayıcıların kendi hukuki metinlerinden alındı; Supabase bölgesi (Frankfurt) ve Vercel
+  seçimi varsayımdır. VERBİS satırı, küçük ölçekli işletme varsayımıyla silindi.
 
 Yedi kurumsal sayfanın Türkçe metni yazıldı ve altbilgideki bağlantılar artık 404
 vermiyor. Ancak metinlerdeki her gerçek bilgi — unvan, adres, isim, süre, tarih —

@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CorporateDocument, Fact, FactList, Placeholder } from "@/components/site/corporate";
+import {
+  CorporateDocument,
+  Fact,
+  FactList,
+  MailLink,
+  PhoneLink,
+} from "@/components/site/corporate";
+import { corporateInfo } from "@/lib/corporate-info";
 import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -11,6 +18,8 @@ export const metadata: Metadata = {
 };
 
 export default function KunyePage() {
+  const { hosting, database, email } = corporateInfo.providers;
+
   return (
     <CorporateDocument
       eyebrow="Kurumsal"
@@ -20,9 +29,7 @@ export default function KunyePage() {
     >
       <h2>Yayın sahibi</h2>
       <FactList>
-        <Fact label="Ticaret unvanı">
-          <Placeholder>şirketin tam ticaret unvanı</Placeholder>
-        </Fact>
+        <Fact label="Ticaret unvanı">{corporateInfo.legalName}</Fact>
         <Fact label="Yayının adı">{siteConfig.name}</Fact>
         <Fact label="Yayın türü">İnternet haber sitesi (süreli yayın)</Fact>
         <Fact label="Yayın dili">Türkçe</Fact>
@@ -37,31 +44,23 @@ export default function KunyePage() {
         başvurular bu kişiye yapılır.
       </p>
       <FactList>
-        <Fact label="Sorumlu müdür">
-          <Placeholder>ad soyad</Placeholder>
-        </Fact>
-        <Fact label="Sorumlu müdür yardımcısı">
-          <Placeholder>ad soyad — yoksa bu satır silinecek</Placeholder>
-        </Fact>
+        <Fact label="Sorumlu müdür">{corporateInfo.editor.name}</Fact>
+        <Fact label="Sorumlu müdür yardımcısı">{corporateInfo.deputyEditor}</Fact>
         <Fact label="E-posta">
-          <Placeholder>sorumlu müdürün e-posta adresi</Placeholder>
+          <MailLink address={corporateInfo.editor.email} />
         </Fact>
       </FactList>
 
       <h2>İletişim ve tebligat</h2>
       <FactList>
-        <Fact label="İşyeri adresi">
-          <Placeholder>açık adres, mahalle, cadde, no, ilçe, il</Placeholder>
-        </Fact>
+        <Fact label="İşyeri adresi">{corporateInfo.address}</Fact>
         <Fact label="Telefon">
-          <Placeholder>+90 …</Placeholder>
+          <PhoneLink number={corporateInfo.phone.general} />
         </Fact>
         <Fact label="E-posta">
-          <Placeholder>genel iletişim e-posta adresi</Placeholder>
+          <MailLink address={corporateInfo.email.general} />
         </Fact>
-        <Fact label="KEP adresi">
-          <Placeholder>kayıtlı elektronik posta adresi</Placeholder>
-        </Fact>
+        <Fact label="KEP adresi">{corporateInfo.kep}</Fact>
       </FactList>
       <p>
         Düzeltme ve cevap taleplerinin nasıl işlendiği <Link href="/duzeltmeler">Düzeltmeler</Link>{" "}
@@ -71,28 +70,22 @@ export default function KunyePage() {
 
       <h2>Ticari bilgiler</h2>
       <FactList>
-        <Fact label="Ticaret sicil no">
-          <Placeholder>ticaret sicil numarası</Placeholder>
-        </Fact>
-        <Fact label="MERSİS no">
-          <Placeholder>MERSİS numarası</Placeholder>
-        </Fact>
-        <Fact label="Vergi dairesi / no">
-          <Placeholder>vergi dairesi ve vergi kimlik numarası</Placeholder>
-        </Fact>
+        <Fact label="Ticaret sicil no">{corporateInfo.tradeRegistry}</Fact>
+        <Fact label="MERSİS no">{corporateInfo.mersis}</Fact>
+        <Fact label="Vergi dairesi / no">{corporateInfo.taxOffice}</Fact>
       </FactList>
 
       <h2>Yer sağlayıcı</h2>
       <p>5651 sayılı Kanun uyarınca sitenin barındırıldığı hizmet sağlayıcılar aşağıdadır.</p>
       <FactList>
         <Fact label="Uygulama barındırma">
-          <Placeholder>barındırma sağlayıcısının unvanı ve adresi</Placeholder>
+          {hosting.name} — {hosting.address}, {hosting.country}
         </Fact>
         <Fact label="Veritabanı ve dosya depolama">
-          <Placeholder>Supabase kurumsal unvanı ve adresi</Placeholder>
+          {database.name} — {database.address}, {database.country}
         </Fact>
         <Fact label="E-posta gönderimi">
-          <Placeholder>Resend kurumsal unvanı ve adresi</Placeholder>
+          {email.name} — {email.address}, {email.country}
         </Fact>
       </FactList>
 

@@ -1,23 +1,15 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { CORPORATE_PAGES } from "@/lib/corporate-pages";
+import { telHref } from "@/lib/corporate-info";
 import styles from "./corporate.module.css";
 
-/**
- * Henüz doldurulmamış gerçek bilgi.
- *
- * Bilerek göze batıyor: künyede boş bırakılmış bir adres, yanlış doldurulmuş bir
- * adresten daha az tehlikeli ama fark edilmezse ikisi de yayına çıkar. İşaretli
- * hâli hem tarayıcıda hem de `pnpm build` çıktısındaki HTML'de aranabilir.
- *
- * Hepsinin dökümü `docs/kurumsal-sayfa-bilgileri.md` içinde.
- */
-export function Placeholder({ children }: { children: ReactNode }) {
-  return (
-    <mark className={styles.placeholder} data-doldurulacak="">
-      [DOLDURULACAK: {children}]
-    </mark>
-  );
+export function MailLink({ address }: { address: string }) {
+  return <a href={`mailto:${address}`}>{address}</a>;
+}
+
+export function PhoneLink({ number }: { number: string }) {
+  return <a href={telHref(number)}>{number}</a>;
 }
 
 export type CorporateDocumentProps = {
@@ -49,16 +41,6 @@ export function CorporateDocument({
         <span className="eyebrow">{eyebrow}</span>
         <h1 className={`font-editorial ${styles.title}`}>{title}</h1>
         <p className={styles.lede}>{lede}</p>
-
-        {/* Metinler hukukçu onayından geçmeden yayına çıkmamalı; uyarı sayfanın
-            kendisinde duruyor ki sadece geliştirici değil okur da görsün. */}
-        <div className={styles.draftNotice} role="note">
-          <span className="eyebrow">Taslak metin</span>
-          <p>
-            Bu sayfa yayına hazırlanıyor. İşaretli alanlardaki bilgiler kurum kayıtlarıyla
-            doldurulup hukuki denetimden geçmeden bağlayıcı sayılmaz.
-          </p>
-        </div>
       </header>
 
       <div className={styles.prose}>{children}</div>

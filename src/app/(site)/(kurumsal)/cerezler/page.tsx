@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CorporateDocument, Fact, FactList, Placeholder } from "@/components/site/corporate";
+import { CorporateDocument, Fact, FactList } from "@/components/site/corporate";
+import { corporateInfo } from "@/lib/corporate-info";
 
 export const metadata: Metadata = {
   title: "Çerez Politikası",
@@ -34,8 +35,8 @@ export default function CerezlerPage() {
       <FactList>
         <Fact label="sb-…-auth-token">
           Oturum çerezi. Giriş yaptıktan sonra kimliğinizi taşır; kimlik doğrulama altyapısı
-          (Supabase) tarafından oluşturulur. Çıkış yaptığınızda silinir. Saklama süresi:{" "}
-          <Placeholder>oturum belirteci ömrü — Supabase ayarından</Placeholder>.
+          (Supabase) tarafından oluşturulur. Çıkış yaptığınızda silinir. Saklama süresi: tarayıcıda
+          en fazla 400 gün; içindeki erişim belirteci her saat yenilenir.
         </Fact>
         <Fact label="egenin-nabzi-auth-next">
           Giriş sonrası hangi sayfaya döneceğinizi hatırlar. Yalnızca sunucu okuyabilir (
@@ -79,8 +80,7 @@ export default function CerezlerPage() {
       <h2>Değişiklikler</h2>
       <p>
         Sitede yeni bir çerez kullanılmaya başlanırsa bu sayfa güncellenir ve zorunlu olmayan bir
-        çerez eklendiğinde önceden onayınız istenir. Yürürlük tarihi:{" "}
-        <Placeholder>gg.aa.yyyy</Placeholder>.
+        çerez eklendiğinde önceden onayınız istenir. Yürürlük tarihi: {corporateInfo.effectiveDate}.
       </p>
     </CorporateDocument>
   );

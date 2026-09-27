@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CorporateDocument, Fact, FactList, Placeholder } from "@/components/site/corporate";
+import {
+  CorporateDocument,
+  Fact,
+  FactList,
+  MailLink,
+  PhoneLink,
+} from "@/components/site/corporate";
+import { corporateInfo } from "@/lib/corporate-info";
 
 export const metadata: Metadata = {
   title: "İletişim",
@@ -25,14 +32,12 @@ export default function IletisimPage() {
       </p>
       <FactList>
         <Fact label="E-posta">
-          <Placeholder>haber@… adresi</Placeholder>
+          <MailLink address={corporateInfo.email.newsroom} />
         </Fact>
         <Fact label="Telefon">
-          <Placeholder>+90 …</Placeholder>
+          <PhoneLink number={corporateInfo.phone.newsroom} />
         </Fact>
-        <Fact label="Çalışma saatleri">
-          <Placeholder>ör. Hafta içi 09.00 – 18.00</Placeholder>
-        </Fact>
+        <Fact label="Çalışma saatleri">{corporateInfo.hours}</Fact>
       </FactList>
 
       <h2>Düzeltme ve cevap hakkı</h2>
@@ -43,17 +48,17 @@ export default function IletisimPage() {
       </p>
       <FactList>
         <Fact label="E-posta">
-          <Placeholder>duzeltme@… adresi</Placeholder>
+          <MailLink address={corporateInfo.email.corrections} />
         </Fact>
       </FactList>
 
       <h2>Reklam ve iş birlikleri</h2>
       <FactList>
         <Fact label="E-posta">
-          <Placeholder>reklam@… adresi</Placeholder>
+          <MailLink address={corporateInfo.email.ads} />
         </Fact>
         <Fact label="Telefon">
-          <Placeholder>+90 …</Placeholder>
+          <PhoneLink number={corporateInfo.phone.ads} />
         </Fact>
       </FactList>
       <p>
@@ -68,28 +73,18 @@ export default function IletisimPage() {
         <Link href="/gizlilik">Gizlilik Politikası</Link> sayfasında anlatılıyor.
       </p>
       <FactList>
-        <Fact label="Veri sorumlusu">
-          <Placeholder>şirketin tam ticaret unvanı</Placeholder>
-        </Fact>
+        <Fact label="Veri sorumlusu">{corporateInfo.legalName}</Fact>
         <Fact label="E-posta">
-          <Placeholder>kvkk@… adresi</Placeholder>
+          <MailLink address={corporateInfo.email.kvkk} />
         </Fact>
-        <Fact label="KEP adresi">
-          <Placeholder>kayıtlı elektronik posta adresi</Placeholder>
-        </Fact>
-        <Fact label="Yazılı başvuru adresi">
-          <Placeholder>açık adres</Placeholder>
-        </Fact>
+        <Fact label="KEP adresi">{corporateInfo.kep}</Fact>
+        <Fact label="Yazılı başvuru adresi">{corporateInfo.address}</Fact>
       </FactList>
 
       <h2>Adres</h2>
       <FactList>
-        <Fact label="Yayın merkezi">
-          <Placeholder>açık adres, mahalle, cadde, no, ilçe, il</Placeholder>
-        </Fact>
-        <Fact label="Tebligat / KEP">
-          <Placeholder>kayıtlı elektronik posta adresi</Placeholder>
-        </Fact>
+        <Fact label="Yayın merkezi">{corporateInfo.address}</Fact>
+        <Fact label="Tebligat / KEP">{corporateInfo.kep}</Fact>
       </FactList>
       <p>
         Yayın sahibi, sorumlu müdür ve ticari kayıt bilgilerinin tamamı{" "}

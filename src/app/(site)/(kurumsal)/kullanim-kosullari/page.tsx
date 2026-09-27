@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CorporateDocument, Placeholder } from "@/components/site/corporate";
+import { CorporateDocument } from "@/components/site/corporate";
+import { corporateInfo } from "@/lib/corporate-info";
 import { siteConfig } from "@/lib/site";
 
 export const metadata: Metadata = {
@@ -20,9 +21,9 @@ export default function KullanimKosullariPage() {
     >
       <h2>1. Taraflar ve kapsam</h2>
       <p>
-        Bu koşullar, <Placeholder>şirketin tam ticaret unvanı</Placeholder> tarafından işletilen{" "}
-        {siteConfig.name} sitesi ile siteyi ziyaret eden kullanıcı arasındaki ilişkiyi düzenler.
-        İşletmeciye ilişkin kayıt bilgileri <Link href="/kunye">Künye</Link> sayfasındadır.
+        Bu koşullar, {corporateInfo.legalName} tarafından işletilen {siteConfig.name} sitesi ile
+        siteyi ziyaret eden kullanıcı arasındaki ilişkiyi düzenler. İşletmeciye ilişkin kayıt
+        bilgileri <Link href="/kunye">Künye</Link> sayfasındadır.
       </p>
 
       <h2>2. Hizmetin tanımı</h2>
@@ -105,16 +106,14 @@ export default function KullanimKosullariPage() {
       <h2>10. Değişiklik</h2>
       <p>
         Koşullar güncellenebilir. Güncel metin daima bu sayfada yayımlanır; esaslı değişiklikler
-        yürürlüğe girmeden önce sitede duyurulur. Yürürlük tarihi:{" "}
-        <Placeholder>gg.aa.yyyy</Placeholder>.
+        yürürlüğe girmeden önce sitede duyurulur. Yürürlük tarihi: {corporateInfo.effectiveDate}.
       </p>
 
       <h2>11. Uygulanacak hukuk ve yetkili mahkeme</h2>
       <p>
-        Bu koşullara Türkiye Cumhuriyeti hukuku uygulanır. Uyuşmazlıklarda{" "}
-        <Placeholder>yetkili mahkeme ve icra daireleri — ör. İzmir</Placeholder> yetkilidir.
-        Tüketici sıfatıyla yaptığınız başvurularda tüketici hakem heyetlerine ve tüketici
-        mahkemelerine başvurma hakkınız saklıdır.
+        Bu koşullara Türkiye Cumhuriyeti hukuku uygulanır. Uyuşmazlıklarda İzmir (Merkez)
+        Mahkemeleri ve İcra Daireleri yetkilidir. Tüketici sıfatıyla yaptığınız başvurularda
+        tüketici hakem heyetlerine ve tüketici mahkemelerine başvurma hakkınız saklıdır.
       </p>
     </CorporateDocument>
   );

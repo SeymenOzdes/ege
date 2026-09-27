@@ -1,6 +1,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { CorporateDocument, Fact, FactList, Placeholder } from "@/components/site/corporate";
+import {
+  CorporateDocument,
+  Fact,
+  FactList,
+  MailLink,
+  PhoneLink,
+} from "@/components/site/corporate";
+import { corporateInfo } from "@/lib/corporate-info";
 
 export const metadata: Metadata = {
   title: "Düzeltmeler",
@@ -31,14 +38,12 @@ export default function DuzeltmelerPage() {
       </ul>
       <FactList>
         <Fact label="Düzeltme e-postası">
-          <Placeholder>duzeltme@… adresi</Placeholder>
+          <MailLink address={corporateInfo.email.corrections} />
         </Fact>
         <Fact label="Telefon">
-          <Placeholder>+90 …</Placeholder>
+          <PhoneLink number={corporateInfo.phone.corrections} />
         </Fact>
-        <Fact label="Yanıt süresi">
-          Başvurular en geç <Placeholder>süre — ör. 3 iş günü</Placeholder> içinde değerlendirilir.
-        </Fact>
+        <Fact label="Yanıt süresi">Başvurular en geç 3 iş günü içinde değerlendirilir.</Fact>
       </FactList>
 
       <h2>Süreç</h2>
