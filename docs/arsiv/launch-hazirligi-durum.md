@@ -2,7 +2,7 @@
 
 - **Tarih:** 2026-09-01
 - **Dal:** `launch-hazirligi` (`main`'den ayrıldı, `main` bu oturumda `78a91e1`'e ilerletildi)
-- **Kapsam:** `docs/launch-readiness.md`'de açık kalan altı iş kaleminin **hepsi tamamlandı**
+- **Kapsam:** `docs/arsiv/launch-readiness.md`'de açık kalan altı iş kaleminin **hepsi tamamlandı**
   (Faz 1–6).
 
 Bu belge, planın hangi bölümünün bittiğini ve kalanların hangi zeminden devam edeceğini
@@ -243,7 +243,7 @@ ediyordu ama geri yönleri saymamıştı. Uygulanan tablo `IN_REVIEW → DRAFT`,
 | `supabase/migrations/20260901073356_scheduled_publishing.sql` | `pg_cron`, `private.publish_due_articles()`, iki zamanlanmış iş |
 | `supabase/tests/database/scheduled_publishing.test.sql`       | 26 pgTAP testi: terfi, denetim izi, `redirects` / `audit_logs`  |
 | `src/app/globals.css` + üç `*.module.css`                     | Font değişkenlerinin yeniden adlandırılması                     |
-| `docs/architecture.md`, `docs/launch-readiness.md`            | Gerçeğe göre güncellendi                                        |
+| `docs/architecture.md`, `docs/arsiv/launch-readiness.md`            | Gerçeğe göre güncellendi                                        |
 
 ### Zamanlanmış yayın
 
@@ -395,7 +395,7 @@ rotaların eşleşmesi). Faz 5 ikisini daha ekledi: `article-body.test.ts` (yazm
 Uçtan uca testler: `e2e/kurumsal.spec.ts` ve `e2e/seo.spec.ts`. E2E sayısı 51'den 85'e
 çıktı; Faz 5 bu sayıya dokunmadı (gerekçesi yukarıda).
 
-`format:check` depoda **bu oturumdan önce de** temiz değildi (`docs/launch-readiness.md`,
+`format:check` depoda **bu oturumdan önce de** temiz değildi (`docs/arsiv/launch-readiness.md`,
 `e2e/archive.spec.ts`, `src/lib/turkish.ts` ve diğerleri). Deponun tamamını
 biçimlendirmek işle ilgisiz büyük bir fark üretirdi; yalnız dokunulan dosyalar Prettier'dan
 geçirildi. Depo genelinde `pnpm format` çalıştırmak ayrı bir iş.

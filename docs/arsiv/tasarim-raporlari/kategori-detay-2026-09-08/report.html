@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="tr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Kategori Detay — Tasarım İyileştirme</title>
+<style>
+:root{color-scheme:light}
+body{margin:0;background:#f6f1e8;color:#0d1b2a;font:16px/1.65 -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif}
+main{max-width:900px;margin:0 auto;padding:3rem 1.5rem 6rem}
+h1{font-size:2.4rem;line-height:1.1;letter-spacing:-.03em;margin:0 0 1.5rem}
+h2{font-size:1.6rem;letter-spacing:-.02em;margin:3rem 0 1rem;padding-top:1.5rem;border-top:1px solid #e3ddd2}
+h3{font-size:1.2rem;letter-spacing:-.01em;margin:2.5rem 0 .75rem}
+p{margin:0 0 1rem}
+a{color:#0c7c86}
+code{background:rgb(13 27 42/6%);border-radius:4px;padding:.1em .35em;font-size:.88em}
+pre{overflow-x:auto;background:#fff;border:1px solid #e3ddd2;border-radius:12px;padding:1rem 1.25rem;line-height:1.4;font-size:.8rem}
+pre code{background:none;padding:0}
+figure{margin:1.25rem 0}
+img{display:block;max-width:100%;height:auto;border-radius:12px;border:1px solid rgb(13 27 42/10%);box-shadow:0 10px 30px rgb(13 27 42/8%)}
+.cap{color:#52606d;font-size:.85rem;margin:-.5rem 0 1.75rem}
+table{width:100%;border-collapse:collapse;margin:1.25rem 0;font-size:.9rem;display:block;overflow-x:auto}
+th,td{border:1px solid #e3ddd2;padding:.6rem .75rem;text-align:left;vertical-align:top}
+th{background:rgb(13 27 42/4%);font-weight:700}
+ol{padding-left:1.25rem}
+li{margin-bottom:.6rem}
+h2#tldr + p, .tldr{background:rgb(12 124 134/8%);border-left:3px solid #0c7c86;border-radius:0 12px 12px 0;padding:1rem 1.25rem;margin:0 0 1.5rem}
+</style></head><body><main>
+<h1>Design Improvement: Kategori Detay Sayfası (<code>/kategori/[slug]</code>)</h1>
+<h2>TL;DR</h2>
+<p class="tldr">The category page is the only surface on the site that renders <strong>zero imagery</strong> — <code>ArticleCard variant="timeline"</code> gates <code>MediaSurface</code> behind <code>variant !== "timeline"</code>, so a page that should look like a section front looks like a bare text dump. Give it a lead story, thumbnail rows, and a wayfinding rail, and the "AI slop" reading disappears.</p>
+<h2>Current State</h2>
+<figure><img alt="Current Design" src="references/current.png"></figure>
+<p class="cap"><code>/kategori/gundem</code> at 1440px. Eyebrow → oversized title → lede → teal all-caps count, then a 2-up grid of text-only rows, then ~500px of dead space above the footer.</p>
+<figure><img alt="Current, mobile" src="references/current-mobile.png"></figure>
+<p class="cap">390px. Note that the mobile card is actually the better one — the summary is dropped and the date sits on its own baseline instead of in a floating right column.</p>
+<p>For contrast, the homepage this page is supposed to belong to:</p>
+<figure><img alt="Own homepage" src="references/own-homepage.png"></figure>
+<p class="cap">Stacked-deck carousel, <code>MediaSurface</code> colour blocks with location pills, ad slot, huge section headings, an ink editor's-note panel. The category page inherits none of it.</p>
+<h2>Improvement Ideas</h2>
+<h3>1. Put a picture on every row ⭐ (highest impact)</h3>
+<p>The single reason this page reads as generated: there is no media. Not one block of colour. Every other card variant in the codebase (<code>feature</code>, <code>secondary</code>, <code>topic</code>) calls <code>MediaSurface</code>; <code>timeline</code> alone skips it, and <code>timeline</code> is what the category page uses.</p>
+<p>This costs nothing in content terms — <code>MediaSurface</code> already falls back to a solid tone block with the location as a pill when an article has no hero photo, and that fallback is what the homepage actually ships today. The colour is already computed per article (<code>mediaTone</code>).</p>
+<p class="cap"><em>Inspired by:</em></p>
+<figure><img alt="Forbes topic hub" src="references/forbes.png"></figure>
+<p class="cap">Forbes — <code>forbes.com/trump/</code>. A pure chronological topic feed: date, headline, one-line summary and byline on the left, thumbnail hard-right, thin rule between rows. No hero, no grid — and it still reads as a designed page purely because every row carries an image. [Lazyweb]</p>
+<p><strong>Why this works:</strong> a thumbnail column gives every row a fixed left or right edge, which is exactly what the current 2-up text grid lacks. It also converts the page's biggest liability (lots of vertical space, few articles) into rhythm.</p>
+<p class="cap"><em>Sketch:</em></p>
+<pre><code>┌──────────────────────────────────────────────────┐
+│ GÜNDEM                                    İZMİR  │
+│ ┌────────┐  Körfezin iki yakasında sabah:        │
+│ │ ▓▓▓▓▓▓ │  İzmir'in yeni kıyı rotaları          │
+│ │ İZMİR  │  Deniz ulaşımı, yaya yolları ve kıyı  │
+│ └────────┘  yaşamını aynı hatta buluşturan…      │
+│             27 Ağustos · 1 dk okuma           ↗  │
+├──────────────────────────────────────────────────┤
+│ ┌────────┐  Ege hattında raylı ulaşımın          │
+│ │ ▓▓▓▓▓▓ │  günlük yaşama etkisi                 │
+└──────────────────────────────────────────────────┘</code></pre>
+<h3>2. Lead with one story instead of six equal ones ⭐</h3>
+<p>Every entry currently carries identical weight. No newspaper section front does this — the section front <em>is</em> the editorial judgement about which story leads.</p>
+<p>Render <code>entries[0]</code> as <code>variant="feature"</code> (full-width media, <code>clamp(2rem, 4vw, 3.4rem)</code> headline — the variant already exists and is used on the homepage) and the remainder as thumbnail rows. On page 2 and beyond, drop the lead entirely: a hero on page 4 of an archive is noise, not hierarchy.</p>
+<p class="cap"><em>Inspired by:</em></p>
+<figure><img alt="AP Oddities" src="references/ap.png"></figure>
+<p class="cap">AP — <code>apnews.com/oddities</code>. A featured lead with a large photo and a right-side grid of top stories, then a long feed of headline + thumbnail rows below. The lead is doing all the hierarchy work; everything under it is deliberately uniform. [Lazyweb]</p>
+<figure><img alt="OpenAI Recent news" src="references/chatgpt.png"></figure>
+<p class="cap">OpenAI — <code>openai.com/news/company-announcements/</code>. Same shape in a much quieter visual register: category tabs, one large hero card, then a uniform grid. Closer to this site's restraint than AP is. [Lazyweb]</p>
+<p class="cap"><em>Sketch:</em></p>
+<pre><code>┌───────────────────────────────────────┐
+│ ▓▓▓▓▓▓▓▓▓▓▓▓ LEAD MEDIA ▓▓▓▓▓▓▓▓▓▓▓▓ │
+│ ▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓▓ [İZMİR] ▓▓▓▓ │
+├───────────────────────────────────────┤
+│ GÜNDEM                          İZMİR │
+│ Körfezin iki yakasında sabah          │  ← 3.4rem
+│ Deniz ulaşımı, yaya yolları ve…       │
+│ 27 Ağustos · 1 dk okuma            ↗  │
+└───────────────────────────────────────┘
+   ── then uniform thumbnail rows ──</code></pre>
+<h3>3. Add a rail so the page has somewhere to go</h3>
+<p>Today the page is a cul-de-sac: no breadcrumb UI (breadcrumbs exist in JSON-LD only), no sibling topics, no cities, no CTA. A reader who finishes Gündem has one option — the browser back button. The rail also solves the dead-space problem structurally: with 2 articles the page currently bottoms out into an empty band.</p>
+<p>Panels: sibling topics and cities as chips (the <code>.chips</code> pill pattern already exists in <code>arama.module.css</code>), a "Dosya hakkında" panel carrying the category description in the <code>.readingAside</code> style from the article detail page, and the existing <code>&lt;NewsletterForm /&gt;</code>.</p>
+<p class="cap"><em>Inspired by:</em></p>
+<figure><img alt="FT Telecoms" src="references/financial-times.png"></figure>
+<p class="cap">FT — <code>ft.com/telecoms</code>. The rail is literally a "Topics related to FT/Tech/Telecoms" chip panel, then "Most Read", then an events promo. Note also the breadcrumb (<code>COMPANIES › TELECOMS</code>) and how modest the section title is — FT spends its hierarchy on the feed, not the masthead. [Lazyweb]</p>
+<p class="cap"><em>Sketch:</em></p>
+<pre><code>Ana sayfa / Gündem
+┌ HABER DOSYASI ─────────────────────────────────┐
+│ Gündem                          12 haber · 2 sy│
+│ Ege Bölgesi gündemi ve kamusal yaşam.          │
+│ ▔▔▔▔▔▔  ← tone accent                          │
+└────────────────────────────────────────────────┘
+┌ content ───────────────────┐ ┌ rail ──────────┐
+│ ▓▓▓▓ LEAD ▓▓▓▓             │ │ DİĞER DOSYALAR │
+│ Körfezin iki yakasında…    │ │ (Ekonomi)(Yaşam)│
+│ ───────────────────────    │ │ ŞEHİRLER        │
+│ ┌──┐ Ege hattında raylı…   │ │ (İzmir)(Aydın)  │
+│ └──┘ 26 Ağustos         ↗  │ │ ─────────────   │
+│ ┌──┐ …                     │ │ DOSYA HAKKINDA  │
+│ └──┘                       │ │ Ege Bölgesi…    │
+│      [‹] [1] [2] [›]       │ │ ─────────────   │
+│                            │ │ Bültene katıl   │
+└────────────────────────────┘ └────────────────┘</code></pre>
+<h3>4. Fix the card footer — it is a layout bug, not a style choice</h3>
+<p><code>.articleCardtimeline .articleFooter</code> is <code>grid-column: 2; grid-row: 1 / span 3; align-self: center</code>. That parks "27 Ağustos · 1 dk okuma" plus an arrow in a narrow right column, vertically centred against a two-line headline. In the 2-up grid it produces four ragged text columns across the page — the most visibly machine-assembled thing on the screen.</p>
+<p>The fix already exists in the file: the <code>&lt;700px</code> media query collapses the footer back to a single full-width row. Promote that to the default. This also lifts <code>/son-dakika</code>, <code>/yazar/[slug]</code> and <code>/arama</code>, which share the variant.</p>
+<pre><code>BEFORE                              AFTER
+┌────────────────────────────┐      ┌────────────────────────────┐
+│ GÜNDEM              İZMİR  │      │ GÜNDEM              İZMİR  │
+│ Körfezin iki       27 Ağus │      │ Körfezin iki yakasında     │
+│ yakasında sabah    1 dk  ↗ │  →   │ sabah: İzmir'in yeni…      │
+│ Deniz ulaşımı…             │      │ Deniz ulaşımı, yaya…       │
+└────────────────────────────┘      │ 27 Ağustos · 1 dk okuma  ↗ │
+   ↑ ragged 2-col text             └────────────────────────────┘</code></pre>
+<h3>5. Stop the count from shouting, and give each category a colour</h3>
+<p><code>2 HABER LİSTELENİYOR.</code> in uppercase teal reads as debug output. Move it to a quiet <code>--color-ink-muted</code> meta line in sentence case: <code>2 haber · 1 sayfa</code>.</p>
+<p>Then give the masthead a short accent rule in the category's own tone. <code>tonesByTopic</code> already exists in <code>article-preview.ts</code> (gündem → sky, ekonomi → sage, kültür-sanat → ochre, yaşam → coral) but every city falls through to teal. Extend it to the seven seeded cities. No migration needed — <code>topics</code> and <code>locations</code> have no colour column, and this value is editorially fixed anyway.</p>
+<h2>What's Working</h2>
+<p>Genuinely good things that should survive the redesign:</p>
+<ol>
+<li><strong>The type system.</strong> Montserrat at weight 520–560 with <code>-0.03em</code> to <code>-0.055em</code> tracking and <code>lh 0.92–1.1</code> is a real, distinctive voice — the squeezed display look is the site's signature. The category page under-uses it (<code>clamp(2rem, 4.4vw, 2.85rem)</code> where the homepage's <code>SectionHeading</code> goes to <code>4.4rem</code>), but the treatment itself is right.</li>
+<li><strong>The palette.</strong> Paper <code>#f6f1e8</code> / ink <code>#0d1b2a</code> / teal <code>#0c7c86</code> / ochre <code>#c98c3a</code> is warm, specific, and unmistakably not a default. Keep it exactly.</li>
+<li><strong>The pager.</strong> Server-rendered plain links, elided with a 9-item cap and a window of 2 either side, no JS, crawlable. <code>buildPagerItems</code> is well-reasoned code and needs no changes.</li>
+<li><strong><code>MediaSurface</code>'s fallback.</strong> Degrading to a tone block with a location pill rather than a broken-image hole is the right call, and it is why idea #1 costs nothing.</li>
+<li><strong>Accessibility discipline.</strong> <code>role="status"</code> on the count, <code>role="alert"</code> on the error panel, <code>aria-hidden</code> on every decorative Phosphor icon, a global <code>3px</code> ochre focus ring, and <code>prefers-reduced-motion</code> honoured throughout.</li>
+</ol>
+<h2>All References</h2>
+<table><thead><tr><th>Company</th><th>Screen</th><th>Source</th><th>What it shows</th></tr></thead><tbody>
+<tr><td>Forbes</td><td><code>forbes.com/trump/</code></td><td>[Lazyweb]</td><td>Chronological topic feed; headline + summary + byline left, thumbnail right, "More Articles" pager</td></tr>
+<tr><td>AP</td><td><code>apnews.com/oddities</code></td><td>[Lazyweb]</td><td>Featured lead + top-story grid, then an infinite feed of headline/thumbnail rows</td></tr>
+<tr><td>FT</td><td><code>ft.com/telecoms</code></td><td>[Lazyweb]</td><td>Feed with thumbnails and save icons; rail with related-topic chips, Most Read, events promo</td></tr>
+<tr><td>OpenAI</td><td><code>openai.com/news/company-announcements/</code></td><td>[Lazyweb]</td><td>Category tabs + filter/sort, one hero card, then a uniform image-forward grid</td></tr>
+<tr><td>NPR</td><td><code>npr.org/sections/art-design</code></td><td>[Lazyweb]</td><td>Section landing: vertical feed of headlines with thumbnails, summaries and metadata</td></tr>
+<tr><td>Fox News</td><td><code>foxnews.com/category/science/planet-earth</code></td><td>[Lazyweb]</td><td>Category listing: vertical feed with thumbnails, topic tags, timestamps, short summaries</td></tr>
+<tr><td>People</td><td><code>people.com/real-people</code></td><td>[Lazyweb]</td><td>Category listing as a masonry grid of story cards with thumbnails and headlines</td></tr>
+</tbody></table>
+<p>Not used as an idea anchor, kept for context: NPR, Fox News and People are all further confirmation that a category listing without imagery is not a pattern anyone ships.</p>
+</main></body></html>

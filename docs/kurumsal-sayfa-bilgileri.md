@@ -81,7 +81,7 @@ tekrarlandığını gösterir — birini güncelleyip diğerini unutmak en olas�
 | Resend kurumsal unvanı, adresi, ülkesi                                           | `/kunye`, `/gizlilik` |
 | Yurt dışına aktarım dayanağı (açık rıza / standart sözleşme / yeterlilik kararı) | `/gizlilik`           |
 
-> Barındırma sağlayıcısı henüz seçilmedi (`docs/launch-readiness.md` #6, Modül 19).
+> Barındırma sağlayıcısı henüz seçilmedi (`docs/arsiv/launch-readiness.md` #6, Modül 19).
 > Bu üç satır ancak üretim ortamı kurulunca kesinleşir; künyedeki yer sağlayıcı
 > bilgisi 5651 gereği olduğu için **dağıtımdan önce değil, dağıtımla birlikte**
 > doldurulmalı.
