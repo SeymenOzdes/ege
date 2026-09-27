@@ -1,8 +1,6 @@
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { List } from "@phosphor-icons/react/dist/ssr/List";
-import { MapPin } from "@phosphor-icons/react/dist/ssr/MapPin";
-import { NewspaperClipping } from "@phosphor-icons/react/dist/ssr/NewspaperClipping";
 import { AccountMenu, MobileAccountLinks } from "@/components/site/account-menu";
 import { Brand } from "@/components/site/brand";
 import { NewsHeaderActions } from "@/components/site/news-header-actions";
@@ -34,10 +32,6 @@ export function PublicShell({ children }: { children: ReactNode }) {
       <header className="site-header" id="site-header">
         <div className="utility-bar">
           <div className="shell-container utility-bar-inner">
-            <Link className="utility-breaking" href="/son-dakika">
-              <NewspaperClipping aria-hidden="true" size={16} weight="fill" />
-              Son Dakika
-            </Link>
             <nav className="city-nav" aria-label="Şehirler">
               {cityNavigation.map(([city, slug]) => (
                 <Link href={`/kategori/${slug}`} key={slug}>
@@ -45,9 +39,6 @@ export function PublicShell({ children }: { children: ReactNode }) {
                 </Link>
               ))}
             </nav>
-            <span className="region-label">
-              <MapPin aria-hidden="true" size={15} weight="fill" /> Ege Bölgesi
-            </span>
           </div>
         </div>
 

@@ -70,9 +70,8 @@ export function NewsHeaderActions() {
   }, [openPanel]);
 
   // Move focus into the search field once the panel starts opening,
-  // after the browser has laid out the freshly visible panel. The field lives
-  // in the sticky header, inside the page's scroll-padding-top band, so a
-  // plain focus() would scroll the page to "reveal" it and make it jump.
+  // after the browser has laid out the freshly visible panel. The field is
+  // always in view inside the sticky header, so never let focus scroll.
   useEffect(() => {
     if (openPanel !== "search") return;
     const frame = requestAnimationFrame(() =>

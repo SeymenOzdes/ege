@@ -30,8 +30,9 @@
 }
 
 html {
+  /* Clearance for the sticky header when anchors or focus scroll the page. */
+  --header-scroll-offset: 8.5rem;
   scroll-behavior: smooth;
-  scroll-padding-top: 8.5rem;
 }
 
 body {
@@ -85,6 +86,14 @@ input {
   background: var(--color-paper);
 }
 
+/* Header clearance is a scroll-margin on page content, not a scroll-padding
+   on <html>: with scroll-padding, the browser treats the sticky header's own
+   search field as hidden under the header and scrolls the page up on every
+   keystroke while keeping the caret in view. :where() keeps it overridable. */
+:where(.public-main, .site-footer) * {
+  scroll-margin-top: var(--header-scroll-offset);
+}
+
 .public-main {
   flex: 1;
 }
@@ -107,33 +116,17 @@ input {
   display: flex;
   min-height: 2.45rem;
   align-items: center;
-  justify-content: space-between;
+  justify-content: center;
   gap: 1rem;
 }
 
-.utility-breaking,
-.city-nav,
-.region-label {
+.city-nav {
   display: flex;
   align-items: center;
-}
-
-.utility-breaking {
-  gap: 0.42rem;
-  color: #92d8db;
-  font-size: 0.68rem;
-  font-weight: 800;
-  letter-spacing: 0.07em;
-  text-decoration: none;
-  text-transform: uppercase;
-}
-
-.city-nav {
   gap: clamp(0.9rem, 2.5vw, 2rem);
 }
 
-.city-nav a,
-.region-label {
+.city-nav a {
   color: rgb(255 255 255 / 68%);
   font-size: 0.68rem;
   font-weight: 700;
@@ -144,14 +137,12 @@ input {
   color: white;
 }
 
-.region-label {
-  gap: 0.35rem;
-}
-
 .main-header-row {
   display: grid;
   min-height: 5.25rem;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  /* Equal side columns keep .primary-nav on the page's centre line, the same
+     axis the centred .city-nav in the utility bar sits on. */
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr);
   align-items: center;
   gap: 2rem;
 }
@@ -221,6 +212,7 @@ input {
 .header-tools {
   display: flex;
   align-items: center;
+  justify-self: end;
   gap: 0.45rem;
 }
 
@@ -900,15 +892,11 @@ button.header-action {
 
 @media (max-width: 639px) {
   html {
-    scroll-padding-top: 7.5rem;
+    --header-scroll-offset: 7.5rem;
   }
 
   .utility-bar-inner {
     min-height: 2.2rem;
-  }
-
-  .region-label {
-    font-size: 0.64rem;
   }
 
   .main-header-row {
