@@ -79,7 +79,9 @@ input {
   display: flex;
   min-height: 100vh;
   flex-direction: column;
-  overflow: hidden;
+  /* clip, not hidden: hidden turns this into a scroll container and breaks
+     the sticky .site-header. */
+  overflow-x: clip;
   background: var(--color-paper);
 }
 
