@@ -30,6 +30,9 @@ jobs:
     steps:
       - uses: actions/checkout@v5
       - uses: supabase/setup-cli@v1
+        with:
+          # package.json'daki `supabase` sürümüyle aynı olmalı; eski CLI config.toml'u okuyamıyor.
+          version: 2.114.0
       - run: supabase start
       - run: supabase db reset --local
       - run: supabase db lint --level error
@@ -47,6 +50,9 @@ jobs:
           cache: pnpm
       - run: pnpm install --frozen-lockfile
       - uses: supabase/setup-cli@v1
+        with:
+          # package.json'daki `supabase` sürümüyle aynı olmalı; eski CLI config.toml'u okuyamıyor.
+          version: 2.114.0
 
       # Testler seed.sql'deki örnek haberlere ve yerel admin hesabına dayanıyor;
       # `supabase start` göçleri ve seed'i uygular. Testlerin kullanmadığı
