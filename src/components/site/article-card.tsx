@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { ArrowUpRight } from "@phosphor-icons/react/dist/ssr/ArrowUpRight";
+import { formatMonthYear } from "@/lib/article-preview";
 import type { ArticleImage, ArticlePreview, MediaTone } from "@/lib/homepage";
 import styles from "./homepage.module.css";
 
@@ -10,10 +11,9 @@ import styles from "./homepage.module.css";
  * no branch of its own below — it is not `timeline`, so it keeps its picture, and
  * not `secondary`, so it keeps its summary.
  *
- * `feed` is the homepage "son gelişmeler" row: a dateline gutter, then a small
- * thumbnail, then the text. It is the one variant that leads with the date, so it
- * does need branches — the gutter has to be a grid child of the card itself, and
- * the footer must stop repeating a date the row already shows.
+ * `feed` is the homepage "son gelişmeler" row: a small thumbnail, then the text.
+ * It drops the city from its kicker and the summary, and its footer shows month
+ * and year instead of the reading time.
  */
 export type ArticleCardVariant = "feature" | "feed" | "list" | "secondary" | "timeline" | "topic";
 
@@ -45,8 +45,8 @@ const MEDIA_SIZES: Record<ArticleCardVariant, string> = {
   // Full width of the feature column: the topic layout's 1.4fr, or the archive's
   // content column beside a 20rem rail.
   feature: "(max-width: 699px) calc(100vw - 2rem), (max-width: 1023px) calc(100vw - 4rem), 860px",
-  // A 6.5rem gutter and an 8.5rem thumbnail, folding to 5.5rem on a phone.
-  feed: "(max-width: 699px) 88px, 136px",
+  // An 11rem thumbnail, folding to 5.5rem on a phone.
+  feed: "(max-width: 699px) 88px, 176px",
   // A `minmax(9rem, 15rem)` column, which goes full width once the row stacks.
   list: "(max-width: 699px) calc(100vw - 2rem), 240px",
   // Stacked in the hero rail on desktop; a picture column beside the text below it.
@@ -105,27 +105,6 @@ export function MediaSurface({
   );
 }
 
-/**
- * The `feed` row's gutter date.
- *
- * `<time>` only when the preview carries an ISO timestamp: `publishedLabel` is a
- * reader's label — "14:32", "27 Ağustos" — which is not a valid datetime string, so
- * a `<time>` around it with no `dateTime` attribute is invalid HTML. The element is
- * rendered either way, empty label included, because the row is a three-column grid
- * and dropping the gutter cell would shift the picture into it.
- */
-function CardDateline({ article }: { article: ArticlePreview }) {
-  if (!article.publishedAt) {
-    return <span className={styles.cardDateline}>{article.publishedLabel}</span>;
-  }
-
-  return (
-    <time className={styles.cardDateline} dateTime={article.publishedAt}>
-      {article.publishedLabel}
-    </time>
-  );
-}
-
 export function ArticleCard({
   article,
   variant = "topic",
@@ -140,7 +119,6 @@ export function ArticleCard({
 }) {
   return (
     <article className={`${styles.articleCard} ${styles[`articleCard${variant}`]}`}>
-      {variant === "feed" && <CardDateline article={article} />}
       {variant !== "timeline" && (
         <MediaSurface
           tone={article.mediaTone}
@@ -154,21 +132,30 @@ export function ArticleCard({
       <div className={styles.articleCardContent}>
         <div className={styles.articleMetaTop}>
           <span>{article.topic}</span>
-          <span>{article.location}</span>
+          {variant !== "feed" && <span>{article.location}</span>}
         </div>
         <h3 className="font-editorial">
           <Link href={`/haber/${article.slug}`}>{article.title}</Link>
         </h3>
         {variant !== "secondary" &&
+          variant !== "feed" &&
           (excerpt ?? (article.summary ? <p>{article.summary}</p> : null))}
         <div className={styles.articleFooter}>
-          <span>
-            {/* The `feed` row already carries the date in its gutter, and an
-                article with no `published_at` has no date at all; neither should
-                leave the separator behind. */}
-            {variant !== "feed" && article.publishedLabel ? `${article.publishedLabel} · ` : null}
-            {article.readingTime} okuma
-          </span>
+          {variant === "feed" ? (
+            // The feed row trades the reading time for a plain month and year.
+            article.publishedAt ? (
+              <time className={styles.cardMonthYear} dateTime={article.publishedAt}>
+                {formatMonthYear(article.publishedAt)}
+              </time>
+            ) : null
+          ) : (
+            <span>
+              {/* An article with no `published_at` has no date at all; it should
+                  not leave the separator behind. */}
+              {article.publishedLabel ? `${article.publishedLabel} · ` : null}
+              {article.readingTime} okuma
+            </span>
+          )}
           {variant !== "feed" && <ArrowUpRight aria-hidden="true" size={17} weight="bold" />}
         </div>
       </div>

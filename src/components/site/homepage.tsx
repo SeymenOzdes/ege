@@ -124,23 +124,10 @@ export function Homepage({ content }: { content: HomepageContent }) {
             title="Ege'den son gelişmeler"
             href="/son-dakika"
           />
-          <div className={styles.latestLayout}>
-            <div className={styles.latestFeed}>
-              {content.latest.map((article) => (
-                <ArticleCard article={article} variant="feed" key={article.id} />
-              ))}
-            </div>
-            <aside className={styles.editorNote}>
-              <span className="eyebrow">Editörün notu</span>
-              <h3 className="font-editorial">Günün gündemini gürültüden ayırıyoruz.</h3>
-              <p>
-                Ege&apos;nin şehirlerinden, kıyılarından ve üretim alanlarından seçilmiş gelişmeler;
-                kısa, anlaşılır ve güvenilir bir akışta.
-              </p>
-              <Link href="/kunye">
-                Yayın yaklaşımımız <ArrowRight aria-hidden="true" size={16} weight="bold" />
-              </Link>
-            </aside>
+          <div className={styles.latestFeed}>
+            {content.latest.map((article) => (
+              <ArticleCard article={article} variant="feed" key={article.id} />
+            ))}
           </div>
         </section>
 

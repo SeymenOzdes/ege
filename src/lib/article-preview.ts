@@ -23,6 +23,12 @@ const dayWithYearFormatter = new Intl.DateTimeFormat("tr-TR", {
   year: "numeric",
 });
 
+const monthYearFormatter = new Intl.DateTimeFormat("tr-TR", {
+  timeZone: TIMEZONE,
+  month: "long",
+  year: "numeric",
+});
+
 /** Calendar day in the editorial timezone, as `YYYY-MM-DD`. */
 function istanbulDay(date: Date): string {
   return new Intl.DateTimeFormat("en-CA", {
@@ -48,6 +54,12 @@ export function formatPublishedLabel(publishedAt: string | Date, now: Date = new
   return day.slice(0, 4) === istanbulDay(now).slice(0, 4)
     ? dayFormatter.format(date)
     : dayWithYearFormatter.format(date);
+}
+
+/** Month and year only, e.g. `Eylül 2026`, for the homepage feed row's footer. */
+export function formatMonthYear(publishedAt: string | Date): string {
+  const date = publishedAt instanceof Date ? publishedAt : new Date(publishedAt);
+  return Number.isNaN(date.getTime()) ? "" : monthYearFormatter.format(date);
 }
 
 /**

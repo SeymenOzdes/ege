@@ -220,6 +220,36 @@ with seed_articles (
         {"type":"paragraph","text":"Model, gıda israfını azaltmanın yanında yalnız yaşayan yaşlılar için düzenli bir sosyal temas noktası oluşturuyor. Mahalle muhtarlıkları katılımı duyurmak için basit ilan panoları kullanıyor."},
         {"type":"paragraph","text":"Girişimciler, ölçeği büyütmek yerine mahalle düzeyinde kalmayı tercih ediyor. Küçük ölçeğin, tanıdıklık ve güven duygusunu koruduğunu söylüyorlar."}
       ]'::jsonb
+    ),
+    (
+      'bodrum-kiyisinda-bisiklet-yolu',
+      'Bodrum kıyısında bisiklet yolu mahalleleri birbirine bağlıyor',
+      'Gümbet ile Bitez arasındaki kesintisiz hat, yaz trafiğinde kısa mesafeleri araçsız geçmeyi mümkün kılıyor.',
+      'gundem',
+      'mugla',
+      'kerem-aydin',
+      '2026-08-17T08:10:00+03:00',
+      '[
+        {"type":"paragraph","text":"Bodrum''da Gümbet ile Bitez arasında tamamlanan bisiklet yolu, yaz aylarında sıkışan kıyı caddesine araçsız bir seçenek sunuyor. Hat, iki mahalle arasındaki yokuşları dolanarak sahil boyunca ilerliyor."},
+        {"type":"heading","text":"Kısa mesafeye kısa çözüm"},
+        {"type":"paragraph","text":"Belediye ölçümlerine göre yaz aylarında ilçe içi yolculukların önemli bir bölümü üç kilometrenin altında kalıyor. Bisiklet yolu bu kısa yolculukları hedefliyor; durak noktalarında kiralık bisiklet istasyonları ve gölgelikler bulunuyor."},
+        {"type":"paragraph","text":"Esnaf, ilk haftalarda kıyı caddesindeki park baskısının azaldığını söylüyor. Hattın gelecek yıl Turgutreis yönüne uzatılması planlanıyor."}
+      ]'::jsonb
+    ),
+    (
+      'efeste-arkeoloji-yaz-okulu',
+      'Efes çevresinde arkeoloji yaz okulu kapılarını açtı',
+      'Lise öğrencileri kazı alanlarında uzmanlarla birlikte çalışarak kentin katmanlı geçmişini yakından tanıyor.',
+      'kultur-sanat',
+      'aydin',
+      'ece-aksoy',
+      '2026-08-16T07:45:00+03:00',
+      '[
+        {"type":"paragraph","text":"Efes çevresindeki kazı alanlarında düzenlenen arkeoloji yaz okulu, bölge liselerinden gelen öğrencileri iki hafta boyunca sahada ağırlıyor. Program, belgeleme ve buluntu temizliği gibi temel işlerle başlıyor."},
+        {"type":"heading","text":"Sahada öğrenmek"},
+        {"type":"paragraph","text":"Öğrenciler sabahları kazı ekipleriyle çalışıyor, öğleden sonra ise laboratuvarda seramik parçalarını sınıflandırıyor. Arkeologlar, alanın katmanlarını okumanın ders kitabından çok daha akılda kalıcı olduğunu vurguluyor."},
+        {"type":"paragraph","text":"Yaz okulunun sonunda öğrenciler, hazırladıkları küçük bir sergiyle çalışmalarını ailelerine ve köy halkına sunacak."}
+      ]'::jsonb
     )
 )
 insert into public.articles (

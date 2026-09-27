@@ -5,8 +5,8 @@ import type { ArticlePreview } from "@/lib/homepage";
 import styles from "@/components/site/homepage.module.css";
 
 // `feed` and `timeline` are the two variants that branch inside the component
-// rather than in CSS alone, and they branch in opposite directions: `feed` leads
-// with a dateline and a thumbnail, `timeline` has neither picture nor gutter.
+// rather than in CSS alone: `feed` swaps its footer's reading time for month and
+// year, `timeline` drops its picture.
 // Four surfaces still render `timeline`, so its shape is pinned here too.
 
 function article(overrides: Partial<ArticlePreview> = {}): ArticlePreview {
@@ -52,37 +52,38 @@ describe("ArticleCard", () => {
     expect(styles[`articleCard${variant}`]).toBeTypeOf("string");
   });
 
-  it("feed satırı tarihi kendi sütununda, küçük görselin yanında gösterir", () => {
+  it("feed satırı küçük görseli ve altbilgide ay-yıl tarihini gösterir", () => {
     const { container } = render(<ArticleCard article={article()} variant="feed" />);
 
-    const dateline = container.querySelector("time");
-    expect(dateline).not.toBeNull();
-    expect(dateline).toHaveTextContent("27 Ağustos");
-    // "27 Ağustos" is a label, not a date. `<time>` is only honest with the
-    // machine-readable instant beside it.
-    expect(dateline).toHaveAttribute("datetime", "2026-08-27T06:18:00.000Z");
+    // No gutter column any more: picture and text are the only grid children.
+    expect(container.querySelector("article")?.children).toHaveLength(2);
+    const date = container.querySelector("time");
+    expect(date).toHaveTextContent("Ağustos 2026");
+    expect(date).toHaveAttribute("datetime", "2026-08-27T06:18:00.000Z");
+    // The kicker carries the topic alone; the city is left out of this row.
+    expect(screen.getByText("Ekonomi")).toBeInTheDocument();
+    expect(screen.queryByText("İzmir")).not.toBeInTheDocument();
 
     expect(screen.getByAltText("Liman görüntüsü")).toBeInTheDocument();
     expect(screen.getByRole("heading", { level: 3 })).toHaveTextContent(
       "Ege limanında yeni hat açıldı",
     );
+    // Headline only: the row carries no summary.
     expect(
-      screen.getByText("Yeni hattın bölge ihracatına katkısı bekleniyor."),
-    ).toBeInTheDocument();
+      screen.queryByText("Yeni hattın bölge ihracatına katkısı bekleniyor."),
+    ).not.toBeInTheDocument();
   });
 
   it("feed satırının altbilgisi tarihi tekrar etmez", () => {
     render(<ArticleCard article={article()} variant="feed" />);
 
-    // The gutter already carries it, so only the reading time is left below.
+    // The footer carries month and year instead of the reading time.
     expect(screen.queryByText(/27 Ağustos ·/)).not.toBeInTheDocument();
-    expect(screen.getByText(/4 dk okuma/)).toBeInTheDocument();
+    expect(screen.queryByText(/okuma/)).not.toBeInTheDocument();
+    expect(screen.getByText("Ağustos 2026")).toBeInTheDocument();
   });
 
-  it("tarihsiz haberde <time> yerine boş bir sütun bırakır", () => {
-    // No timestamp means nothing valid to put in `datetime`, so the element is not
-    // a `<time>` at all — but the gutter cell stays, or the three-column grid would
-    // pull the thumbnail into it.
+  it("tarihsiz haberde tarih göstermez", () => {
     const { container } = render(
       <ArticleCard
         article={article({ publishedLabel: "", publishedAt: undefined })}
@@ -91,7 +92,6 @@ describe("ArticleCard", () => {
     );
 
     expect(container.querySelector("time")).toBeNull();
-    expect(container.querySelector("article")?.children).toHaveLength(3);
   });
 
   it("tarihsiz haberde altbilgide öksüz ayraç bırakmaz", () => {
@@ -108,12 +108,12 @@ describe("ArticleCard", () => {
   });
 
   it("küçük görsel için kart genişliğinde bir dosya istemez", () => {
-    // The thumbnail is a 136px column; the card default would fetch 480px for it.
+    // The thumbnail is a 176px column; the card default would fetch 480px for it.
     const { container } = render(<ArticleCard article={article()} variant="feed" />);
 
     expect(container.querySelector("img")).toHaveAttribute(
       "sizes",
-      "(max-width: 699px) 88px, 136px",
+      "(max-width: 699px) 88px, 176px",
     );
   });
 
