@@ -2,28 +2,10 @@
 
 import { useEffect, useRef, useState } from "react";
 import type { ComponentType, Ref } from "react";
-import { createPortal } from "react-dom";
-import Link from "next/link";
-import { ListIcon } from "@phosphor-icons/react/dist/csr/List";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlass";
 import { XIcon } from "@phosphor-icons/react/dist/csr/X";
-import { useIsClient } from "@/lib/use-is-client";
 
-type PanelId = "search" | "menu";
-
-/**
- * Hızlı erişim menüsü. Adresler gerçek rotalara bakıyor: eskiden `#son-dakika`
- * gibi çapa bağlantılarıydı, ama o kimlikler hiçbir sayfada bulunmuyordu —
- * menüdeki her tıklama okuyucuyu bulunduğu sayfada bırakıyordu. Bölge geneli
- * için ayrı bir arşiv olmadığından "Ege" yerine Gündem dosyası duruyor.
- */
-const quickNavigation = [
-  ["Son Dakika", "/son-dakika"],
-  ["İzmir", "/kategori/izmir"],
-  ["Gündem", "/kategori/gundem"],
-  ["Ekonomi", "/kategori/ekonomi"],
-  ["Yaşam", "/kategori/yasam"],
-] as const;
+type PanelId = "search";
 
 const panelActions: Readonly<
   Record<PanelId, { label: string; closedIcon: ComponentType; openIcon: ComponentType }>
@@ -31,11 +13,6 @@ const panelActions: Readonly<
   search: {
     label: "Haber ara",
     closedIcon: MagnifyingGlassIcon,
-    openIcon: XIcon,
-  },
-  menu: {
-    label: "Menüyü aç",
-    closedIcon: ListIcon,
     openIcon: XIcon,
   },
 };
@@ -58,28 +35,11 @@ function SearchPanel({ inputRef }: { inputRef: Ref<HTMLInputElement> }) {
   );
 }
 
-function MenuPanel({ onNavigate }: { onNavigate: () => void }) {
-  return (
-    <nav aria-label="Hızlı erişim">
-      {quickNavigation.map(([label, href]) => (
-        <Link href={href} key={href} onClick={onNavigate}>
-          {label}
-        </Link>
-      ))}
-    </nav>
-  );
-}
-
 export function NewsHeaderActions() {
   const [openPanel, setOpenPanel] = useState<PanelId | null>(null);
-  // Panels live outside this component (see the portal below), so only look
-  // up their host element after hydration.
-  const isClient = useIsClient();
   const rootRef = useRef<HTMLDivElement>(null);
-  const drawerRef = useRef<HTMLDivElement>(null);
   const triggerRefs = useRef<Record<PanelId, HTMLButtonElement | null>>({
     search: null,
-    menu: null,
   });
   const searchInputRef = useRef<HTMLInputElement>(null);
 
@@ -93,15 +53,12 @@ export function NewsHeaderActions() {
     const activePanel = openPanel;
 
     function onPointerDown(event: PointerEvent) {
-      const target = event.target as Node;
-      const insideHeaderControls = rootRef.current?.contains(target);
-      const insideDrawer = drawerRef.current?.contains(target);
-      if (!insideHeaderControls && !insideDrawer) setOpenPanel(null);
+      if (!rootRef.current?.contains(event.target as Node)) setOpenPanel(null);
     }
     function onKeyDown(event: KeyboardEvent) {
       if (event.key !== "Escape") return;
       setOpenPanel(null);
-      triggerRefs.current[activePanel]?.focus();
+      triggerRefs.current[activePanel]?.focus({ preventScroll: true });
     }
 
     window.addEventListener("pointerdown", onPointerDown);
@@ -113,69 +70,50 @@ export function NewsHeaderActions() {
   }, [openPanel]);
 
   // Move focus into the search field once the panel starts opening,
-  // after the browser has laid out the freshly visible panel.
+  // after the browser has laid out the freshly visible panel. The field lives
+  // in the sticky header, inside the page's scroll-padding-top band, so a
+  // plain focus() would scroll the page to "reveal" it and make it jump.
   useEffect(() => {
     if (openPanel !== "search") return;
-    const frame = requestAnimationFrame(() => searchInputRef.current?.focus());
+    const frame = requestAnimationFrame(() =>
+      searchInputRef.current?.focus({ preventScroll: true }),
+    );
     return () => cancelAnimationFrame(frame);
   }, [openPanel]);
 
-  const headerElement = isClient ? document.getElementById("site-header") : null;
-
-  // Rendered into the site header so the panel can drop from the header's
-  // bottom edge, full-width and centered above the page content.
-  const panels = (
-    <div className="header-drawer" ref={drawerRef}>
+  return (
+    <div className="header-controls" ref={rootRef}>
+      {/* The field slides out of the trigger's left edge, sitting right
+          next to the button instead of dropping below the header. */}
       <div
         id="header-panel-search"
-        className="header-panel-slot"
+        className="header-search-slot"
         data-open={openPanel === "search" ? "true" : "false"}
         inert={openPanel !== "search"}
       >
-        <div className="header-panel header-panel-search">
-          <SearchPanel inputRef={searchInputRef} />
-        </div>
+        <SearchPanel inputRef={searchInputRef} />
       </div>
 
-      <div
-        id="header-panel-menu"
-        className="header-panel-slot"
-        data-open={openPanel === "menu" ? "true" : "false"}
-        inert={openPanel !== "menu"}
-      >
-        <div className="header-panel header-panel-menu">
-          <MenuPanel onNavigate={() => setOpenPanel(null)} />
-        </div>
-      </div>
+      {panelIds.map((id) => {
+        const isOpen = openPanel === id;
+        const Icon = isOpen ? panelActions[id].openIcon : panelActions[id].closedIcon;
+        return (
+          <button
+            key={id}
+            className="icon-button"
+            type="button"
+            aria-label={panelActions[id].label}
+            aria-expanded={isOpen}
+            aria-controls={`header-panel-${id}`}
+            onClick={() => togglePanel(id)}
+            ref={(node) => {
+              triggerRefs.current[id] = node;
+            }}
+          >
+            <Icon />
+          </button>
+        );
+      })}
     </div>
-  );
-
-  return (
-    <>
-      <div className="header-controls" ref={rootRef}>
-        {panelIds.map((id) => {
-          const isOpen = openPanel === id;
-          const Icon = isOpen ? panelActions[id].openIcon : panelActions[id].closedIcon;
-          return (
-            <button
-              key={id}
-              className="icon-button"
-              type="button"
-              aria-label={panelActions[id].label}
-              aria-expanded={isOpen}
-              aria-controls={`header-panel-${id}`}
-              onClick={() => togglePanel(id)}
-              ref={(node) => {
-                triggerRefs.current[id] = node;
-              }}
-            >
-              <Icon />
-            </button>
-          );
-        })}
-      </div>
-
-      {headerElement ? createPortal(panels, headerElement) : null}
-    </>
   );
 }

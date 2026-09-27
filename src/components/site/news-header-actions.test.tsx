@@ -1,28 +1,15 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { describe, expect, it } from "vitest";
 import { NewsHeaderActions } from "@/components/site/news-header-actions";
 
 describe("NewsHeaderActions", () => {
-  let siteHeader: HTMLElement;
-
-  beforeEach(() => {
-    // The component portals its drawer into the site header element.
-    siteHeader = document.createElement("header");
-    siteHeader.id = "site-header";
-    document.body.append(siteHeader);
-  });
-
-  afterEach(() => {
-    siteHeader.remove();
-  });
-
-  it("renders its drop-down inside the site header element", () => {
+  it("renders the search field right next to its trigger", () => {
     render(<NewsHeaderActions />);
 
-    const drawer = document.querySelector("#site-header > .header-drawer");
-    expect(drawer).not.toBeNull();
-    expect(drawer?.contains(document.getElementById("header-panel-search"))).toBe(true);
-    expect(drawer?.contains(document.getElementById("header-panel-menu"))).toBe(true);
+    const trigger = screen.getByRole("button", { name: "Haber ara" });
+    const slot = document.getElementById("header-panel-search");
+    expect(slot?.parentElement).toBe(trigger.parentElement);
+    expect(slot?.nextElementSibling).toBe(trigger);
   });
 
   it("opens the search panel and moves focus into its input", async () => {
@@ -36,24 +23,10 @@ describe("NewsHeaderActions", () => {
     await waitFor(() => expect(screen.getByRole("searchbox")).toHaveFocus());
   });
 
-  it("toggles the menu panel independently of the search panel", () => {
-    render(<NewsHeaderActions />);
-
-    const menuTrigger = screen.getByRole("button", { name: "Menüyü aç" });
-    fireEvent.click(menuTrigger);
-
-    expect(menuTrigger).toHaveAttribute("aria-expanded", "true");
-    expect(document.getElementById("header-panel-menu")).toHaveAttribute("data-open", "true");
-    expect(screen.getByRole("button", { name: "Haber ara" })).toHaveAttribute(
-      "aria-expanded",
-      "false",
-    );
-  });
-
   it("closes on Escape and returns focus to the opening trigger", () => {
     render(<NewsHeaderActions />);
 
-    const trigger = screen.getByRole("button", { name: "Menüyü aç" });
+    const trigger = screen.getByRole("button", { name: "Haber ara" });
     fireEvent.click(trigger);
     fireEvent.keyDown(window, { key: "Escape" });
 
@@ -61,19 +34,14 @@ describe("NewsHeaderActions", () => {
     expect(trigger).toHaveFocus();
   });
 
-  it("points every quick-access link at a real route", () => {
+  it("stays open while typing in the field", () => {
     render(<NewsHeaderActions />);
 
-    fireEvent.click(screen.getByRole("button", { name: "Menüyü aç" }));
+    const trigger = screen.getByRole("button", { name: "Haber ara" });
+    fireEvent.click(trigger);
+    fireEvent.pointerDown(screen.getByRole("searchbox"));
 
-    const links = screen.getAllByRole("link");
-    expect(links).toHaveLength(5);
-
-    // These were once "#son-dakika"-style anchors whose ids exist on no page,
-    // so every tap left the reader exactly where they were.
-    for (const link of links) {
-      expect(link.getAttribute("href")).toMatch(/^\/(son-dakika|kategori\/[a-z-]+)$/);
-    }
+    expect(trigger).toHaveAttribute("aria-expanded", "true");
   });
 
   it("closes when interacting outside of the header controls", () => {
