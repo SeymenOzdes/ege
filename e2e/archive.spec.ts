@@ -58,13 +58,13 @@ test("serves topic, city and author archives from existing links", async ({ page
   await expect(page.getByText("Yerel yaşam muhabiri").first()).toBeVisible();
 });
 
-test("labels an article with its topic and city from the database", async ({ page }) => {
+test("links an article to its topic from the database", async ({ page }) => {
   await page.goto("/haber/mahalle-pazarlarinda-yerel-urun");
 
-  // These came from a hardcoded preview before; they are now the article's joined
-  // topic and location rows. Scoped to the article so the collapsed mobile nav's
-  // own "Yaşam" category link cannot satisfy the assertion.
-  const labels = page.locator("article").first();
-  await expect(labels.getByText("Yaşam").first()).toBeVisible();
-  await expect(labels.getByText("Manisa").first()).toBeVisible();
+  // The header no longer shows topic/city labels; the related section's topic
+  // link is the article's joined topic row. Matched by exact accessible name so
+  // hidden text that merely contains "yaşam" cannot satisfy the assertion.
+  const topicLink = page.getByRole("link", { name: "Yaşam dosyası", exact: true });
+  await expect(topicLink).toBeVisible();
+  await expect(topicLink).toHaveAttribute("href", "/kategori/yasam");
 });
