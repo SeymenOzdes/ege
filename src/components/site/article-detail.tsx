@@ -92,13 +92,6 @@ export function ArticleDetail({ article }: { article: ArticleDetailType }) {
       )}
 
       <div className={styles.readingLayout}>
-        {article.topicDescription && (
-          <aside className={styles.readingAside}>
-            <span className="eyebrow">Dosya</span>
-            <p>{article.topicDescription}</p>
-          </aside>
-        )}
-
         <div className={styles.articleBody}>
           {article.body.map((block, index) => (
             <BodyBlock block={block} index={index} key={`${block.type}-${index}`} />

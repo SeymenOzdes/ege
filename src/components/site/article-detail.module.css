@@ -214,10 +214,7 @@
   font-size: 0.64rem;
 }
 
-/*
- * Tek ortalanmış sütun; her genişlikte aynı. Kenar notu boşlukta durunca sayfa
- * sola kaymış gibi okunuyordu, bu yüzden not da metinle aynı sütunda akıyor.
- */
+/* Tek ortalanmış sütun; her genişlikte aynı. */
 .readingLayout {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -225,24 +222,6 @@
   width: min(100% - 4rem, 42rem);
   margin-top: 4rem;
   margin-inline: auto;
-}
-
-.readingAside {
-  align-self: start;
-  padding-top: 0.9rem;
-  border-top: 1px solid rgb(13 27 42 / 14%);
-}
-
-.readingAside span {
-  color: var(--color-teal);
-}
-
-.readingAside p {
-  margin: 0.75rem 0 0;
-  color: var(--color-ink-muted);
-  font-family: var(--font-display), Arial, sans-serif;
-  font-size: 1rem;
-  line-height: 1.45;
 }
 
 .articleBody {
@@ -562,10 +541,6 @@
 
   .readingLayout {
     margin-top: 3.2rem;
-  }
-
-  .readingAside {
-    display: none;
   }
 
   .relatedHeading {
