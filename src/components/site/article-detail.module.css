@@ -55,8 +55,8 @@
   color: var(--color-teal);
 }
 
-/* Künye okuma sütununun içinde, son paragrafın hemen altında tek satır: yazar,
-   görevi ve varsa güncelleme saati solda; paylaş/kaydet ikonları sağda. */
+/* Künye okuma sütununun içinde, son paragrafın hemen altında tek satır: yazar
+   ve varsa güncelleme saati solda; paylaş/kaydet ikonları sağda. */
 .byline {
   display: flex;
   align-items: center;
@@ -93,11 +93,6 @@
 
 a.bylineName:hover {
   color: var(--color-teal);
-}
-
-.bylineRole::before {
-  margin-right: 0.5rem;
-  content: "—";
 }
 
 .bylineUpdated::before {
@@ -288,39 +283,6 @@ a.bylineName:hover {
   font-weight: 750;
 }
 
-.adSlot {
-  display: grid;
-  gap: 0.55rem;
-  margin: 3rem 0 0;
-  padding: 1.3rem;
-  border: 1px dashed rgb(13 27 42 / 22%);
-  border-radius: var(--radius-control);
-  color: var(--color-ink-muted);
-}
-
-.adSlot span {
-  width: fit-content;
-  padding: 0.3rem 0.52rem;
-  border-radius: var(--radius-pill);
-  background: rgb(13 27 42 / 7%);
-  font-size: 0.6rem;
-  font-weight: 800;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-}
-
-.adSlot p {
-  margin: 0;
-  font-family: var(--font-display), Arial, sans-serif;
-  font-size: 1.12rem;
-  font-style: italic;
-}
-
-.adSlot small {
-  font-size: 0.58rem;
-  letter-spacing: 0.07em;
-}
-
 /* Künyeyle aynı sütunda: ikisi de "bu haber hakkında" bloğunun parçası. */
 .correction {
   display: grid;
@@ -499,7 +461,6 @@ a.bylineName:hover {
     align-items: flex-start;
   }
 
-  .bylineRole::before,
   .bylineUpdated::before {
     content: none;
   }

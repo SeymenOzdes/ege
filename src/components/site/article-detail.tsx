@@ -9,16 +9,6 @@ import { ArticleActions } from "@/components/site/article-actions";
 import { BodyBlock } from "@/components/site/article-body";
 import styles from "./article-detail.module.css";
 
-function AdSlot({ placement }: { placement: "ARTICLE_MID" }) {
-  return (
-    <aside className={styles.adSlot} aria-label="Reklam alanı">
-      <span>Reklam</span>
-      <p>Ege&apos;nin yerel markaları için ayrılmış sade yayın alanı</p>
-      <small>{placement}</small>
-    </aside>
-  );
-}
-
 export function ArticleDetail({ article }: { article: ArticleDetailType }) {
   const articleUrl = new URL(`/haber/${article.slug}`, siteConfig.url).toString();
   const jsonLd = {
@@ -111,7 +101,6 @@ export function ArticleDetail({ article }: { article: ArticleDetailType }) {
             ) : (
               <span className={styles.bylineName}>{article.author.name}</span>
             )}
-            <span className={styles.bylineRole}>{article.author.role}</span>
             {article.updatedAt && article.updatedDisplay && (
               <span className={styles.bylineUpdated}>
                 Güncellendi <time dateTime={article.updatedAt}>{article.updatedDisplay}</time>
@@ -134,7 +123,6 @@ export function ArticleDetail({ article }: { article: ArticleDetailType }) {
           </section>
         )}
 
-        <AdSlot placement="ARTICLE_MID" />
       </div>
 
       {/* İlgili haberler: her kartta yalnız görsel ve başlık. */}
