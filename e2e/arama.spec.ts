@@ -23,28 +23,39 @@ test("searches from the header and highlights the match", async ({ page }, testI
 test("matches Turkish text regardless of dotted and dotless casing", async ({ page }) => {
   for (const query of ["IZMIR", "İzmir", "izmir"]) {
     await page.goto(`/arama?q=${encodeURIComponent(query)}`);
-    await expect(page.getByRole("status").filter({ hasText: "sonuç" })).toContainText(
-      "2 sonuç",
-    );
+    await expect(page.getByRole("status").filter({ hasText: "sonuç" })).toContainText("2 sonuç");
   }
 });
 
 test("narrows results with the topic filter and clears it again", async ({ page }) => {
   await page.goto("/arama?q=yeni");
-  await expect(page.getByRole("status").filter({ hasText: "sonuç" })).toContainText(
-    "8 sonuç",
-  );
+  await expect(page.getByRole("status").filter({ hasText: "sonuç" })).toContainText("8 sonuç");
 
-  await page.getByLabel("Konuya göre süz").selectOption("yasam");
-  await page.getByRole("button", { name: "Ara", exact: true }).click();
+  // Filters are plain links: choosing one applies it without resubmitting the form.
+  const topics = page.getByRole("region", { name: "Konu" });
+  await topics.getByRole("link", { name: "Yaşam" }).click();
 
   await expect(page).toHaveURL(/konu=yasam/);
-  await expect(page.getByRole("status").filter({ hasText: "sonuç" })).toContainText(
-    "2 sonuç",
-  );
+  await expect(page.getByRole("status").filter({ hasText: "sonuç" })).toContainText("2 sonuç");
+  await expect(topics.getByRole("link", { name: "Yaşam" })).toHaveAttribute("aria-current", "true");
 
+  // A fresh query from the box keeps the active filter.
+  await page.getByRole("searchbox", { name: "Haberlerde ara" }).fill("mahalle");
+  await page.getByRole("button", { name: "Ara", exact: true }).click();
+  await expect(page).toHaveURL(/q=mahalle&konu=yasam/);
+
+  await page.goto("/arama?q=yeni&konu=yasam");
   await page.getByRole("link", { name: "Filtreleri temizle" }).click();
   await expect(page).toHaveURL("/arama?q=yeni");
+});
+
+test("brings an active filter at the end of the rail into view", async ({ page }) => {
+  // On small screens the rail scrolls sideways and Muğla sits last in it.
+  await page.goto("/arama?q=yeni&sehir=mugla");
+
+  await expect(
+    page.getByRole("region", { name: "Şehir" }).getByRole("link", { name: "Muğla" }),
+  ).toBeInViewport();
 });
 
 test("keeps the query when paging through results", async ({ page }) => {
@@ -55,9 +66,7 @@ test("keeps the query when paging through results", async ({ page }) => {
     .click();
 
   await expect(page).toHaveURL(/\/arama\?q=yeni&sayfa=2$/);
-  await expect(page.getByRole("status").filter({ hasText: "sonuç" })).toContainText(
-    "8 sonuç",
-  );
+  await expect(page.getByRole("status").filter({ hasText: "sonuç" })).toContainText("8 sonuç");
 });
 
 test("explains empty, too-short and no-result searches", async ({ page }) => {
