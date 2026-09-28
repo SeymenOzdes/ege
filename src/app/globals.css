@@ -271,6 +271,18 @@ button.header-action {
   cursor: pointer;
 }
 
+/*
+ * Reserves the account chip's width while the browser resolves the session. The
+ * width is the last settled chip's, set by an inline script before first paint.
+ */
+.account-pending {
+  width: var(--account-chip-width, 5.3rem);
+}
+
+.account-slot {
+  display: flex;
+}
+
 /* Signed-in chip: sign-out drops down as a list on hover or keyboard focus. */
 .account-menu {
   position: relative;

@@ -1,7 +1,9 @@
 "use client";
 
 import Link from "next/link";
+import { useLayoutEffect, useRef } from "react";
 import { UserMenu } from "@/components/site/user-menu";
+import { ACCOUNT_CHIP_WIDTH_KEY } from "@/lib/account-chip-width";
 import { signOut } from "@/lib/auth/actions";
 import { useCurrentUser } from "@/lib/auth/use-current-user";
 
@@ -14,8 +16,33 @@ import { useCurrentUser } from "@/lib/auth/use-current-user";
  * page to render per request.
  */
 export function AccountMenu() {
-  const { user } = useCurrentUser();
-  return <UserMenu user={user} />;
+  const { resolved, user } = useCurrentUser();
+  const slot = useRef<HTMLSpanElement>(null);
+
+  // Remember how wide the settled chip is; `accountChipWidthScript` applies it to the
+  // placeholder before first paint, so the search button beside it never shifts.
+  useLayoutEffect(() => {
+    if (!resolved || !slot.current) return;
+    const element = slot.current;
+    const save = () => {
+      try {
+        localStorage.setItem(ACCOUNT_CHIP_WIDTH_KEY, String(element.offsetWidth));
+      } catch {}
+    };
+    save();
+    // The web font can land after the chip does and change the name's width.
+    void document.fonts?.ready.then(save);
+  }, [resolved, user]);
+
+  // Until the session settles, hold the chip's space without committing to either
+  // state; otherwise a signed-in reader sees "Giriş" flash before their avatar.
+  if (!resolved) return <span aria-hidden="true" className="login-action account-pending" />;
+
+  return (
+    <span className="account-slot" ref={slot}>
+      <UserMenu user={user} />
+    </span>
+  );
 }
 
 /**

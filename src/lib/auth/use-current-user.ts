@@ -7,7 +7,7 @@ import { createClient } from "@/lib/supabase/client";
 import { hasSupabasePublicConfig } from "@/lib/supabase/config";
 
 export type SessionState = {
-  /** False until the first claims check settles; the header stays anonymous meanwhile. */
+  /** False until the first claims check settles; the header holds an empty slot meanwhile. */
   resolved: boolean;
   user?: CurrentUser;
 };
@@ -18,8 +18,8 @@ export type SessionState = {
  * The public shell used to read this on the server, which forced every page under
  * `(site)` to render per request and closed the CDN cache on a news site's busiest
  * pages. Resolving it here lets those page bodies be cached; the cost is that the
- * account chip settles a beat after the rest of the header, which is why the anonymous
- * state renders first rather than a spinner.
+ * account chip settles a beat after the rest of the header, so it renders an empty
+ * slot until then rather than guessing either state.
  */
 export function useCurrentUser(): SessionState {
   // Supabase yapılandırılmamışsa çözülecek bir oturum da yok: durum daha ilk
