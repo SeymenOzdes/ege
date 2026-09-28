@@ -1,7 +1,7 @@
 begin;
 
 create extension if not exists pgtap with schema extensions;
-select plan(13);
+select plan(17);
 
 select has_function(
   'public',
@@ -127,6 +127,47 @@ select ok(
 select ok(
   (select headline from public.search_published_articles('lokma')) not like '%<%',
   'vurgulanan metin hiç HTML içermez'
+);
+
+-- Hero kolonları: görselsiz haberde left join null döner, görsel bağlanınca
+-- yolu ve alt metni aynı satırda gelir.
+select ok(
+  (select hero_object_path is null from public.search_published_articles('lokma')),
+  'görseli olmayan haberde hero kolonları null döner'
+);
+
+insert into public.media_assets (object_path, mime_type, byte_size, alt_text, width, height)
+values ('articles/test-lokma.jpg', 'image/jpeg', 1024, 'Lokma tabağı', 1600, 1200);
+update public.articles
+set hero_media_id = (select id from public.media_assets where object_path = 'articles/test-lokma.jpg')
+where slug = 'yayimlanmis-lokma-haberi';
+
+select results_eq(
+  $$ select hero_object_path, hero_alt_text, hero_width from public.search_published_articles('lokma') $$,
+  $$ values ('articles/test-lokma.jpg'::text, 'Lokma tabağı'::text, 1600) $$,
+  'hero görseli arama satırıyla birlikte döner'
+);
+
+-- Sayfa dilimi LIMIT ile kesilse de toplam sayı tüm eşleşmeleri saymalıdır.
+insert into public.articles (slug, title, summary, body_text, status, published_at)
+values (
+  'ikinci-lokma-haberi',
+  'İkinci lokma haberi',
+  'Lokma üzerine ikinci haber.',
+  'Lokma tatlısı ikinci metin.',
+  'PUBLISHED',
+  now() - interval '3 hours'
+);
+
+select is(
+  (select count(*)::integer from public.search_published_articles('lokma', null, null, 1)),
+  1,
+  'p_limit döndürülen satır sayısını sınırlar'
+);
+select is(
+  (select total_count from public.search_published_articles('lokma', null, null, 1)),
+  2::bigint,
+  'total_count LIMIT öncesi tüm eşleşmeleri sayar'
 );
 
 select * from finish();

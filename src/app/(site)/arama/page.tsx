@@ -64,7 +64,7 @@ export default async function AramaPage({
   const [facets, results] = await Promise.all([
     getSearchFacets(),
     state === "ok"
-      ? searchArticles({ query, topicSlug, locationSlug, page, withHeroes: true })
+      ? searchArticles({ query, topicSlug, locationSlug, page })
       : Promise.resolve(null),
   ]);
 

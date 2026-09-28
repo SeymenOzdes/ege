@@ -211,7 +211,7 @@ export type ArticlePreviewRow = {
   location_slug: string | null;
   published_at: string | null;
   word_count: number;
-  /** Optional: the search RPC returns flat columns; `searchArticles` looks heroes up separately. */
+  /** Optional: the search RPC returns flat `hero_*` columns that `searchArticles` folds into this. */
   hero?: MediaAssetRow | null;
 };
 

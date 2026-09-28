@@ -719,6 +719,12 @@ export type Database = {
         };
         Returns: {
           headline: string;
+          hero_alt_text: string;
+          hero_focal_point_x: number;
+          hero_focal_point_y: number;
+          hero_height: number;
+          hero_object_path: string;
+          hero_width: number;
           id: string;
           location_name: string;
           location_slug: string;

@@ -5,6 +5,7 @@ import type { ArticlePreview } from "@/lib/homepage";
 import { SEARCH_PAGE_SIZE, normalizeSearchQuery } from "@/lib/search-query";
 import { type MediaAssetRow, toArticlePreview } from "@/lib/article-preview";
 import { hasSupabasePublicConfig } from "@/lib/supabase/config";
+import type { Database } from "@/lib/supabase/database.types";
 import { createClient } from "@/lib/supabase/server";
 
 export type SearchHit = ArticlePreview & {
@@ -22,11 +23,6 @@ export type SearchParameters = {
   locationSlug?: string | null;
   page?: number;
   pageSize?: number;
-  /**
-   * Attach each hit's hero image. Off by default: the typeahead never draws a
-   * picture, so it should not pay for the extra round trip.
-   */
-  withHeroes?: boolean;
 };
 
 export type SearchResult = {
@@ -45,6 +41,27 @@ const emptyResult: SearchResult = {
   loadError: false,
 };
 
+type SearchRow = Database["public"]["Functions"]["search_published_articles"]["Returns"][number];
+
+/**
+ * The function returns the hero as flat `hero_*` columns from a left join, so an
+ * article without one comes back with every column null. The generated types
+ * mark function columns non-null regardless, hence the explicit check.
+ */
+function heroFromRow(row: SearchRow): MediaAssetRow | null {
+  const objectPath: string | null = row.hero_object_path;
+  if (!objectPath) return null;
+
+  return {
+    object_path: objectPath,
+    alt_text: row.hero_alt_text ?? "",
+    width: row.hero_width,
+    height: row.hero_height,
+    focal_point_x: row.hero_focal_point_x,
+    focal_point_y: row.hero_focal_point_y,
+  };
+}
+
 /**
  * Turkish full-text search over published articles.
  *
@@ -59,7 +76,6 @@ export async function searchArticles({
   locationSlug,
   page = 1,
   pageSize = SEARCH_PAGE_SIZE,
-  withHeroes = false,
 }: SearchParameters): Promise<SearchResult> {
   const currentPage = Number.isInteger(page) && page >= 1 ? page : 1;
   if (normalizeSearchQuery(query).state !== "ok") return { ...emptyResult, currentPage };
@@ -80,30 +96,9 @@ export async function searchArticles({
   const total = rows[0]?.total_count ?? 0;
   const now = new Date();
 
-  // The RPC returns flat columns with no hero, so the page's slice is looked up
-  // by id in a second query rather than widening the function's return type.
-  const heroes = new Map<string, MediaAssetRow>();
-  if (withHeroes && rows.length > 0) {
-    const { data: heroRows } = await supabase
-      .from("articles")
-      .select(
-        "id, hero:media_assets!articles_hero_media_id_fkey(object_path, alt_text, width, height, focal_point_x, focal_point_y)",
-      )
-      .in(
-        "id",
-        rows.map((row) => row.id),
-      );
-
-    // A failed lookup costs the pictures, not the results: rows fall back to
-    // their colour surface.
-    for (const row of heroRows ?? []) {
-      if (row.hero) heroes.set(row.id, row.hero);
-    }
-  }
-
   return {
     hits: rows.map((row) => ({
-      ...toArticlePreview({ ...row, hero: heroes.get(row.id) }, now),
+      ...toArticlePreview({ ...row, hero: heroFromRow(row) }, now),
       headline: row.headline,
     })),
     total,
