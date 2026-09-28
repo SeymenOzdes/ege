@@ -711,6 +711,18 @@ button.header-action {
   justify-self: start;
 }
 
+/* `/bulten` kartında düğme alanı boydan boya kaplar; e-posta alanıyla aynı yükseklikte. */
+.newsletter-form.page .text-input {
+  min-height: 3.1rem;
+  font-size: 1rem;
+}
+
+.newsletter-form.page > button {
+  justify-self: stretch;
+  min-height: 3.1rem;
+  font-size: 0.95rem;
+}
+
 /* Ana sayfanın koyu panelinde: e-posta ve düğme yan yana, rıza satırı altta. */
 .newsletter-form.inline {
   grid-template-areas:
