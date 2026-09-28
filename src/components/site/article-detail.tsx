@@ -1,10 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
-import { ArrowRight } from "@phosphor-icons/react/dist/ssr/ArrowRight";
 import { Clock } from "@phosphor-icons/react/dist/ssr/Clock";
 import { NotePencil } from "@phosphor-icons/react/dist/ssr/NotePencil";
 import type { ArticleDetail as ArticleDetailType } from "@/lib/articles";
 import { siteConfig } from "@/lib/site";
+import { MediaSurface } from "@/components/site/article-card";
 import { ArticleActions } from "@/components/site/article-actions";
 import { BodyBlock } from "@/components/site/article-body";
 import styles from "./article-detail.module.css";
@@ -96,90 +96,73 @@ export function ArticleDetail({ article }: { article: ArticleDetailType }) {
           {article.body.map((block, index) => (
             <BodyBlock block={block} index={index} key={`${block.type}-${index}`} />
           ))}
-          <AdSlot placement="ARTICLE_MID" />
         </div>
+
+        {/* Künye haberin parçası: okuma sütununda, son paragrafın hemen altında
+            tek satır. Yayın saati başlıkta zaten var; burada yalnız güncelleme. */}
+        <footer className={styles.byline} aria-label="Haber künyesi">
+          <p className={styles.bylineLine}>
+            {/* An article with no author row falls back to a blank slug, so the
+                link would land on /yazar/ — a 404. Mirrors the JSON-LD guard above. */}
+            {article.author.slug ? (
+              <Link className={styles.bylineName} href={`/yazar/${article.author.slug}`}>
+                {article.author.name}
+              </Link>
+            ) : (
+              <span className={styles.bylineName}>{article.author.name}</span>
+            )}
+            <span className={styles.bylineRole}>{article.author.role}</span>
+            {article.updatedAt && article.updatedDisplay && (
+              <span className={styles.bylineUpdated}>
+                Güncellendi <time dateTime={article.updatedAt}>{article.updatedDisplay}</time>
+              </span>
+            )}
+          </p>
+          <ArticleActions title={article.title} slug={article.slug} />
+        </footer>
+
+        {article.correction && (
+          <section className={styles.correction} aria-labelledby="correction-title">
+            <NotePencil aria-hidden="true" size={24} weight="duotone" />
+            <div>
+              <span className="eyebrow">Şeffaflık notu</span>
+              <h2 id="correction-title" className="font-editorial">
+                Düzeltmeler
+              </h2>
+              <p>{article.correction}</p>
+            </div>
+          </section>
+        )}
+
+        <AdSlot placement="ARTICLE_MID" />
       </div>
 
-      <footer className={styles.byline} aria-labelledby="byline-title">
-        <div className={styles.bylineAuthor}>
-          <span className="eyebrow" id="byline-title">
-            Hazırlayan
-          </span>
-          {/* An article with no author row falls back to a blank slug, so the
-              link would land on /yazar/ — a 404. Mirrors the JSON-LD guard above. */}
-          {article.author.slug ? (
-            <Link href={`/yazar/${article.author.slug}`}>{article.author.name}</Link>
-          ) : (
-            <span className={styles.bylineName}>{article.author.name}</span>
-          )}
-        </div>
-        <dl className={styles.bylineTimes}>
-          <div>
-            <dt>Yayımlandı</dt>
-            <dd>
-              <time dateTime={article.publishedAt}>{article.publishedDisplay}</time>
-            </dd>
-          </div>
-          {article.updatedAt && article.updatedDisplay && (
-            <div>
-              <dt>Son güncelleme</dt>
-              <dd>
-                <time dateTime={article.updatedAt}>{article.updatedDisplay}</time>
-              </dd>
-            </div>
-          )}
-          <div className={styles.actionsRow}>
-            <ArticleActions title={article.title} slug={article.slug} />
-          </div>
-        </dl>
-      </footer>
-
-      {article.correction && (
-        <section className={styles.correction} aria-labelledby="correction-title">
-          <NotePencil aria-hidden="true" size={24} weight="duotone" />
-          <div>
-            <span className="eyebrow">Şeffaflık notu</span>
-            <h2 id="correction-title" className="font-editorial">
-              Düzeltmeler
+      {/* İlgili haberler: her kartta yalnız görsel ve başlık. */}
+      {article.related.length > 0 && (
+        <section className={styles.related} aria-labelledby="related-title">
+          <div className={styles.relatedInner}>
+            <h2 id="related-title" className={`font-editorial ${styles.relatedHeading}`}>
+              Okumaya devam
             </h2>
-            <p>{article.correction}</p>
+            <div className={styles.relatedList}>
+              {article.related.map((relatedArticle) => (
+                <article key={relatedArticle.id}>
+                  <MediaSurface
+                    tone={relatedArticle.mediaTone}
+                    label={relatedArticle.location}
+                    hero={relatedArticle.hero}
+                    sizes="(max-width: 759px) calc(100vw - 2rem), 320px"
+                    className={styles.relatedMedia}
+                  />
+                  <h3 className="font-editorial">
+                    <Link href={`/haber/${relatedArticle.slug}`}>{relatedArticle.title}</Link>
+                  </h3>
+                </article>
+              ))}
+            </div>
           </div>
         </section>
       )}
-
-      <section className={styles.related} aria-labelledby="related-title">
-        <div className={styles.relatedHeading}>
-          <div>
-            <span className="eyebrow">Okumaya devam</span>
-            <h2 id="related-title" className="font-editorial">
-              İlgili hikâyeler
-            </h2>
-          </div>
-          {/* Etiket haberin kendi dosyasından geliyor. Sabit "Yaşam dosyası"
-              metni, bağlantı `topicSlug`e gittiği için ekonomi haberinde
-              "Yaşam dosyası" yazıp Ekonomi'ye götürüyordu. */}
-          <Link href={`/kategori/${article.topicSlug}`}>
-            {article.topic} dosyası <ArrowRight aria-hidden="true" size={17} weight="bold" />
-          </Link>
-        </div>
-        <div className={styles.relatedList}>
-          {article.related.map((relatedArticle) => (
-            <article key={relatedArticle.id}>
-              <div>
-                <span>{relatedArticle.topic}</span>
-                <span>{relatedArticle.location}</span>
-              </div>
-              <h3 className="font-editorial">
-                <Link href={`/haber/${relatedArticle.slug}`}>{relatedArticle.title}</Link>
-              </h3>
-              <p>{relatedArticle.summary}</p>
-              <small>
-                {relatedArticle.publishedLabel} · {relatedArticle.readingTime} okuma
-              </small>
-            </article>
-          ))}
-        </div>
-      </section>
     </article>
   );
 }

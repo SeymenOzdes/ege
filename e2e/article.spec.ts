@@ -14,7 +14,7 @@ test("opens the sample article from the homepage card", async ({ page }) => {
   await expect(page.locator("figure img")).toHaveCount(0);
   // Headings come from the stored `body` jsonb, not from a hardcoded fixture.
   await expect(page.getByRole("heading", { name: "Dört ilçede ortak rota" })).toBeVisible();
-  await expect(page.getByRole("heading", { name: "İlgili hikâyeler" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Okumaya devam" })).toBeVisible();
   await expect(page.getByText("ARTICLE_MID")).toBeVisible();
   await expect(page.getByText("ARTICLE_END")).toHaveCount(0);
 });

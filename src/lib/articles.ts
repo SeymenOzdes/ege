@@ -254,7 +254,7 @@ export const getArticleBySlug = cache(async (slug: string): Promise<ArticleDetai
     updatedDisplay: updatedAt ? formatFullDateTime(updatedAt) : undefined,
     body: parseArticleBody(row.body),
     topicDescription: row.topic?.description ?? undefined,
-    related: await getRelatedArticles(row.id, row.topic?.id ?? null),
+    related: await getRelatedArticles(row.id, row.topic?.id ?? null, 3),
   };
 });
 

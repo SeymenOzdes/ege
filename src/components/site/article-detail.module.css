@@ -55,78 +55,54 @@
   color: var(--color-teal);
 }
 
-/* Reklam/başlık genişliğiyle aynı: künye artık paylaş/kaydet düğmelerini de
-   taşıyor, okuma sütununun 42rem'i yazar bilgisiyle çakışmaya yetmiyordu. */
+/* Künye okuma sütununun içinde, son paragrafın hemen altında tek satır: yazar,
+   görevi ve varsa güncelleme saati solda; paylaş/kaydet ikonları sağda. */
 .byline {
-  display: grid;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   gap: 1.5rem;
-  width: min(100% - 4rem, 64rem);
-  margin: 2.5rem auto 0;
-  padding-top: 1.9rem;
+  margin-top: 1rem;
+  padding-top: 1.1rem;
   border-top: 1px solid rgb(13 27 42 / 14%);
 }
 
-.bylineAuthor {
-  display: grid;
-  gap: 0.22rem;
+/* Metin kendi içinde kırılır; ikonlar dar ekranda da aynı satırda sağda kalır. */
+.bylineLine {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.2rem 0.5rem;
+  margin: 0;
+  color: var(--color-ink-muted);
+  font-size: 0.8rem;
+  line-height: 1.5;
 }
 
-/* The name is a link only when the author has a profile slug; `.bylineName`
-   is the unlinked fallback and must read identically. */
-.bylineAuthor > a,
+/* The name is a link only when the author has a profile slug; the span
+   fallback carries the same class and must read identically. */
 .bylineName {
-  width: fit-content;
+  color: var(--color-ink);
   font-family: var(--font-display), Arial, sans-serif;
-  font-size: 1.35rem;
-  font-weight: 650;
+  font-size: 0.95rem;
+  font-weight: 700;
   text-decoration: none;
 }
 
-.bylineAuthor > a:hover {
+a.bylineName:hover {
   color: var(--color-teal);
 }
 
-.bylineTimes {
-  display: grid;
-  gap: 0.7rem;
-  margin: 0;
+.bylineRole::before {
+  margin-right: 0.5rem;
+  content: "—";
 }
 
-/* Direct children only — a descendant selector here would also catch the
-   nested actions markup inside .actionsRow and force it into a grid. */
-.bylineTimes > div {
-  display: grid;
-  gap: 0.12rem;
-}
-
-/* .eyebrow ile aynı ölçüler: künyenin iki sütunu aynı hizada başlıyor. */
-.bylineTimes dt {
-  color: var(--color-ink-muted);
-  font-size: 0.7rem;
-  font-weight: 800;
-  letter-spacing: 0.14em;
-  text-transform: uppercase;
-}
-
-.bylineTimes dd {
-  margin: 0;
-  color: var(--color-ink);
-  font-size: 0.8rem;
-  font-weight: 750;
-}
-
-@media (min-width: 640px) {
-  .byline {
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: start;
-    gap: 2.5rem;
-  }
-
-  .bylineTimes {
-    grid-auto-flow: column;
-    gap: 2rem;
-    text-align: right;
-  }
+.bylineUpdated::before {
+  margin-right: 0.5rem;
+  content: "·";
 }
 
 .actionsWrap {
@@ -140,30 +116,23 @@
   gap: 0.55rem;
 }
 
-/* Reading time label/value stays stacked like its sibling meta entries;
-   the share/save buttons sit beside it, on the same row, at every breakpoint.
-   Selector needs `.bylineTimes` prefixed in to outrank `.bylineTimes > div` above. */
-.bylineTimes .actionsRow {
-  display: flex;
-  flex-wrap: nowrap;
-  align-items: center;
-  gap: 0.9rem;
-}
-
 .actions button {
-  display: inline-flex;
-  min-height: 2.65rem;
-  align-items: center;
-  justify-content: center;
-  gap: 0.42rem;
-  padding: 0.55rem 0.85rem;
+  display: inline-grid;
+  width: 2.4rem;
+  height: 2.4rem;
+  place-items: center;
+  padding: 0;
   border: 1px solid rgb(13 27 42 / 14%);
   border-radius: var(--radius-pill);
   background: transparent;
   color: var(--color-ink);
   cursor: pointer;
-  font-size: 0.75rem;
-  font-weight: 800;
+}
+
+/* Künye satırında yalnız ikonlar görünür; düğme adı `aria-label`den geliyor,
+   metin ekran okuyucuya bir kez daha okunmasın diye tamamen gizli. */
+.actions button span {
+  display: none;
 }
 
 /* İkon vurgu renginde ve sabit boyutta: metnin yanında seçilir, dar ekranda ezilmez. */
@@ -218,7 +187,6 @@
 .readingLayout {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
-  gap: 2rem;
   width: min(100% - 4rem, 42rem);
   margin-top: 4rem;
   margin-inline: auto;
@@ -323,7 +291,7 @@
 .adSlot {
   display: grid;
   gap: 0.55rem;
-  margin: 3.7rem 0;
+  margin: 3rem 0 0;
   padding: 1.3rem;
   border: 1px dashed rgb(13 27 42 / 22%);
   border-radius: var(--radius-control);
@@ -353,13 +321,11 @@
   letter-spacing: 0.07em;
 }
 
-/* Künyeyle aynı ölçüde: ikisi de "bu haber hakkında" bloğunun parçası. */
+/* Künyeyle aynı sütunda: ikisi de "bu haber hakkında" bloğunun parçası. */
 .correction {
   display: grid;
   gap: 1rem;
-  width: min(100% - 4rem, 42rem);
-  margin-top: 2.6rem;
-  margin-inline: auto;
+  margin-top: 2.2rem;
   padding-block: 1.7rem;
   border-top: 1px solid rgb(13 27 42 / 14%);
   border-bottom: 1px solid rgb(13 27 42 / 14%);
@@ -387,97 +353,75 @@
   line-height: 1.65;
 }
 
+/* Haber bitti, site başlıyor: okuma sütunundan geniş, üstünde koyu bir çizgi. */
 .related {
+  margin-top: 5rem;
+}
+
+.relatedInner {
+  display: grid;
+  gap: 1.6rem;
   width: min(100% - 4rem, 64rem);
-  margin: 5rem auto 0;
+  margin-inline: auto;
+  padding-top: 1.1rem;
+  border-top: 2px solid var(--color-ink);
 }
 
 .relatedHeading {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 2rem;
-  padding-bottom: 1.4rem;
-  border-bottom: 1px solid rgb(13 27 42 / 14%);
-}
-
-.relatedHeading span {
-  color: var(--color-teal);
-}
-
-.relatedHeading h2 {
-  margin: 0.45rem 0 0;
-  font-size: clamp(1.9rem, 3.2vw, 2.6rem);
-  font-weight: 520;
-  letter-spacing: -0.055em;
-  line-height: 1.1;
-}
-
-.relatedHeading > a {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: var(--color-teal);
-  font-size: 0.78rem;
-  font-weight: 800;
-  text-decoration: none;
-  white-space: nowrap;
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 650;
+  letter-spacing: -0.02em;
 }
 
 .relatedList {
   display: grid;
 }
 
+/* Mobilde alt alta, aralarında ince çizgi. */
 .relatedList article {
+  position: relative;
   display: grid;
-  gap: 0.8rem;
-  padding: 1.7rem 0;
-  border-bottom: 1px solid rgb(13 27 42 / 11%);
+  align-content: start;
+  gap: 0.55rem;
+  padding-block: 1.25rem;
+  border-top: 1px solid rgb(13 27 42 / 11%);
 }
 
-.relatedList article > div {
-  display: flex;
-  gap: 0.7rem;
-  color: var(--color-ink-muted);
-  font-size: 0.65rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
+.relatedList article:first-child {
+  padding-top: 0;
+  border-top: 0;
 }
 
-.relatedList article > div span:first-child {
-  color: var(--color-teal);
+/* Tüm ekranlarda aynı oran; kısa ve uzun başlıklı kartlar aynı hizada kalıyor. */
+.relatedMedia {
+  min-height: 0;
+  aspect-ratio: 3 / 2;
+  border-radius: var(--radius-media);
 }
 
 .relatedList h3 {
-  max-width: 22ch;
   margin: 0;
-  font-size: clamp(1.35rem, 1.9vw, 1.65rem);
-  font-weight: 550;
-  letter-spacing: -0.035em;
-  line-height: 1.2;
+  font-size: 1.15rem;
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.3;
+  text-wrap: pretty;
 }
 
 .relatedList h3 a {
   text-decoration: none;
 }
 
-.relatedList h3 a:hover {
+/* Kartın tamamı tıklanır: başlık bağlantısı kartı örten bir katman açıyor. */
+.relatedList h3 a::after {
+  position: absolute;
+  inset: 0;
+  content: "";
+}
+
+.relatedList article:hover h3 a {
   color: var(--color-teal);
-}
-
-.relatedList p {
-  max-width: 35rem;
-  margin: 0;
-  color: var(--color-ink-muted);
-  font-size: 0.82rem;
-  line-height: 1.55;
-}
-
-.relatedList small {
-  color: var(--color-ink-muted);
-  font-size: 0.66rem;
-  font-weight: 700;
 }
 
 @media (min-width: 760px) {
@@ -491,20 +435,27 @@
     align-items: start;
   }
 
+  /* Üç sütun; görseller aynı oranda olduğu için başlıklar aynı hizadan başlıyor. */
   .relatedList {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 2.5rem;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    column-gap: 2.5rem;
+  }
+
+  .relatedList article,
+  .relatedList article:first-child {
+    gap: 0.8rem;
+    padding: 0;
+    border-top: 0;
+  }
+
+  .relatedList h3 {
+    font-size: 1.25rem;
   }
 }
 
 @media (min-width: 1024px) {
   .articlePage {
     padding-top: 3rem;
-  }
-
-  .relatedList article {
-    min-height: 13rem;
-    align-content: start;
   }
 }
 
@@ -522,11 +473,9 @@
   }
 
   .articleHeader,
-  .byline,
-  .correction,
   .hero,
   .readingLayout,
-  .related {
+  .relatedInner {
     width: calc(100% - 2rem);
   }
 
@@ -543,8 +492,19 @@
     margin-top: 3.2rem;
   }
 
-  .relatedHeading {
-    align-items: flex-start;
+  /* Dar ekranda ad, görev ve güncelleme alt alta; ayraçlar satır başında asılı
+     kalmasın diye düşüyor. */
+  .bylineLine {
     flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .bylineRole::before,
+  .bylineUpdated::before {
+    content: none;
+  }
+
+  .related {
+    margin-top: 3.5rem;
   }
 }
