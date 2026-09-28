@@ -59,14 +59,20 @@ test("brings an active filter at the end of the rail into view", async ({ page }
 });
 
 test("keeps the query when paging through results", async ({ page }) => {
-  await page.goto("/arama?q=yeni");
+  // The seed has eleven published stories; this query matches all of them, one
+  // more than a results page holds.
+  const query = "yeni or ege or kıyı or zeytin or arkeoloji";
+  await page.goto(`/arama?q=${encodeURIComponent(query)}`);
+  await expect(page.getByRole("heading", { level: 3 })).toHaveCount(10);
   await page
     .getByRole("navigation", { name: "Sayfalama" })
     .getByRole("link", { name: "Sonraki sayfa" })
     .click();
 
-  await expect(page).toHaveURL(/\/arama\?q=yeni&sayfa=2$/);
-  await expect(page.getByRole("status").filter({ hasText: "sonuç" })).toContainText("8 sonuç");
+  await expect(page).toHaveURL((url) => url.searchParams.get("q") === query);
+  await expect(page).toHaveURL(/sayfa=2$/);
+  await expect(page.getByRole("status").filter({ hasText: "sonuç" })).toContainText("11 sonuç");
+  await expect(page.getByRole("heading", { level: 3 })).toHaveCount(1);
 });
 
 test("explains empty, too-short and no-result searches", async ({ page }) => {

@@ -1,4 +1,3 @@
-import { ARCHIVE_PAGE_SIZE } from "@/lib/pagination";
 
 /**
  * Pure query helpers for /arama. They live outside `search.ts` because that
@@ -6,8 +5,12 @@ import { ARCHIVE_PAGE_SIZE } from "@/lib/pagination";
  * directly unit-testable, the way `turkish.ts` and `auth/redirect.ts` are.
  */
 
-/** Search pages the same way archives do, so the two feel identical. */
-export const SEARCH_PAGE_SIZE = ARCHIVE_PAGE_SIZE;
+/**
+ * Search rows are compact (small thumbnail, two-line excerpt), so a page holds
+ * more of them than an archive does. `search_published_articles` caps any
+ * requested limit at 50.
+ */
+export const SEARCH_PAGE_SIZE = 10;
 
 export const SEARCH_QUERY_MIN_LENGTH = 2;
 /** Mirrors the `search_queries_query_length` check constraint. */
