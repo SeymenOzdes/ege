@@ -108,7 +108,7 @@ input {
 }
 
 .utility-bar {
-  background: var(--color-ink);
+  background: linear-gradient(90deg, #0b95a4, #17afb6 50%, #0b95a4);
   color: white;
 }
 
@@ -127,7 +127,7 @@ input {
 }
 
 .city-nav a {
-  color: rgb(255 255 255 / 68%);
+  color: rgb(255 255 255 / 90%);
   font-size: 0.68rem;
   font-weight: 700;
   text-decoration: none;
