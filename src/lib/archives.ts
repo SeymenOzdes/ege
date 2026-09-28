@@ -100,6 +100,26 @@ export const getLatestArticles = cache(async (page: number): Promise<ArchivePage
   ),
 );
 
+/**
+ * The newest few articles with no count, for places that fill a gap rather than
+ * page through the feed (the empty and no-result states of /arama). Never throws:
+ * a failed query just leaves the list empty.
+ */
+export const getRecentArticles = cache(async (limit: number): Promise<ArticlePreview[]> => {
+  if (!hasSupabasePublicConfig()) return [];
+
+  const { data, error } = await createAnonClient()
+    .from("articles")
+    .select(ARTICLE_PREVIEW_SELECTION)
+    .order("published_at", { ascending: false })
+    .limit(limit);
+
+  if (error) return [];
+
+  const now = new Date();
+  return ((data ?? []) as ArticleJoinRow[]).map((row) => articleRowToPreview(row, now));
+});
+
 export const getAuthorBySlug = cache(async (slug: string): Promise<ArchiveAuthor | undefined> => {
   if (!hasSupabasePublicConfig()) return undefined;
 

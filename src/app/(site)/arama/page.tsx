@@ -7,7 +7,9 @@ import { ArticleCard } from "@/components/site/article-card";
 import { Pager } from "@/components/site/archive-list";
 import { HighlightedText } from "@/components/site/highlighted-text";
 import { SearchFilterRail } from "@/components/site/search-filter-rail";
+import { getRecentArticles } from "@/lib/archives";
 import type { SearchFacet } from "@/lib/facets";
+import type { ArticlePreview } from "@/lib/homepage";
 import { parsePageNumber } from "@/lib/pagination";
 import { getSearchFacets, searchArticles } from "@/lib/search";
 import {
@@ -35,6 +37,9 @@ export const metadata: Metadata = {
 };
 
 const suggestions = ["İzmir", "zeytin", "ulaşım", "kültür", "pazar"] as const;
+
+/** Enough to fill the first screen under "Son haberler" without becoming a feed. */
+const RECENT_COUNT = 5;
 
 type FilterGroupProps = {
   label: string;
@@ -72,18 +77,43 @@ function FilterGroup({ label, options, selectedSlug, buildHref }: FilterGroupPro
   );
 }
 
-function Suggestions() {
+/**
+ * What the page offers when there is nothing to list: a line of common searches
+ * and the newest stories, so an empty or dead-end search still leads somewhere.
+ */
+function Discover({ recent }: { recent: ArticlePreview[] }) {
   return (
-    <div className={styles.suggestions}>
-      <MagnifyingGlass aria-hidden="true" size={26} weight="duotone" />
-      <p>Şunları deneyebilirsiniz:</p>
-      <div className={styles.chips}>
-        {suggestions.map((term) => (
-          <Link key={term} href={buildSearchHref({ query: term })}>
-            {term}
-          </Link>
-        ))}
-      </div>
+    <div className={styles.discover}>
+      <section className={styles.popular} aria-labelledby="arama-sik-aranan">
+        <h2 id="arama-sik-aranan" className={`${styles.sectionLabel} eyebrow`}>
+          Sık aranan
+        </h2>
+        <ul className={styles.popularList}>
+          {suggestions.map((term) => (
+            <li key={term}>
+              <Link href={buildSearchHref({ query: term })}>{term}</Link>
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {recent.length > 0 && (
+        <section aria-labelledby="arama-son-haberler">
+          <div className={styles.sectionHead}>
+            <h2 id="arama-son-haberler" className={`${styles.sectionLabel} eyebrow`}>
+              Son haberler
+            </h2>
+            <Link className={styles.sectionMore} href="/son-dakika">
+              Tümü
+            </Link>
+          </div>
+          <div className={styles.results}>
+            {recent.map((article) => (
+              <ArticleCard article={article} variant="result" key={article.id} />
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 }
@@ -116,6 +146,11 @@ export default async function AramaPage({
     // Telemetry must not delay the response.
     after(() => recordNoResultQuery({ query, topicSlug, locationSlug }));
   }
+
+  const hasHits = results !== null && !results.loadError && results.hits.length > 0;
+  // A query only shows the fallback once it has come back empty, so a normal
+  // search never pays for the extra read.
+  const recent = hasHits ? [] : await getRecentArticles(RECENT_COUNT);
 
   const heading = query.length > 0 ? `“${query}” için sonuçlar` : "Ege'de ne arıyorsunuz?";
 
@@ -185,7 +220,7 @@ export default async function AramaPage({
             {results &&
               !results.loadError &&
               results.total === 0 &&
-              "Sonuç bulunamadı. Farklı bir ifade deneyin."}
+              `“${query}” için sonuç yok`}
           </p>
           {(topicSlug || locationSlug) && (
             <Link className={styles.clearFilters} href={buildSearchHref({ query })}>
@@ -195,7 +230,7 @@ export default async function AramaPage({
         </div>
 
         <div className={styles.main}>
-          {results && !results.loadError && results.hits.length > 0 ? (
+          {hasHits && results ? (
             <>
               <div className={styles.results}>
                 {results.hits.map((hit) => (
@@ -220,7 +255,7 @@ export default async function AramaPage({
               />
             </>
           ) : (
-            <Suggestions />
+            <Discover recent={recent} />
           )}
         </div>
       </div>

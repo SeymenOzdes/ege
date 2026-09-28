@@ -49,45 +49,62 @@
   border-top: 1px solid rgb(13 27 42 / 11%);
 }
 
-.suggestions {
+/* Empty and no-result states: common searches, then the newest stories. */
+.discover {
   display: grid;
-  place-items: start;
-  gap: 0.7rem;
-  max-width: 30rem;
-  padding: 1.6rem;
-  border: 1px solid rgb(13 27 42 / 10%);
-  border-radius: var(--radius-media);
-  background: var(--color-white);
+  gap: 2.25rem;
+  padding-top: 0.25rem;
+}
+
+.sectionHead {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.75rem;
+}
+
+.sectionLabel {
+  margin: 0;
   color: var(--color-ink-muted);
 }
 
-.suggestions svg {
-  color: var(--color-teal);
+.sectionMore {
+  font-size: 0.85rem;
+  color: var(--color-ink-muted);
 }
 
-.suggestions p {
-  margin: 0;
-}
-
-.chips {
+.popular {
   display: flex;
   flex-wrap: wrap;
-  gap: 0.5rem;
+  align-items: baseline;
+  gap: 0.4rem 0.9rem;
 }
 
-.chips a {
-  padding: 0.35rem 1rem;
-  border: 1px solid rgb(13 27 42 / 14%);
-  border-radius: var(--radius-pill);
-  text-decoration: none;
-  transition:
-    border-color 140ms ease,
-    background-color 140ms ease;
+/* Plain comma-separated links, read as a sentence rather than a row of buttons. */
+.popularList {
+  display: flex;
+  flex-wrap: wrap;
+  margin: 0;
+  padding: 0;
+  list-style: none;
 }
 
-.chips a:hover {
-  border-color: var(--color-teal);
-  background: rgb(12 124 134 / 8%);
+.popularList li:not(:last-child)::after {
+  content: ",\00a0";
+  color: var(--color-ink-muted);
+}
+
+.popularList a {
+  color: var(--color-ink);
+  text-decoration: underline;
+  text-decoration-color: rgb(13 27 42 / 25%);
+  text-underline-offset: 0.2em;
+  transition: text-decoration-color 140ms ease;
+}
+
+.popularList a:hover {
+  text-decoration-color: currentColor;
 }
 
 .searchBar {
@@ -254,7 +271,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .filterLink {
+  .filterLink,
+  .popularList a {
     transition: none;
   }
 }

@@ -72,13 +72,20 @@ test("keeps the query when paging through results", async ({ page }) => {
 test("explains empty, too-short and no-result searches", async ({ page }) => {
   await page.goto("/arama");
   await expect(page.getByRole("status")).toContainText("Türkçe arama yapabilirsiniz");
+  await expect(page.getByRole("heading", { level: 2, name: "Son haberler" })).toBeVisible();
 
   await page.goto("/arama?q=a");
   await expect(page.getByRole("status")).toContainText("En az 2 karakter girin.");
 
+  // A dead end still offers common searches and the newest stories.
   await page.goto("/arama?q=antarktikafiloksera");
-  await expect(page.getByRole("status")).toContainText("Sonuç bulunamadı.");
-  await expect(page.getByRole("link", { name: "zeytin" })).toBeVisible();
+  await expect(page.getByRole("status")).toContainText("“antarktikafiloksera” için sonuç yok");
+  await expect(
+    page.getByRole("region", { name: "Sık aranan" }).getByRole("link", { name: "zeytin" }),
+  ).toBeVisible();
+  await expect(
+    page.getByRole("region", { name: "Son haberler" }).getByRole("heading", { level: 3 }),
+  ).toHaveCount(5);
 });
 
 test("never renders a search query as markup", async ({ page }) => {
