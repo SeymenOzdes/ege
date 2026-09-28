@@ -126,7 +126,7 @@ describe("CategoryArchiveView", () => {
   it("bağlantı hatasında boş arşiv demez", () => {
     renderView({ entries: [], total: 0, loadError: true });
 
-    expect(screen.getByRole("alert")).toHaveTextContent("Haber akışına şu anda ulaşamıyoruz.");
+    expect(screen.getByRole("alert")).toHaveTextContent("Haber akışı şu anda güncellenemiyor.");
     expect(screen.queryByText("Bu dosyada henüz bir haber yok.")).toBeNull();
   });
 });

@@ -7,6 +7,7 @@ import { formatFullDate } from "@/lib/article-preview";
 import type { ArticlePreview, HomepageContent } from "@/lib/homepage";
 import { ArticleCard, MediaSurface } from "@/components/site/article-card";
 import { FeaturedCarousel } from "@/components/site/featured-carousel";
+import { FeedNotice } from "@/components/site/feed-notice";
 import styles from "./homepage.module.css";
 
 function SectionHeading({
@@ -106,27 +107,16 @@ function NewsletterPanel({ spotlight }: { spotlight?: ArticlePreview }) {
 }
 
 export function HomepageState({ state }: { state: "empty" | "error" }) {
-  const isError = state === "error";
+  // The error case is the site-wide feed notice; the route reaches it by throwing
+  // into `(site)/error.tsx`, and the style guide renders it through here.
+  if (state === "error") return <FeedNotice headingLevel="h1" standalone />;
 
   return (
-    <section className={styles.statePanel} role={isError ? "alert" : "status"}>
+    <section className={styles.statePanel} role="status">
       <Sparkle aria-hidden="true" size={24} weight="fill" />
-      <p className="eyebrow">{isError ? "Bağlantı kurulamadı" : "Yeni içerik hazırlanıyor"}</p>
-      <h1 className="font-editorial">
-        {isError
-          ? "Haber akışına şu anda ulaşamıyoruz."
-          : "Ege'den yeni hikâyeler birazdan burada."}
-      </h1>
-      <p>
-        {isError
-          ? "Sayfayı kısa bir süre sonra yeniden deneyebilirsiniz."
-          : "Editörlerimiz günün öne çıkan gelişmelerini hazırlıyor."}
-      </p>
-      {isError && (
-        <Link className="button button-primary" href="/">
-          Yeniden dene
-        </Link>
-      )}
+      <p className="eyebrow">Yeni içerik hazırlanıyor</p>
+      <h1 className="font-editorial">Ege&apos;den yeni hikâyeler birazdan burada.</h1>
+      <p>Editörlerimiz günün öne çıkan gelişmelerini hazırlıyor.</p>
     </section>
   );
 }

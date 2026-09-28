@@ -22,7 +22,7 @@ import { hasSupabasePublicConfig } from "@/lib/supabase/config";
  * `articles_public_select` already restricts every row to published, non-archived
  * articles whose `published_at` has passed, so no status filter is repeated here.
  * Like the search and bookmark adapters this never throws: a failed query surfaces
- * as `loadError` so the page renders its error state instead of crashing the route.
+ * as `loadError` and the route decides what to do with it.
  */
 export async function getHomepageContent(): Promise<HomepageContent> {
   if (!hasSupabasePublicConfig()) return { ...emptyHomepageContent, loadError: true };

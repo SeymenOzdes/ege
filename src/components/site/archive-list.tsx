@@ -2,8 +2,8 @@ import Link from "next/link";
 import { ArrowLeft } from "@phosphor-icons/react/dist/ssr/ArrowLeft";
 import { ArrowRight } from "@phosphor-icons/react/dist/ssr/ArrowRight";
 import { ArticleCard } from "@/components/site/article-card";
+import { FeedNotice } from "@/components/site/feed-notice";
 import type { ArticlePreview } from "@/lib/homepage";
-import shared from "./archive-shared.module.css";
 import styles from "./archive-list.module.css";
 
 export type ArchiveListProps = {
@@ -126,24 +126,12 @@ export function Pager({ basePath = "", currentPage, totalPages, buildHref }: Pag
 /**
  * What every archive shows when its query fails.
  *
- * Extracted because /son-dakika, /yazar/[slug] and /kategori/[slug] all reach this
- * state, and separate copies of one copy-deck drift the moment the wording or the
- * call to action changes — a "connection failed" panel is exactly the sort of text
- * that gets rewritten once and then found stale on the other two pages.
+ * /son-dakika, /yazar/[slug] and /kategori/[slug] all reach this state, and so does
+ * the public error boundary; the copy lives once, in `FeedNotice`, so the four never
+ * drift apart.
  */
 export function ArchiveErrorPanel() {
-  return (
-    <section className="statePanel" role="alert">
-      <p className="eyebrow">Bağlantı kurulamadı</p>
-      <h2 className={`font-editorial ${shared.stateHeading}`}>
-        Haber akışına şu anda ulaşamıyoruz.
-      </h2>
-      <p>Sayfayı kısa bir süre sonra yeniden deneyebilirsiniz.</p>
-      <Link className="button button-primary" href="/">
-        Ana sayfaya dön
-      </Link>
-    </section>
-  );
+  return <FeedNotice />;
 }
 
 /**

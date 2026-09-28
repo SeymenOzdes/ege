@@ -1,0 +1,29 @@
+/* A boxed notice between rules, the way a printed paper addresses its readers. */
+.notice {
+  width: 100%;
+  max-width: 40rem;
+  padding: 1.4rem 0 1.25rem;
+  border-top: 3px double var(--color-ink);
+  border-bottom: 1px solid var(--color-line);
+}
+
+/* On its own page (the error boundary) it needs the room a feed would have taken. */
+.standalone {
+  width: min(100% - 2rem, 40rem);
+  margin: clamp(3rem, 9vw, 6.5rem) auto;
+}
+
+.heading {
+  margin: 0 0 0.45rem;
+  font-size: clamp(1.45rem, 2.6vw, 1.85rem);
+  font-weight: 600;
+  letter-spacing: -0.02em;
+  line-height: 1.2;
+}
+
+.body {
+  max-width: 34rem;
+  margin: 0;
+  color: var(--color-ink-muted);
+  line-height: 1.6;
+}

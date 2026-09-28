@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { Homepage, HomepageState } from "@/components/site/homepage";
+import { Homepage } from "@/components/site/homepage";
 import { getHomepageContent } from "@/lib/homepage-content";
 
 /**
@@ -28,7 +28,11 @@ export const metadata: Metadata = {
 export default async function Home() {
   const content = await getHomepageContent();
 
-  if (content.loadError) return <HomepageState state="error" />;
+  // Hata render edilmiyor, fırlatılıyor: yeniden üretim sırasında fırlayan hatada
+  // ISR son sağlam sayfayı sunmaya devam eder. Render edilseydi, bir dakikalık bir
+  // veritabanı aksaması iyi ana sayfanın yerine hata panelini önbelleğe yazardı.
+  // Hiç sağlam sürüm yoksa `(site)/error.tsx` devreye girer.
+  if (content.loadError) throw new Error("Ana sayfa akışı okunamadı.");
 
   return <Homepage content={content} />;
 }
