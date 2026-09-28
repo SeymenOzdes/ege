@@ -552,6 +552,81 @@
   border: 0;
 }
 
+/*
+ * /arama result row, modelled on Foreign Affairs' search list: text first, a small
+ * fixed-width 4:3 thumbnail on the right, so every headline starts on the same
+ * edge and the eye runs straight down the column. Card chrome is stripped as the
+ * feed row strips it — the results read as one ruled list.
+ */
+.articleCardresult {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 10rem;
+  align-items: start;
+  gap: 1.5rem;
+  padding: 1.35rem 0;
+  border: 0;
+  border-bottom: 1px solid rgb(13 27 42 / 11%);
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* The picture comes first in the markup; the grid moves it to the right. */
+.articleCardresult .cardMedia {
+  grid-row: 1;
+  grid-column: 2;
+  min-height: 0;
+  padding: 0;
+  border-radius: 0.35rem;
+  aspect-ratio: 4 / 3;
+}
+
+/* Same reason as the feed row: the city chip swamps a thumbnail. */
+.articleCardresult .cardMedia span {
+  display: none;
+}
+
+.articleCardresult .articleCardContent {
+  grid-row: 1;
+  grid-column: 1;
+  gap: 0.45rem;
+  padding: 0;
+}
+
+/* Topic, city and date read as one dateline: `GÜNDEM · İZMİR · 27 Ağustos`. */
+.articleCardresult .articleMetaTop {
+  flex-wrap: wrap;
+  justify-content: flex-start;
+  gap: 0.45rem;
+}
+
+.articleCardresult .articleMetaTop > * + *::before {
+  content: "·";
+  margin-right: 0.45rem;
+  color: var(--color-ink-muted);
+}
+
+.articleCardresult .articleMetaTop time {
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: none;
+}
+
+.articleCardresult h3 {
+  font-size: clamp(1.15rem, 1.8vw, 1.35rem);
+  letter-spacing: -0.02em;
+  line-height: 1.22;
+}
+
+/* The excerpt is a hint of where the match sits, not a paragraph to read. */
+.articleCardresult p {
+  display: -webkit-box;
+  overflow: hidden;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+}
+
 .cardMonthYear {
   color: #8a949e;
   font-weight: 600;
@@ -1063,6 +1138,12 @@
   .articleCardfeed {
     grid-template-columns: 5.5rem minmax(0, 1fr);
     gap: 0.85rem;
+  }
+
+  .articleCardresult {
+    grid-template-columns: minmax(0, 1fr) 6rem;
+    gap: 0.9rem;
+    padding: 1.1rem 0;
   }
 
   .articleCardsecondary .articleMetaTop span:last-child,

@@ -13,8 +13,13 @@ import styles from "./homepage.module.css";
  * `feed` is the homepage "son gelişmeler" row: a small thumbnail, then the text.
  * It drops the city from its kicker and the summary, and its footer shows month
  * and year instead of the reading time.
+ *
+ * `result` is the /arama row: text on the left, a small 4:3 thumbnail on the
+ * right. Topic, city and date share one kicker line, so it has no footer — the
+ * reading time says nothing when a reader is picking between matches.
  */
-export type ArticleCardVariant = "feature" | "feed" | "list" | "secondary" | "timeline" | "topic";
+export type ArticleCardVariant =
+  "feature" | "feed" | "list" | "result" | "secondary" | "timeline" | "topic";
 
 const toneClasses: Record<MediaTone, string> = {
   teal: styles.mediaTeal,
@@ -48,6 +53,8 @@ const MEDIA_SIZES: Record<ArticleCardVariant, string> = {
   feed: "(max-width: 699px) 88px, 176px",
   // A `minmax(9rem, 15rem)` column, which goes full width once the row stacks.
   list: "(max-width: 699px) calc(100vw - 2rem), 240px",
+  // A 10rem thumbnail, folding to 6rem on a phone.
+  result: "(max-width: 699px) 96px, 160px",
   // Stacked in the hero rail on desktop; a picture column beside the text below it.
   secondary: "(max-width: 699px) 40vw, (max-width: 1023px) 45vw, 400px",
   // Never rendered — `timeline` drops its media entirely — but the map is total.
@@ -132,6 +139,9 @@ export function ArticleCard({
         <div className={styles.articleMetaTop}>
           <span>{article.topic}</span>
           {variant !== "feed" && <span>{article.location}</span>}
+          {variant === "result" && article.publishedLabel ? (
+            <time dateTime={article.publishedAt}>{article.publishedLabel}</time>
+          ) : null}
         </div>
         <h3 className="font-editorial">
           <Link href={`/haber/${article.slug}`}>{article.title}</Link>
@@ -139,23 +149,25 @@ export function ArticleCard({
         {variant !== "secondary" &&
           variant !== "feed" &&
           (excerpt ?? (article.summary ? <p>{article.summary}</p> : null))}
-        <div className={styles.articleFooter}>
-          {variant === "feed" ? (
-            // The feed row trades the reading time for a plain month and year.
-            article.publishedAt ? (
-              <time className={styles.cardMonthYear} dateTime={article.publishedAt}>
-                {formatMonthYear(article.publishedAt)}
-              </time>
-            ) : null
-          ) : (
-            <span>
-              {/* An article with no `published_at` has no date at all; it should
-                  not leave the separator behind. */}
-              {article.publishedLabel ? `${article.publishedLabel} · ` : null}
-              {article.readingTime} okuma
-            </span>
-          )}
-        </div>
+        {variant !== "result" && (
+          <div className={styles.articleFooter}>
+            {variant === "feed" ? (
+              // The feed row trades the reading time for a plain month and year.
+              article.publishedAt ? (
+                <time className={styles.cardMonthYear} dateTime={article.publishedAt}>
+                  {formatMonthYear(article.publishedAt)}
+                </time>
+              ) : null
+            ) : (
+              <span>
+                {/* An article with no `published_at` has no date at all; it should
+                    not leave the separator behind. */}
+                {article.publishedLabel ? `${article.publishedLabel} · ` : null}
+                {article.readingTime} okuma
+              </span>
+            )}
+          </div>
+        )}
       </div>
     </article>
   );

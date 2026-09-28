@@ -64,7 +64,7 @@ export default async function AramaPage({
   const [facets, results] = await Promise.all([
     getSearchFacets(),
     state === "ok"
-      ? searchArticles({ query, topicSlug, locationSlug, page })
+      ? searchArticles({ query, topicSlug, locationSlug, page, withHeroes: true })
       : Promise.resolve(null),
   ]);
 
@@ -156,7 +156,7 @@ export default async function AramaPage({
               {results.hits.map((hit) => (
                 <ArticleCard
                   article={hit}
-                  variant="timeline"
+                  variant="result"
                   key={`${hit.id}-${hit.slug}`}
                   excerpt={
                     <p className={styles.excerpt}>

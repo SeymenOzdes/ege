@@ -3,7 +3,7 @@ import "server-only";
 import { emptyFacets, readFacets, type SearchFacets } from "@/lib/facets";
 import type { ArticlePreview } from "@/lib/homepage";
 import { SEARCH_PAGE_SIZE, normalizeSearchQuery } from "@/lib/search-query";
-import { toArticlePreview } from "@/lib/article-preview";
+import { type MediaAssetRow, toArticlePreview } from "@/lib/article-preview";
 import { hasSupabasePublicConfig } from "@/lib/supabase/config";
 import { createClient } from "@/lib/supabase/server";
 
@@ -22,6 +22,11 @@ export type SearchParameters = {
   locationSlug?: string | null;
   page?: number;
   pageSize?: number;
+  /**
+   * Attach each hit's hero image. Off by default: the typeahead never draws a
+   * picture, so it should not pay for the extra round trip.
+   */
+  withHeroes?: boolean;
 };
 
 export type SearchResult = {
@@ -54,6 +59,7 @@ export async function searchArticles({
   locationSlug,
   page = 1,
   pageSize = SEARCH_PAGE_SIZE,
+  withHeroes = false,
 }: SearchParameters): Promise<SearchResult> {
   const currentPage = Number.isInteger(page) && page >= 1 ? page : 1;
   if (normalizeSearchQuery(query).state !== "ok") return { ...emptyResult, currentPage };
@@ -74,8 +80,32 @@ export async function searchArticles({
   const total = rows[0]?.total_count ?? 0;
   const now = new Date();
 
+  // The RPC returns flat columns with no hero, so the page's slice is looked up
+  // by id in a second query rather than widening the function's return type.
+  const heroes = new Map<string, MediaAssetRow>();
+  if (withHeroes && rows.length > 0) {
+    const { data: heroRows } = await supabase
+      .from("articles")
+      .select(
+        "id, hero:media_assets!articles_hero_media_id_fkey(object_path, alt_text, width, height, focal_point_x, focal_point_y)",
+      )
+      .in(
+        "id",
+        rows.map((row) => row.id),
+      );
+
+    // A failed lookup costs the pictures, not the results: rows fall back to
+    // their colour surface.
+    for (const row of heroRows ?? []) {
+      if (row.hero) heroes.set(row.id, row.hero);
+    }
+  }
+
   return {
-    hits: rows.map((row) => ({ ...toArticlePreview(row, now), headline: row.headline })),
+    hits: rows.map((row) => ({
+      ...toArticlePreview({ ...row, hero: heroes.get(row.id) }, now),
+      headline: row.headline,
+    })),
     total,
     currentPage,
     totalPages: Math.max(1, Math.ceil(total / pageSize)),

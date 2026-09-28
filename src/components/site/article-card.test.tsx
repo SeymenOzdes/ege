@@ -35,6 +35,7 @@ const VARIANTS: ArticleCardVariant[] = [
   "feature",
   "feed",
   "list",
+  "result",
   "secondary",
   "timeline",
   "topic",
@@ -121,6 +122,42 @@ describe("ArticleCard", () => {
     render(<ArticleCard article={article({ hero: undefined })} variant="feed" />);
 
     expect(screen.getByRole("img", { name: "İzmir için görsel alanı" })).toBeInTheDocument();
+  });
+
+  it("arama satırı konu, şehir ve tarihi tek satırda verir, okuma süresi göstermez", () => {
+    const { container } = render(<ArticleCard article={article()} variant="result" />);
+
+    const date = container.querySelector("time");
+    expect(date).toHaveTextContent("27 Ağustos");
+    expect(date).toHaveAttribute("datetime", "2026-08-27T06:18:00.000Z");
+    expect(screen.getByText("Ekonomi")).toBeInTheDocument();
+    expect(screen.getByText("İzmir")).toBeInTheDocument();
+    expect(screen.queryByText(/okuma/)).not.toBeInTheDocument();
+
+    expect(container.querySelector("img")).toHaveAttribute(
+      "sizes",
+      "(max-width: 699px) 96px, 160px",
+    );
+  });
+
+  it("arama satırı verilen vurgulu özeti özetin yerine koyar", () => {
+    render(<ArticleCard article={article()} variant="result" excerpt={<p>vurgulu özet</p>} />);
+
+    expect(screen.getByText("vurgulu özet")).toBeInTheDocument();
+    expect(
+      screen.queryByText("Yeni hattın bölge ihracatına katkısı bekleniyor."),
+    ).not.toBeInTheDocument();
+  });
+
+  it("tarihsiz arama satırında tarih ayracı bırakmaz", () => {
+    const { container } = render(
+      <ArticleCard
+        article={article({ publishedLabel: "", publishedAt: undefined })}
+        variant="result"
+      />,
+    );
+
+    expect(container.querySelector("time")).toBeNull();
   });
 
   it("timeline satırı görselsiz kalır ve tarihi altbilgisinde tutar", () => {

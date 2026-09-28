@@ -211,7 +211,7 @@ export type ArticlePreviewRow = {
   location_slug: string | null;
   published_at: string | null;
   word_count: number;
-  /** Optional: the search RPC returns flat columns with no hero to embed. */
+  /** Optional: the search RPC returns flat columns; `searchArticles` looks heroes up separately. */
   hero?: MediaAssetRow | null;
 };
 
