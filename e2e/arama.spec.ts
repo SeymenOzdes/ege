@@ -23,24 +23,24 @@ test("searches from the header and highlights the match", async ({ page }, testI
 test("matches Turkish text regardless of dotted and dotless casing", async ({ page }) => {
   for (const query of ["IZMIR", "İzmir", "izmir"]) {
     await page.goto(`/arama?q=${encodeURIComponent(query)}`);
-    await expect(page.getByRole("status").filter({ hasText: "haber bulundu" })).toContainText(
-      "2 haber bulundu.",
+    await expect(page.getByRole("status").filter({ hasText: "sonuç" })).toContainText(
+      "2 sonuç",
     );
   }
 });
 
 test("narrows results with the topic filter and clears it again", async ({ page }) => {
   await page.goto("/arama?q=yeni");
-  await expect(page.getByRole("status").filter({ hasText: "haber bulundu" })).toContainText(
-    "8 haber bulundu.",
+  await expect(page.getByRole("status").filter({ hasText: "sonuç" })).toContainText(
+    "8 sonuç",
   );
 
   await page.getByLabel("Konuya göre süz").selectOption("yasam");
   await page.getByRole("button", { name: "Ara", exact: true }).click();
 
   await expect(page).toHaveURL(/konu=yasam/);
-  await expect(page.getByRole("status").filter({ hasText: "haber bulundu" })).toContainText(
-    "2 haber bulundu.",
+  await expect(page.getByRole("status").filter({ hasText: "sonuç" })).toContainText(
+    "2 sonuç",
   );
 
   await page.getByRole("link", { name: "Filtreleri temizle" }).click();
@@ -55,8 +55,8 @@ test("keeps the query when paging through results", async ({ page }) => {
     .click();
 
   await expect(page).toHaveURL(/\/arama\?q=yeni&sayfa=2$/);
-  await expect(page.getByRole("status").filter({ hasText: "haber bulundu" })).toContainText(
-    "8 haber bulundu.",
+  await expect(page.getByRole("status").filter({ hasText: "sonuç" })).toContainText(
+    "8 sonuç",
   );
 });
 

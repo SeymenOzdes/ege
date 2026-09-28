@@ -85,8 +85,8 @@ export default async function AramaPage({
     <div className={styles.page}>
       <div className="shell-container">
         <header className={styles.header}>
-          <span className="eyebrow">Haber arşivi</span>
-          <h1 className="font-editorial">{heading}</h1>
+          {/* The search box leads visually; the heading stays for outline and screen readers. */}
+          <h1 className="sr-only">{heading}</h1>
 
           {/* A plain GET form keeps results linkable, shareable and usable without JS. */}
           <form className={styles.searchBar} action="/arama" method="get">
@@ -126,28 +126,30 @@ export default async function AramaPage({
                   ))}
                 </select>
               </label>
-              {(topicSlug || locationSlug) && (
-                <Link className={styles.clearFilters} href={buildSearchHref({ query })}>
-                  Filtreleri temizle
-                </Link>
-              )}
             </div>
           </form>
 
-          <p className={styles.count} role="status">
-            {state === "empty" && "Haber, şehir veya konu bazında Türkçe arama yapabilirsiniz."}
-            {state === "too-short" && `En az ${SEARCH_QUERY_MIN_LENGTH} karakter girin.`}
-            {state === "too-long" && `Arama en fazla ${SEARCH_QUERY_MAX_LENGTH} karakter olabilir.`}
-            {results?.loadError && "Arama şu anda kullanılamıyor. Lütfen daha sonra deneyin."}
-            {results &&
-              !results.loadError &&
-              results.total > 0 &&
-              `${results.total} haber bulundu.`}
-            {results &&
-              !results.loadError &&
-              results.total === 0 &&
-              "Sonuç bulunamadı. Farklı bir ifade deneyin."}
-          </p>
+          <div className={styles.summary}>
+            <p className={`${styles.count} font-editorial`} role="status">
+              {state === "empty" && "Haber, şehir veya konu bazında Türkçe arama yapabilirsiniz."}
+              {state === "too-short" && `En az ${SEARCH_QUERY_MIN_LENGTH} karakter girin.`}
+              {state === "too-long" && `Arama en fazla ${SEARCH_QUERY_MAX_LENGTH} karakter olabilir.`}
+              {results?.loadError && "Arama şu anda kullanılamıyor. Lütfen daha sonra deneyin."}
+              {results &&
+                !results.loadError &&
+                results.total > 0 &&
+                `“${query}” için ${results.total} sonuç`}
+              {results &&
+                !results.loadError &&
+                results.total === 0 &&
+                "Sonuç bulunamadı. Farklı bir ifade deneyin."}
+            </p>
+            {(topicSlug || locationSlug) && (
+              <Link className={styles.clearFilters} href={buildSearchHref({ query })}>
+                Filtreleri temizle
+              </Link>
+            )}
+          </div>
         </header>
 
         {results && !results.loadError && results.hits.length > 0 ? (
