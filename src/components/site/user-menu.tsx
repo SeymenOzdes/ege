@@ -1,3 +1,4 @@
+import Image from "next/image";
 import Link from "next/link";
 import { SignOut } from "@phosphor-icons/react/dist/ssr/SignOut";
 import { UserCircle } from "@phosphor-icons/react/dist/ssr/UserCircle";
@@ -13,6 +14,14 @@ const roleLabels: Record<UserRole, string> = {
 
 const chipIcon = <UserCircle aria-hidden="true" size={21} weight="duotone" />;
 
+// Google hesabıyla gelen okur kendi fotoğrafını görür; diğerleri genel simgeyi.
+function avatarFor(user: CurrentUser) {
+  if (!user.avatarUrl) return chipIcon;
+  return (
+    <Image alt="" className="login-avatar" height={26} src={user.avatarUrl} width={26} />
+  );
+}
+
 // Magic-link signup collects no name, so fall back to the email handle until
 // the reader sets a display_name on their profile.
 function labelFor(user: CurrentUser) {
@@ -21,7 +30,7 @@ function labelFor(user: CurrentUser) {
 
 /**
  * Public header account area. Anonymous visitors see the plain login link;
- * verified sessions show their name/email next to the sign-out action. The chip
+ * verified sessions show their name/email, with sign-out in a hover list. The chip
  * deep-links into the editorial panel for staff and into the reader's saved
  * articles for everyone else.
  */
@@ -36,16 +45,18 @@ export function UserMenu({ user }: { user?: CurrentUser }) {
   }
 
   const label = labelFor(user);
+  const avatar = avatarFor(user);
 
   return (
-    <>
+    // Sign-out lives in a list that opens on hover, and on focus for keyboard users.
+    <div className="account-menu">
       {isStaffRole(user.role) ? (
         <Link
           className="login-action"
           href="/yonetim"
           title={`${roleLabels[user.role]} paneline git`}
         >
-          {chipIcon}
+          {avatar}
           <span>{label}</span>
         </Link>
       ) : (
@@ -54,16 +65,20 @@ export function UserMenu({ user }: { user?: CurrentUser }) {
           href="/kaydedilenler"
           title={`${roleLabels[user.role]} olarak bağlısın — kaydedilenlere git`}
         >
-          {chipIcon}
+          {avatar}
           <span>{label}</span>
         </Link>
       )}
-      <form action={signOut}>
-        <button className="header-action" type="submit">
-          <SignOut aria-hidden="true" size={16} weight="bold" />
-          Çıkış yap
-        </button>
-      </form>
-    </>
+      <ul className="account-menu-list">
+        <li>
+          <form action={signOut}>
+            <button type="submit">
+              <SignOut aria-hidden="true" size={16} weight="bold" />
+              Çıkış yap
+            </button>
+          </form>
+        </li>
+      </ul>
+    </div>
   );
 }

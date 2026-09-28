@@ -246,6 +246,11 @@ input {
   color: var(--color-ink-muted);
 }
 
+.login-avatar {
+  border-radius: 50%;
+  object-fit: cover;
+}
+
 .header-action {
   min-height: 2.55rem;
   padding-inline: 0.95rem;
@@ -264,6 +269,69 @@ button.header-action {
   border: none;
   font-family: inherit;
   cursor: pointer;
+}
+
+/* Signed-in chip: sign-out drops down as a list on hover or keyboard focus. */
+.account-menu {
+  position: relative;
+}
+
+.account-menu-list {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  z-index: 20;
+  min-width: 11rem;
+  margin: 0;
+  /* The top padding bridges the gap so the pointer can travel into the list. */
+  padding: 0.5rem 0 0;
+  list-style: none;
+  visibility: hidden;
+  opacity: 0;
+  transform: translateY(-4px);
+  transition:
+    opacity 140ms ease,
+    transform 140ms ease,
+    visibility 0s linear 140ms;
+}
+
+.account-menu:hover .account-menu-list,
+.account-menu:focus-within .account-menu-list {
+  visibility: visible;
+  opacity: 1;
+  transform: none;
+  transition-delay: 0s;
+}
+
+.account-menu-list li {
+  padding: 0.4rem;
+  border: 1px solid rgb(13 27 42 / 10%);
+  border-radius: var(--radius-control);
+  background: var(--color-white);
+  box-shadow: var(--shadow-soft);
+}
+
+.account-menu-list button {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.65rem 0.8rem;
+  border: none;
+  border-radius: 0.8rem;
+  background: none;
+  font: inherit;
+  font-size: 0.84rem;
+  font-weight: 700;
+  color: var(--color-ink);
+  text-align: left;
+  cursor: pointer;
+}
+
+.account-menu-list button:hover,
+.account-menu-list button:focus-visible {
+  background: rgb(12 124 134 / 8%);
+  color: var(--color-teal);
 }
 
 .header-controls {

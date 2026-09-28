@@ -30,6 +30,22 @@ describe("UserMenu", () => {
     expect(screen.getByRole("button", { name: /Çıkış yap/ })).toBeInTheDocument();
   });
 
+  it("Google profil resmini genel simgenin yerine koyar", () => {
+    render(
+      <UserMenu
+        user={{
+          role: "READER",
+          displayName: "Ayşe Yılmaz",
+          avatarUrl: "https://lh3.googleusercontent.com/a/test-avatar=s96-c",
+        }}
+      />,
+    );
+
+    const link = screen.getByRole("link", { name: /Ayşe Yılmaz/ });
+    expect(link.querySelector("img.login-avatar")).toBeInTheDocument();
+    expect(link.querySelector("svg")).toBeNull();
+  });
+
   it("yönetici rozetini de yönetim paneline bağlar", () => {
     render(<UserMenu user={{ role: "ADMIN" }} />);
 

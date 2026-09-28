@@ -33,7 +33,11 @@ function supabaseImagePatterns() {
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["127.0.0.1", "localhost"],
   images: {
-    remotePatterns: supabaseImagePatterns(),
+    // Google ile giriş yapan okurun header'daki profil resmi.
+    remotePatterns: [
+      ...supabaseImagePatterns(),
+      { protocol: "https", hostname: "lh3.googleusercontent.com", pathname: "/a/**" },
+    ],
     // Local Supabase serves the bucket from 127.0.0.1; Next 16's SSRF guard blocks
     // optimizing from private IPs by default. `remotePatterns` above already scopes
     // this to that one bucket path, so this only widens which hosts pass that check.

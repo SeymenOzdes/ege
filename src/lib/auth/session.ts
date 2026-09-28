@@ -11,7 +11,20 @@ export type CurrentUser = {
   role: UserRole;
   email?: string;
   displayName?: string;
+  /** OAuth sağlayıcısının (Google) verdiği profil resmi; magic link oturumlarında yok. */
+  avatarUrl?: string;
 };
+
+// Google, `user_metadata` içine hem `avatar_url`/`full_name` hem de OIDC adlarını
+// (`picture`/`name`) yazar; hangisi gelirse onu kullan.
+function getMetadataString(claims: unknown, ...keys: string[]): string | undefined {
+  const metadata = (claims as { user_metadata?: unknown } | null)?.user_metadata;
+  for (const key of keys) {
+    const value = getClaimString(metadata, key);
+    if (value) return value;
+  }
+  return undefined;
+}
 
 /**
  * Claims → identity. Any verifiable session counts as signed in; a reader whose
@@ -23,6 +36,7 @@ export function toCurrentUser(claims: unknown, displayName?: string | null): Cur
   return {
     role: getUserRole(claims) ?? "READER",
     email: getClaimString(claims, "email"),
-    displayName: displayName ?? undefined,
+    displayName: displayName || getMetadataString(claims, "full_name", "name"),
+    avatarUrl: getMetadataString(claims, "avatar_url", "picture"),
   };
 }
