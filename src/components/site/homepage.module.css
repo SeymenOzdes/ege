@@ -305,49 +305,55 @@
 }
 
 .carouselArrows button:focus-visible,
-.carouselPages button:focus-visible {
-  outline: 2px solid var(--color-teal);
-  outline-offset: 2px;
-}
-
 .carouselPages {
   display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  /* 16 düğme 596px slayt genişliğini tam doldurur; azken solda toplanır. */
-  gap: 7px;
-  padding: 2px;
-  overflow-x: auto;
-  scrollbar-width: none;
-}
-
-.carouselPages::-webkit-scrollbar {
-  display: none;
+  align-items: stretch;
+  /* Tek parça şerit: 16 hücre genişliği eşit paylaşır, ince çizgilerle ayrılır. */
+  gap: 0;
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid #d9dee3;
+  border-radius: 6px;
+  background: white;
 }
 
 .carouselPages button {
-  flex: 0 0 30px;
-  width: 30px;
-  height: 30px;
+  position: relative;
+  flex: 1 1 0;
+  min-width: 0;
+  height: 36px;
   padding: 0;
   border: 0;
-  border-radius: 7px;
-  background: #f1f3f5;
-  color: #3a4754;
+  border-left: 1px solid #e3e7ea;
+  border-radius: 0;
+  background: white;
+  color: #5b6773;
   cursor: pointer;
   font-size: 12px;
   font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  transition: background-color 0.15s, color 0.15s;
+}
+
+.carouselPages button:first-child {
+  border-left: 0;
 }
 
 .carouselPages button:hover {
-  background: #e5e8eb;
+  background: #eef2f4;
+  color: var(--color-ink);
 }
 
 .carouselPages .activePage,
 .carouselPages .activePage:hover {
-  background: var(--color-ink);
+  background: var(--color-teal);
   color: white;
   font-weight: 700;
+}
+
+.carouselPages button:focus-visible {
+  outline: 2px solid var(--color-ink);
+  outline-offset: -3px;
 }
 
 @keyframes slideEnter {

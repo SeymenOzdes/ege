@@ -13,6 +13,7 @@ import {
   emptyHomepageContent,
   type HomepageContent,
 } from "@/lib/homepage";
+import { padFeaturedWithMock } from "@/lib/homepage-mock";
 import { createAnonClient } from "@/lib/supabase/anon";
 import { hasSupabasePublicConfig } from "@/lib/supabase/config";
 
@@ -75,7 +76,7 @@ export async function getHomepageContent(): Promise<HomepageContent> {
   const toPreviews = (rows: ArticleJoinRow[] | null) =>
     (rows ?? []).map((row) => articleRowToPreview(row, now));
 
-  return composeHomepage(
+  const content = composeHomepage(
     toPreviews(feed.data),
     toPreviews(breaking.data)[0] ?? null,
     topicRows.map((topic, index) => ({
@@ -84,4 +85,6 @@ export async function getHomepageContent(): Promise<HomepageContent> {
       articles: toPreviews(sections[index].data),
     })),
   );
+
+  return process.env.NODE_ENV === "production" ? content : padFeaturedWithMock(content);
 }
