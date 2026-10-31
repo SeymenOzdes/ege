@@ -61,7 +61,9 @@ export type HomepageContent = {
  */
 
 /** Featured + secondary + latest all come from one ordered read of the feed. */
-export const FEATURED_COUNT = 3;
+export const FEATURED_COUNT = 16;
+/** A thin feed keeps at least this many slides; the rails below then share what is left. */
+export const FEATURED_MIN_COUNT = 3;
 export const SECONDARY_COUNT = 2;
 export const LATEST_COUNT = 6;
 export const HOMEPAGE_FEED_LIMIT = FEATURED_COUNT + SECONDARY_COUNT + LATEST_COUNT;
@@ -96,7 +98,14 @@ export function composeHomepage(
   breakingNews: ArticlePreview | null,
   topicGroups: TopicGroup[],
 ): HomepageContent {
-  const featured = feed.slice(0, FEATURED_COUNT).map((article) => ({
+  // The carousel takes up to FEATURED_COUNT stories, but never the ones the side rails
+  // and the timeline need: on a thin feed it shrinks toward FEATURED_MIN_COUNT rather
+  // than leave those slots empty.
+  const featuredCount = Math.min(
+    FEATURED_COUNT,
+    Math.max(FEATURED_MIN_COUNT, feed.length - SECONDARY_COUNT - LATEST_COUNT),
+  );
+  const featured = feed.slice(0, featuredCount).map((article) => ({
     ...article,
     // Without a curated kicker column the topic name is the honest label.
     kicker: article.topic,
@@ -105,8 +114,11 @@ export function composeHomepage(
   return {
     breakingNews,
     featured,
-    secondary: feed.slice(FEATURED_COUNT, FEATURED_COUNT + SECONDARY_COUNT),
-    latest: feed.slice(FEATURED_COUNT + SECONDARY_COUNT, HOMEPAGE_FEED_LIMIT),
+    secondary: feed.slice(featuredCount, featuredCount + SECONDARY_COUNT),
+    latest: feed.slice(
+      featuredCount + SECONDARY_COUNT,
+      featuredCount + SECONDARY_COUNT + LATEST_COUNT,
+    ),
     topicSections: topicGroups
       // A section without a lead and two stories would render half-empty.
       .filter((group) => group.articles.length >= TOPIC_SECTION_SIZE)

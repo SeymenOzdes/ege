@@ -17,15 +17,21 @@ describe("composeHomepage", () => {
 
     const content = composeHomepage(feed, null, []);
 
-    expect(content.featured.map((story) => story.slug)).toEqual([
-      "haber-1",
-      "haber-2",
-      "haber-3",
-    ]);
-    expect(content.secondary.map((story) => story.slug)).toEqual(["haber-4", "haber-5"]);
+    expect(content.featured).toHaveLength(16);
+    expect(content.featured[0].slug).toBe("haber-1");
+    expect(content.featured[15].slug).toBe("haber-16");
+    expect(content.secondary.map((story) => story.slug)).toEqual(["haber-17", "haber-18"]);
     expect(content.latest).toHaveLength(6);
-    expect(content.latest[0].slug).toBe("haber-6");
+    expect(content.latest[0].slug).toBe("haber-19");
     expect(content.loadError).toBe(false);
+  });
+
+  it("shrinks the carousel on a thin feed so the rails and timeline stay filled", () => {
+    const content = composeHomepage(makePreviews(11), null, []);
+
+    expect(content.featured).toHaveLength(3);
+    expect(content.secondary).toHaveLength(2);
+    expect(content.latest).toHaveLength(6);
   });
 
   it("labels each featured story with its own topic as the kicker", () => {

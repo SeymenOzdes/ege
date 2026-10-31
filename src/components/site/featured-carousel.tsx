@@ -14,11 +14,11 @@ import styles from "./homepage.module.css";
  * wide on a desktop — the site's single most visible picture served at less than
  * half the resolution it is painted at.
  *
- * The stage is the hero grid's 2.05fr column inside a 76rem shell, less the deck's
- * 3.4rem left inset; below 1024px the grid is a single column.
+ * The stage is the hero's flexible centre column: 596px on a desktop, the full
+ * content width below 1200px.
  */
 const HERO_MEDIA_SIZES =
-  "(max-width: 699px) calc(100vw - 2rem), (max-width: 1023px) calc(100vw - 4rem), 800px";
+  "(max-width: 767px) calc(100vw - 2rem), (max-width: 1199px) calc(100vw - 4rem), 600px";
 
 export function FeaturedCarousel({
   slides,
@@ -35,12 +35,6 @@ export function FeaturedCarousel({
   const regionRef = useRef<HTMLDivElement>(null);
 
   const activeSlide = slides[activeIndex];
-  const previousSlides = [2, 1]
-    .filter((depth) => slides.length > depth)
-    .map((depth) => ({
-      depth,
-      slide: slides[(activeIndex - depth + slides.length) % slides.length],
-    }));
   const canAutoPlay =
     slides.length > 1 && !isHovered && !hasFocus && isPageVisible && !prefersReducedMotion;
 
@@ -94,62 +88,47 @@ export function FeaturedCarousel({
         if (!regionRef.current?.contains(event.relatedTarget as Node | null)) setHasFocus(false);
       }}
     >
-      <div className={styles.carouselDeck}>
-        {previousSlides.map(({ depth, slide }) => (
-          <div
-            key={`layer-${depth}`}
-            className={`${styles.deckLayer} ${depth === 1 ? styles.deckLayerMid : styles.deckLayerBack}`}
-            aria-hidden="true"
-          >
-            <MediaSurface
-              key={slide.id}
-              tone={slide.mediaTone}
-              label={slide.location}
-              hero={slide.hero}
-              className={styles.deckLayerMedia}
-            />
-          </div>
-        ))}
+      <div className={styles.carousel}>
+        <MediaSurface
+          key={`media-${activeSlide.id}`}
+          tone={activeSlide.mediaTone}
+          label={activeSlide.location}
+          hero={activeSlide.hero}
+          priority
+          sizes={HERO_MEDIA_SIZES}
+          className={styles.carouselMedia}
+        />
+        <div className={styles.carouselStory} key={`story-${activeSlide.id}`} aria-live="off">
+          <span className={styles.carouselLabel}>
+            {activeSlide.location} · {activeSlide.kicker}
+          </span>
+          <h1>
+            <Link href={`/haber/${activeSlide.slug}`}>{activeSlide.title}</Link>
+          </h1>
+          <p>{activeSlide.summary}</p>
+        </div>
 
-        <div className={styles.carousel}>
-          <MediaSurface
-            key={`media-${activeSlide.id}`}
-            tone={activeSlide.mediaTone}
-            label={activeSlide.location}
-            hero={activeSlide.hero}
-            priority
-            sizes={HERO_MEDIA_SIZES}
-            className={styles.carouselMedia}
-          />
-          <div className={styles.carouselStory} key={`story-${activeSlide.id}`} aria-live="off">
-            <h1 className="font-editorial">
-              <Link href={`/haber/${activeSlide.slug}`}>{activeSlide.title}</Link>
-            </h1>
-            <p>{activeSlide.summary}</p>
-          </div>
-
-          <div className={styles.carouselArrows}>
-            <button type="button" onClick={showPrevious} aria-label="Önceki manşet">
-              <CaretLeft aria-hidden="true" size={18} weight="bold" />
-            </button>
-            <button type="button" onClick={showNext} aria-label="Sonraki manşet">
-              <CaretRight aria-hidden="true" size={18} weight="bold" />
-            </button>
-          </div>
+        <div className={styles.carouselArrows}>
+          <button type="button" onClick={showPrevious} aria-label="Önceki manşet">
+            <CaretLeft aria-hidden="true" size={18} weight="bold" />
+          </button>
+          <button type="button" onClick={showNext} aria-label="Sonraki manşet">
+            <CaretRight aria-hidden="true" size={18} weight="bold" />
+          </button>
         </div>
       </div>
 
-      <div className={styles.carouselDots} aria-label="Manşet seçimi">
+      <div className={styles.carouselPages} role="group" aria-label="Manşet seçimi">
         {slides.map((slide, index) => (
           <button
             type="button"
             key={slide.id}
-            className={index === activeIndex ? styles.activeDot : undefined}
-            aria-label={`${index + 1}. manşeti göster`}
+            className={index === activeIndex ? styles.activePage : undefined}
+            aria-label={`${index + 1}. manşete git`}
             aria-current={index === activeIndex ? "true" : undefined}
             onClick={() => setActiveIndex(index)}
           >
-            <span>{index + 1}</span>
+            {index + 1}
           </button>
         ))}
       </div>

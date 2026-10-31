@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { ArrowRight } from "@phosphor-icons/react/dist/ssr/ArrowRight";
-import { BellRinging } from "@phosphor-icons/react/dist/ssr/BellRinging";
 import { NewsletterForm } from "@/components/site/newsletter-form";
 import { Sparkle } from "@phosphor-icons/react/dist/ssr/Sparkle";
 import { formatFullDate } from "@/lib/article-preview";
@@ -34,16 +33,71 @@ function SectionHeading({
   );
 }
 
-function BreakingRibbon({ article }: { article: ArticlePreview }) {
+function HeroCard({ article }: { article: ArticlePreview }) {
   return (
-    <aside className={styles.breakingRibbon} aria-label="Son dakika">
-      <span className={styles.breakingLabel}>
-        <BellRinging aria-hidden="true" size={18} weight="fill" />
-        Son dakika
+    <Link className={styles.heroCard} href={`/haber/${article.slug}`}>
+      <MediaSurface
+        tone={article.mediaTone}
+        label={article.location}
+        hero={article.hero}
+        sizes="(max-width: 767px) calc(100vw - 2rem), 286px"
+        className={styles.heroCardMedia}
+      />
+      <span className={styles.heroCardText}>
+        <span className={styles.heroCardKicker}>
+          {article.location} · {article.topic}
+        </span>
+        <strong className={styles.heroCardTitle}>{article.title}</strong>
       </span>
-      <Link href={`/haber/${article.slug}`}>{article.title}</Link>
-      <span className={styles.breakingTime}>{article.publishedLabel}</span>
-    </aside>
+    </Link>
+  );
+}
+
+/** The "Son dakika" card, or the newest story as "Gündem" when nothing is breaking. */
+function BreakingCard({ article, isBreaking }: { article: ArticlePreview; isBreaking: boolean }) {
+  return (
+    <Link className={styles.breakingCard} href={`/haber/${article.slug}`}>
+      <span className={styles.breakingTop}>
+        <span className={styles.breakingPill}>
+          {isBreaking && <span className={styles.breakingDot} aria-hidden="true" />}
+          {isBreaking ? "Son dakika" : "Gündem"}
+        </span>
+        <span className={styles.breakingTime}>{article.publishedLabel}</span>
+      </span>
+      <strong className={styles.breakingTitle}>{article.title}</strong>
+    </Link>
+  );
+}
+
+function HeroRail({ content }: { content: HomepageContent }) {
+  const cardArticle = content.breakingNews ?? content.latest[0] ?? null;
+  const stories = content.latest.filter((article) => article.id !== cardArticle?.id).slice(0, 4);
+
+  return (
+    <>
+      {cardArticle && (
+        <BreakingCard article={cardArticle} isBreaking={Boolean(content.breakingNews)} />
+      )}
+      <ul className={styles.rail}>
+        {stories.map((article) => (
+          <li key={article.id}>
+            <Link className={styles.railItem} href={`/haber/${article.slug}`}>
+              <MediaSurface
+                tone={article.mediaTone}
+                label={article.location}
+                hero={article.hero}
+                sizes="104px"
+                className={styles.railThumb}
+              />
+              <span className={styles.railText}>
+                <span className={styles.railTopic}>{article.topic}</span>
+                <span className={styles.railTitle}>{article.title}</span>
+              </span>
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </>
   );
 }
 
@@ -95,9 +149,7 @@ function NewsletterPanel({ spotlight }: { spotlight?: ArticlePreview }) {
           <span className={styles.newsletterSpotlightText}>
             <strong className="font-editorial">{spotlight.title}</strong>
             {spotlight.publishedAt && (
-              <time dateTime={spotlight.publishedAt}>
-                {formatFullDate(spotlight.publishedAt)}
-              </time>
+              <time dateTime={spotlight.publishedAt}>{formatFullDate(spotlight.publishedAt)}</time>
             )}
           </span>
         </Link>
@@ -124,7 +176,6 @@ export function HomepageState({ state }: { state: "empty" | "error" }) {
 export function HomepageLoading() {
   return (
     <div className={styles.homeLoading} aria-label="Ana sayfa yükleniyor" role="status">
-      <div className={styles.loadingRibbon} />
       <div className={styles.loadingHero}>
         <div />
         <div />
@@ -140,14 +191,17 @@ export function Homepage({ content }: { content: HomepageContent }) {
   return (
     <div className={styles.home}>
       <div className="shell-container">
-        {content.breakingNews && <BreakingRibbon article={content.breakingNews} />}
-
-        <section className={styles.heroGrid} aria-label="Günün öne çıkan haberleri">
-          <FeaturedCarousel slides={content.featured} />
-          <div className={styles.secondaryStories}>
-            {content.secondary.map((article) => (
-              <ArticleCard article={article} variant="secondary" key={article.id} />
+        <section className={styles.hero} aria-label="Günün öne çıkan haberleri">
+          <div className={styles.heroCenter}>
+            <FeaturedCarousel slides={content.featured} />
+          </div>
+          <div className={styles.heroLeft}>
+            {content.secondary.slice(0, 2).map((article) => (
+              <HeroCard article={article} key={article.id} />
             ))}
+          </div>
+          <div className={styles.heroRight}>
+            <HeroRail content={content} />
           </div>
         </section>
 

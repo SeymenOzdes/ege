@@ -39,6 +39,33 @@ describe("FeaturedCarousel", () => {
     expect(screen.queryByRole("button", { name: /Otomatik geçişi/ })).not.toBeInTheDocument();
   });
 
+  it("renders one numbered page button per slide and marks the active one", () => {
+    render(<FeaturedCarousel slides={featured} intervalMs={7000} />);
+
+    const pages = screen.getAllByRole("button", { name: /\. manşete git$/ });
+    expect(pages).toHaveLength(featured.length);
+    expect(pages[0]).toHaveTextContent("1");
+    expect(pages[0]).toHaveAttribute("aria-current", "true");
+    expect(pages[1]).not.toHaveAttribute("aria-current");
+
+    fireEvent.click(screen.getByRole("button", { name: "3. manşete git" }));
+
+    expect(screen.getByRole("heading", { name: featured[2].title })).toBeVisible();
+    expect(screen.getByRole("button", { name: "3. manşete git" })).toHaveAttribute(
+      "aria-current",
+      "true",
+    );
+    expect(screen.getByRole("button", { name: "1. manşete git" })).not.toHaveAttribute(
+      "aria-current",
+    );
+  });
+
+  it("shows the location and kicker as the slide label", () => {
+    render(<FeaturedCarousel slides={featured} intervalMs={7000} />);
+
+    expect(screen.getByText(`${featured[0].location} · ${featured[0].kicker}`)).toBeVisible();
+  });
+
   it("pauses while the carousel is hovered", () => {
     render(<FeaturedCarousel slides={featured} intervalMs={7000} />);
 
