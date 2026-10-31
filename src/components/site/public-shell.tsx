@@ -4,6 +4,7 @@ import { List } from "@phosphor-icons/react/dist/ssr/List";
 import { AccountMenu, MobileAccountLinks } from "@/components/site/account-menu";
 import { Brand } from "@/components/site/brand";
 import { NewsHeaderActions } from "@/components/site/news-header-actions";
+import { isSiteDemoModeEnabled } from "@/lib/auth/demo";
 
 const navigation = [
   ["Gündem", "/kategori/gundem"],
@@ -13,12 +14,14 @@ const navigation = [
 ] as const;
 
 const cityNavigation = [
+  ["Afyonkarahisar", "afyonkarahisar"],
   ["İzmir", "izmir"],
   ["Aydın", "aydin"],
   ["Muğla", "mugla"],
   ["Manisa", "manisa"],
   ["Denizli", "denizli"],
   ["Balıkesir", "balikesir"],
+  ["Kütahya", "kutahya"],
 ] as const;
 
 /**
@@ -102,7 +105,8 @@ export function PublicShell({ children }: { children: ReactNode }) {
           <nav aria-label="Üyelik">
             <strong>Takipte kal</strong>
             <Link href="/bulten">Bülten</Link>
-            <Link href="/giris">Okur girişi</Link>
+            {/* Demo aşamasında okur girişi kapatılır; bağlantı kodu kalır. */}
+            {isSiteDemoModeEnabled() ? null : <Link href="/giris">Okur girişi</Link>}
             <Link href="/kaydedilenler">Kaydedilenler</Link>
             <Link href="/gizlilik">Gizlilik</Link>
           </nav>

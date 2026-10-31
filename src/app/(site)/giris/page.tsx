@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { SubmitButton } from "@/components/site/submit-button";
+import { isSiteDemoModeEnabled } from "@/lib/auth/demo";
 import { sendMagicLink, signInWithGoogle } from "@/lib/auth/actions";
 import { getSafeRedirectPath, loginNotice } from "@/lib/auth/redirect";
 
@@ -12,6 +14,11 @@ type LoginPageProps = {
 };
 
 export default async function LoginPage({ searchParams }: LoginPageProps) {
+  // Demo aşamasında okur girişi kapalıdır: sayfanın kendisi ve tüm formları
+  // kod olarak burada kalır, yalnızca render edilmez; ziyaretçi ana sayfaya
+  // döner. Demo bittiğinde (NEXT_PUBLIC_DEMO_MODE=false) sayfa otomatik döner.
+  if (isSiteDemoModeEnabled()) redirect("/");
+
   const query = await searchParams;
   const next = getSafeRedirectPath(typeof query.next === "string" ? query.next : undefined);
   const notice = loginNotice(

@@ -39,6 +39,12 @@ export default defineConfig({
     // gerçekten giriş sayfasına düştüğünü doğrulamayı sürdürüyor, `yonetim.spec.ts`
     // ise oturumu o rotadan açıyor. Next 16 aynı dizinde ikinci bir dev sunucusuna
     // izin vermediği için iki proje tek sunucuyu paylaşmak zorunda.
-    env: { ...process.env, DEV_ADMIN_AUTO_LOGIN: "route" },
+    // Demo bayrağı testlerde kapalıdır: girişin taşladığı davranışlar
+    // (giriş sayfası, okur girişi bağlantıları) daima bu spec'lerde doğrulanır.
+    env: {
+      ...process.env,
+      DEV_ADMIN_AUTO_LOGIN: "route",
+      NEXT_PUBLIC_DEMO_MODE: "false",
+    },
   },
 });

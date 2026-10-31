@@ -3,6 +3,7 @@ import Link from "next/link";
 import { SignOut } from "@phosphor-icons/react/dist/ssr/SignOut";
 import { UserCircle } from "@phosphor-icons/react/dist/ssr/UserCircle";
 import { signOut } from "@/lib/auth/actions";
+import { isSiteDemoModeEnabled } from "@/lib/auth/demo";
 import type { CurrentUser } from "@/lib/auth/server";
 import { isStaffRole, type UserRole } from "@/lib/auth/roles";
 
@@ -36,6 +37,9 @@ function labelFor(user: CurrentUser) {
  */
 export function UserMenu({ user }: { user?: CurrentUser }) {
   if (!user) {
+    // Demo aşamasında okur girişi kapalıdır: anonim ziyaretçiye başlıkta hiç
+    // hesap rozeti gösterilmez. Admin rozeti yalnızca gerçek oturumla gelir.
+    if (isSiteDemoModeEnabled()) return null;
     return (
       <Link className="login-action" href="/giris">
         {chipIcon}

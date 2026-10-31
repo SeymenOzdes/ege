@@ -6,6 +6,7 @@ import { UserMenu } from "@/components/site/user-menu";
 import { ACCOUNT_CHIP_WIDTH_KEY } from "@/lib/account-chip-width";
 import { signOut } from "@/lib/auth/actions";
 import { useCurrentUser } from "@/lib/auth/use-current-user";
+import { isSiteDemoModeEnabled } from "@/lib/auth/demo";
 
 /**
  * The header's account area, wired to the browser-resolved session.
@@ -52,7 +53,12 @@ export function AccountMenu() {
 export function MobileAccountLinks() {
   const { user } = useCurrentUser();
 
-  if (!user) return <Link href="/giris">Giriş</Link>;
+  if (!user) {
+    // Demo aşamasında okur girişi kapalıdır: mobil menüde giriş bağlantısı
+    // gösterilmez, admin bağlantısı yalnızca gerçek oturumla görünür.
+    if (isSiteDemoModeEnabled()) return null;
+    return <Link href="/giris">Giriş</Link>;
+  }
 
   return (
     <>

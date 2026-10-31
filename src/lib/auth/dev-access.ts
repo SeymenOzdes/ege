@@ -1,5 +1,7 @@
 import "server-only";
 
+import { isSiteDemoModeEnabled } from "@/lib/auth/demo";
+
 const devAdminEmail = "dev-admin@ege.local";
 const devAdminPassword = "dev-admin-password";
 
@@ -27,6 +29,12 @@ export function isDevAdminAutoLoginEnabled() {
  * kapalıdır.
  */
 export function isDevAdminLoginRouteEnabled() {
+  // Demo aşamasında admin girişinin tek kapısı bu rotadır: giriş sayfası
+  // kapalı olduğu için barındırılan kurulumlarda da /yonetim'e giriş
+  // kalabilsin. Seed parolası repoda açıkça yazılı olduğu için bu kapıyı
+  // yalnızca demo süresince açık tutun; demo bitince bayrağı kapatın.
+  if (isSiteDemoModeEnabled()) return true;
+
   const flag = process.env.DEV_ADMIN_AUTO_LOGIN;
   return process.env.NODE_ENV === "development" && (flag === "true" || flag === "route");
 }

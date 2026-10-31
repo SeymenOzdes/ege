@@ -30,6 +30,9 @@ export default defineConfig({
       // need it pinned. The publishable key stays unset, which keeps
       // `hasSupabasePublicConfig()` false and every query adapter on its offline path.
       NEXT_PUBLIC_SUPABASE_URL: "https://proje.supabase.co",
+      // Demo aşaması bayrağı testlerde kapalıdır: UserMenu anonim durumda
+      // "Giriş" bağlantısını daima göstermelidir (bkz. playwright.config.ts).
+      NEXT_PUBLIC_DEMO_MODE: "false",
     },
   },
 });

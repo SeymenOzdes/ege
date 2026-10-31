@@ -34,7 +34,7 @@ export default function KunyePage() {
         <Fact label="Yayın türü">İnternet haber sitesi (süreli yayın)</Fact>
         <Fact label="Yayın dili">Türkçe</Fact>
         <Fact label="Yayın alanı">
-          Ege Bölgesi — İzmir, Aydın, Muğla, Manisa, Denizli, Balıkesir
+          Ege Bölgesi — Afyonkarahisar, İzmir, Aydın, Muğla, Manisa, Denizli, Balıkesir, Kütahya
         </Fact>
       </FactList>
 

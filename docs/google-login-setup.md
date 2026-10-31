@@ -23,7 +23,7 @@ Supabase, Google sağlayıcısı etkinleştirilmeden bu akış çalışmaz.
    **APIs & Services → Credentials → Create Credentials → OAuth client ID**
    - Application type: **Web application**
    - Authorized redirect URI: `https://<proje-ref>.supabase.co/auth/v1/callback`
-     (yerel geliştirme için: `http://127.0.0.1:54321/auth/v1/callback` — Supabase
+     (yerel geliştirme için: `http://127.0.0.1:54331/auth/v1/callback` — Supabase
      CLI'nın Auth servisinin adresi)
 2. Örnek uygulamada **OAuth consent screen**'i External olarak yapılandırın ve
    test kullanıcılarını ekleyin.

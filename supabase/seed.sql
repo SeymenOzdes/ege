@@ -45,6 +45,13 @@ set
   name = excluded.name,
   province_code = excluded.province_code;
 
+insert into public.locations (name, slug, province_code)
+values ('Afyonkarahisar', 'afyonkarahisar', '03')
+on conflict (slug) do update
+set
+  name = excluded.name,
+  province_code = excluded.province_code;
+
 insert into public.authors (name, slug, role_label, bio)
 values
   (
