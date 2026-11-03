@@ -1,19 +1,18 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import type { ComponentType, Ref } from "react";
+import type { Ref } from "react";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlass";
-import { XIcon } from "@phosphor-icons/react/dist/csr/X";
 
 type PanelId = "search";
 
 const panelActions: Readonly<
-  Record<PanelId, { label: string; closedIcon: ComponentType; openIcon: ComponentType }>
+  Record<PanelId, { label: string; closedText: string; openText: string }>
 > = {
   search: {
     label: "Haber ara",
-    closedIcon: MagnifyingGlassIcon,
-    openIcon: XIcon,
+    closedText: "Ara",
+    openText: "Kapat",
   },
 };
 
@@ -95,11 +94,10 @@ export function NewsHeaderActions() {
 
       {panelIds.map((id) => {
         const isOpen = openPanel === id;
-        const Icon = isOpen ? panelActions[id].openIcon : panelActions[id].closedIcon;
         return (
           <button
             key={id}
-            className="icon-button"
+            className="text-button"
             type="button"
             aria-label={panelActions[id].label}
             aria-expanded={isOpen}
@@ -109,7 +107,7 @@ export function NewsHeaderActions() {
               triggerRefs.current[id] = node;
             }}
           >
-            <Icon />
+            {isOpen ? panelActions[id].openText : panelActions[id].closedText}
           </button>
         );
       })}

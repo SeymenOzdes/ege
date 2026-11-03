@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import type { ReactNode } from "react";
-import { Montserrat } from "next/font/google";
+import { Montserrat, Newsreader } from "next/font/google";
 import "./globals.css";
 import { accountChipWidthScript } from "@/lib/account-chip-width";
 import { siteConfig } from "@/lib/site";
@@ -8,6 +8,14 @@ import { siteConfig } from "@/lib/site";
 const montserrat = Montserrat({
   subsets: ["latin", "latin-ext"],
   variable: "--font-montserrat",
+  display: "swap",
+});
+
+// Serif face for the masthead wordmark, as in the Paper design.
+const newsreader = Newsreader({
+  subsets: ["latin", "latin-ext"],
+  weight: ["700"],
+  variable: "--font-newsreader",
   display: "swap",
 });
 
@@ -24,7 +32,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: Readonly<{ children: ReactNode }>) {
   return (
-    <html lang="tr" className={`h-full ${montserrat.variable}`} suppressHydrationWarning>
+    <html lang="tr" className={`h-full ${montserrat.variable} ${newsreader.variable}`} suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: accountChipWidthScript }} />
       </head>

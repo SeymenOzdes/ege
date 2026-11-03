@@ -46,14 +46,7 @@ export function PublicShell({ children }: { children: ReactNode }) {
         </div>
 
         <div className="shell-container main-header-row">
-          <Brand className="header-brand" />
-          <nav className="primary-nav" aria-label="Ana menü">
-            {navigation.map(([label, href]) => (
-              <Link className="nav-link" href={href} key={href}>
-                {label}
-              </Link>
-            ))}
-          </nav>
+          <Brand className="header-brand" variant="wordmark" />
           <div className="header-tools">
             <NewsHeaderActions />
             <AccountMenu />
@@ -77,6 +70,16 @@ export function PublicShell({ children }: { children: ReactNode }) {
               <Link href="/bulten">Bültene katıl</Link>
             </nav>
           </details>
+        </div>
+
+        <div className="shell-container primary-nav-row">
+          <nav className="primary-nav" aria-label="Ana menü">
+            {navigation.map(([label, href]) => (
+              <Link className="nav-link" href={href} key={href}>
+                {label}
+              </Link>
+            ))}
+          </nav>
         </div>
       </header>
 
