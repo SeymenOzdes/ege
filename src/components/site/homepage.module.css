@@ -94,7 +94,7 @@
   display: block;
   overflow: hidden;
   aspect-ratio: 4 / 3;
-  border-radius: 14px;
+  border-radius: 0.5rem;
   background: var(--color-ink);
   color: white;
   isolation: isolate;
@@ -137,14 +137,6 @@
   background: linear-gradient(180deg, rgb(13 27 42 / 0%) 0%, rgb(13 27 42 / 92%) 100%);
 }
 
-.heroCardKicker {
-  color: #5fd3dc;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
 .heroCardTitle {
   margin: 0;
   font-size: 19px;
@@ -184,7 +176,7 @@
   position: relative;
   height: 420px;
   overflow: hidden;
-  border-radius: 16px;
+  border-radius: 0.5rem;
   background: var(--color-ink);
 }
 
@@ -224,17 +216,6 @@
   gap: 14px;
   padding: 24px 20px;
   color: white;
-}
-
-.carouselLabel {
-  padding: 6px 10px;
-  border-radius: 6px;
-  background: #0c7c86;
-  color: white;
-  font-size: 11px;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
 }
 
 .carouselStory h1 {
@@ -411,6 +392,7 @@
 }
 
 .breakingTime {
+  margin-left: auto;
   color: #b8e4e8;
   font-size: 12px;
   font-weight: 600;
@@ -463,21 +445,13 @@
   height: 72px;
   min-height: 0;
   padding: 0;
-  border-radius: 10px;
+  border-radius: 0.25rem;
 }
 
 .railText {
   display: grid;
   min-width: 0;
   gap: 5px;
-}
-
-.railTopic {
-  color: var(--color-teal);
-  font-size: 10px;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
 }
 
 .railTitle {
@@ -527,10 +501,186 @@
   }
 }
 
+/* ---- En Çok Okunanlar: reader-ranked list, three across ---- */
+.mostRead {
+  padding: 0 0 3.5rem;
+}
+
+/*
+ * The red mark sits on top of a hairline: the stub says where the section starts,
+ * the rest of the rule stays quiet so it does not compete with the hero above.
+ */
+.mostReadRule {
+  position: relative;
+  height: 2px;
+  background: rgb(13 27 42 / 12%);
+}
+
+.mostReadRule::before {
+  position: absolute;
+  top: -2px;
+  left: 0;
+  width: 4.5rem;
+  height: 6px;
+  background: linear-gradient(90deg, #a3131a, #cb2a2a);
+  content: "";
+}
+
+.mostReadHeading {
+  margin: 1.4rem 0 0;
+  font-size: clamp(1.5rem, 2.6vw, 2rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+}
+
+.mostReadList {
+  display: grid;
+  margin: 1.5rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.mostReadItem {
+  position: relative;
+  border-top: 1px solid rgb(13 27 42 / 12%);
+}
+
+.mostReadItem:first-child {
+  border-top: 0;
+}
+
+/*
+ * Column rules are pseudo-elements rather than `border-left`, so they stop short
+ * of the row rules and read as dividers between columns, not as a box grid.
+ */
+.mostReadItem::before {
+  position: absolute;
+  top: 1.5rem;
+  bottom: 1.5rem;
+  left: 0;
+  width: 1px;
+  background: rgb(13 27 42 / 12%);
+  content: none;
+}
+
+.mostReadLink {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  align-items: start;
+  gap: clamp(0.85rem, 1.8vw, 1.4rem);
+  padding: 1.6rem 0;
+  color: var(--color-ink);
+  text-decoration: none;
+}
+
+.mostReadNumber {
+  /* The gradient is painted inside this box and clipped to the glyphs, so the
+     box has to be taller than the numerals. `line-height: 0.78` made it shorter,
+     which cut the ascender off every digit; the padding buys the room back and
+     the matching negative margins keep the compact rhythm. */
+  display: block;
+  margin-block: -0.16em;
+  padding-block: 0.16em;
+  background: linear-gradient(155deg, #8f1116 4%, #c92626 48%, #f0a8a2 100%);
+  background-clip: text;
+  color: transparent;
+  font-family: var(--font-newsreader), Georgia, "Times New Roman", serif;
+  font-size: clamp(2.5rem, 4.4vw, 3.9rem);
+  font-weight: 700;
+  letter-spacing: -0.05em;
+  line-height: 1.05;
+  -webkit-background-clip: text;
+}
+
+.mostReadTitle {
+  padding-top: 0.1rem;
+  font-size: clamp(1.02rem, 1.5vw, 1.24rem);
+  font-weight: 700;
+  letter-spacing: -0.015em;
+  line-height: 1.3;
+}
+
+.mostReadLink:hover .mostReadTitle {
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 0.22em;
+}
+
+.mostReadLink:focus-visible {
+  outline: 2px solid var(--color-teal);
+  outline-offset: -2px;
+}
+
+@media (min-width: 700px) {
+  .mostReadList {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .mostReadItem {
+    padding-inline: clamp(1rem, 2.4vw, 2rem);
+  }
+
+  .mostReadItem:nth-child(-n + 2) {
+    border-top: 0;
+  }
+
+  .mostReadItem:nth-child(2n)::before {
+    content: "";
+  }
+
+  .mostReadItem:nth-child(2n + 1) {
+    padding-left: 0;
+  }
+
+  .mostReadItem:nth-child(2n) {
+    padding-right: 0;
+  }
+}
+
+@media (min-width: 1024px) {
+  .mostReadList {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+
+  /* `nth-child(n)` matches every item and outranks the two-column resets above. */
+  .mostReadItem:nth-child(n) {
+    padding-inline: clamp(1rem, 2.4vw, 2rem);
+  }
+
+  .mostReadItem:nth-child(-n + 3) {
+    border-top: 0;
+  }
+
+  .mostReadItem:nth-child(n)::before {
+    content: none;
+  }
+
+  .mostReadItem:nth-child(3n + 2)::before,
+  .mostReadItem:nth-child(3n)::before {
+    content: "";
+  }
+
+  .mostReadItem:nth-child(3n + 1) {
+    padding-left: 0;
+  }
+
+  .mostReadItem:nth-child(3n) {
+    padding-right: 0;
+  }
+}
+
+@media (forced-colors: active) {
+  .mostReadNumber {
+    background: none;
+    color: CanvasText;
+  }
+}
+
 .articleCard {
   overflow: hidden;
   border: 1px solid rgb(13 27 42 / 9%);
-  border-radius: var(--radius-media);
+  border-radius: 0.5rem;
   background: rgb(255 255 255 / 66%);
   box-shadow: 0 10px 30px rgb(13 27 42 / 6%);
 }
@@ -687,7 +837,7 @@
 .articleCardfeed .cardMedia {
   min-height: 0;
   padding: 0;
-  border-radius: 0.35rem;
+  border-radius: 0.25rem;
   aspect-ratio: 16 / 9;
 }
 
@@ -746,7 +896,7 @@
   grid-column: 2;
   min-height: 0;
   padding: 0;
-  border-radius: 0.35rem;
+  border-radius: 0.25rem;
   aspect-ratio: 4 / 3;
 }
 
@@ -970,7 +1120,7 @@
   display: block;
   overflow: hidden;
   aspect-ratio: 16 / 9;
-  border-radius: var(--radius-media);
+  border-radius: 0.5rem;
   color: white;
   isolation: isolate;
 }
@@ -1078,7 +1228,7 @@
 }
 
 .loadingHero > div {
-  border-radius: var(--radius-media);
+  border-radius: 0.5rem;
   background: rgb(13 27 42 / 7%);
   animation: loadingPulse 1.3s ease-in-out infinite alternate;
 }

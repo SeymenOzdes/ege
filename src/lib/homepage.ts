@@ -50,6 +50,8 @@ export type HomepageContent = {
   featured: FeaturedStory[];
   secondary: ArticlePreview[];
   latest: ArticlePreview[];
+  /** Ranked by `view_count`, independent of the publication-order feed above. */
+  mostRead: ArticlePreview[];
   topicSections: TopicSection[];
   loadError: boolean;
 };
@@ -68,6 +70,12 @@ export const SECONDARY_COUNT = 2;
 export const LATEST_COUNT = 6;
 export const HOMEPAGE_FEED_LIMIT = FEATURED_COUNT + SECONDARY_COUNT + LATEST_COUNT;
 
+/**
+ * The "En Çok Okunanlar" grid is three columns by three rows; a shorter list
+ * leaves the last row ragged, so the query asks for exactly these nine.
+ */
+export const MOST_READ_COUNT = 9;
+
 /** A topic section renders a lead plus two side stories; with fewer it is dropped. */
 export const TOPIC_SECTION_COUNT = 4;
 export const TOPIC_SECTION_SIZE = 3;
@@ -77,6 +85,7 @@ export const emptyHomepageContent: HomepageContent = {
   featured: [],
   secondary: [],
   latest: [],
+  mostRead: [],
   topicSections: [],
   loadError: false,
 };
@@ -97,6 +106,7 @@ export function composeHomepage(
   feed: ArticlePreview[],
   breakingNews: ArticlePreview | null,
   topicGroups: TopicGroup[],
+  mostRead: ArticlePreview[] = [],
 ): HomepageContent {
   // The carousel takes up to FEATURED_COUNT stories, but never the ones the side rails
   // and the timeline need: on a thin feed it shrinks toward FEATURED_MIN_COUNT rather
@@ -119,6 +129,9 @@ export function composeHomepage(
       featuredCount + SECONDARY_COUNT,
       featuredCount + SECONDARY_COUNT + LATEST_COUNT,
     ),
+    // Kept separate from `feed` on purpose: this list is ranked by readers, not by
+    // publication time, so an old story can outrank today's lead.
+    mostRead: mostRead.slice(0, MOST_READ_COUNT),
     topicSections: topicGroups
       // A section without a lead and two stories would render half-empty.
       .filter((group) => group.articles.length >= TOPIC_SECTION_SIZE)

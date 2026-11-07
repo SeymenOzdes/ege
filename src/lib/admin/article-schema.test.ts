@@ -4,6 +4,7 @@ import {
   articleFormSchema,
   canTransition,
   getAllowedTransitions,
+  resolvePublishTarget,
   getFirstIssueMessage,
   readArticleForm,
   slugify,
@@ -67,16 +68,16 @@ describe("editoryal saat dönüşümü", () => {
 
 describe("canTransition", () => {
   it("plandaki akışı izler", () => {
-    expect(canTransition("DRAFT", "IN_REVIEW")).toBe(true);
     expect(canTransition("IN_REVIEW", "PUBLISHED")).toBe(true);
     expect(canTransition("SCHEDULED", "PUBLISHED")).toBe(true);
     expect(canTransition("PUBLISHED", "ARCHIVED")).toBe(true);
     expect(canTransition("ARCHIVED", "DRAFT")).toBe(true);
   });
 
-  it("taslağın incelemeyi atlayıp yayına çıkmasına izin vermez", () => {
-    expect(canTransition("DRAFT", "PUBLISHED")).toBe(false);
-    expect(canTransition("DRAFT", "SCHEDULED")).toBe(false);
+  it("tek kişilik akışta taslak doğrudan yayına ya da zamanlamaya geçer", () => {
+    expect(canTransition("DRAFT", "PUBLISHED")).toBe(true);
+    expect(canTransition("DRAFT", "SCHEDULED")).toBe(true);
+    expect(canTransition("ARCHIVED", "PUBLISHED")).toBe(true);
   });
 
   it("yayımlanmış haberi taslağa geri almaz", () => {
@@ -85,7 +86,25 @@ describe("canTransition", () => {
   });
 });
 
+describe("resolvePublishTarget", () => {
+  const now = new Date("2026-11-07T12:00:00.000Z");
+
+  it("tarih yoksa ya da geçmişteyse hemen yayımlar", () => {
+    expect(resolvePublishTarget(null, now)).toBe("PUBLISHED");
+    expect(resolvePublishTarget("2026-11-07T11:00:00.000Z", now)).toBe("PUBLISHED");
+  });
+
+  it("ileri bir tarih varsa zamanlar", () => {
+    expect(resolvePublishTarget("2026-11-08T09:00:00.000Z", now)).toBe("SCHEDULED");
+  });
+});
+
 describe("articleFormSchema", () => {
+  it("adres boş bırakılırsa başlıktan türetir", () => {
+    const parsed = articleFormSchema.parse(readArticleForm(buildFormData({ slug: "" })));
+    expect(parsed.slug).toBe("bornovada-yeni-tramvay-hatti-acildi");
+  });
+
   it("formu şemanın beklediği değerlere çevirir", () => {
     const parsed = articleFormSchema.parse(readArticleForm(buildFormData()));
 

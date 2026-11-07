@@ -17,11 +17,11 @@ export default async function NewArticlePage({ searchParams }: NewArticlePagePro
         <AdminPageHeader
           description={
             isBreaking
-              ? "Son dakika taslağı açılıyor. Kaydettikten sonra yayına çıkmadan önce editoryal inceleme gerekiyor."
-              : "Haber taslağı olarak kaydedilir; yayına geçiş inceleme adımından sonra yapılır."
+              ? "Son dakika olarak işaretli açılıyor. Yazıp görseli ekledikten sonra “Yayımla” ile hemen canlıya çıkar."
+              : "Başlığı, görseli ve metni ekleyip “Yayımla”ya basın; haber hemen sitede yayına çıkar."
           }
           eyebrow={isBreaking ? "Son dakika" : "Yeni haber"}
-          title={isBreaking ? "Son dakika taslağı" : "Yeni haber"}
+          title={isBreaking ? "Son dakika haberi" : "Yeni haber"}
         />
 
         {options.loadError ? (

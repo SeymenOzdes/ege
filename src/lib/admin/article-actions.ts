@@ -11,6 +11,8 @@ import {
   getFirstIssueMessage,
   parseArticleStatus,
   readArticleForm,
+  readSaveIntent,
+  resolvePublishTarget,
   type ArticleFormValues,
   type ArticleStatus,
 } from "@/lib/admin/article-schema";
@@ -152,12 +154,14 @@ export async function createArticle(formData: FormData): Promise<ArticleActionSt
   const parsed = articleFormSchema.safeParse(readArticleForm(formData));
   if (!parsed.success) return { error: getFirstIssueMessage(parsed.error) };
 
-  const columns = toArticleColumns(parsed.data);
+  const intent = readSaveIntent(formData);
+  const status: ArticleStatus =
+    intent === "publish" ? resolvePublishTarget(parsed.data.scheduledAt) : "DRAFT";
+  const columns = { ...toArticleColumns(parsed.data), ...toStatusColumns(status, null) };
   const { data, error } = await staff.supabase
     .from("articles")
     .insert({
       ...columns,
-      status: "DRAFT",
       created_by: staff.userId,
       updated_by: staff.userId,
     })
@@ -173,8 +177,8 @@ export async function createArticle(formData: FormData): Promise<ArticleActionSt
     };
   }
 
-  await recordRevision(staff, data.id, { ...columns, status: "DRAFT" });
-  await recordAudit(staff.userId, "article.create", data.id, { slug: data.slug });
+  await recordRevision(staff, data.id, columns);
+  await recordAudit(staff.userId, "article.create", data.id, { slug: data.slug, status });
 
   revalidateArticleSurfaces({
     slug: data.slug,
@@ -182,8 +186,10 @@ export async function createArticle(formData: FormData): Promise<ArticleActionSt
     authorSlug: data.author?.slug,
   });
 
-  // Taslak artık kimliğiyle var; editör aynı formda düzenlemeye devam etsin.
-  redirect(`/yonetim/haberler/${data.id}?bilgi=olusturuldu`);
+  // Haber artık kimliğiyle var; editör aynı formda düzenlemeye devam etsin.
+  const notice =
+    status === "PUBLISHED" ? "yayimlandi" : status === "SCHEDULED" ? "zamanlandi" : "olusturuldu";
+  redirect(`/yonetim/haberler/${data.id}?bilgi=${notice}`);
 }
 
 export async function updateArticle(formData: FormData): Promise<ArticleActionState> {
@@ -206,7 +212,21 @@ export async function updateArticle(formData: FormData): Promise<ArticleActionSt
 
   if (!current) return { error: "Haber bulunamadı." };
 
-  const columns = toArticleColumns(parsed.data);
+  // "Yayımla" henüz yayında olmayan bir haberi kaydedip aynı adımda yayına
+  // (ya da ileri tarih varsa zamanlamaya) alıyor; yayındaki haberde düz kayıttır.
+  const publishTarget =
+    readSaveIntent(formData) === "publish" && current.status !== "PUBLISHED"
+      ? resolvePublishTarget(parsed.data.scheduledAt)
+      : undefined;
+
+  if (publishTarget === "PUBLISHED" && parsed.data.blocks.length === 0) {
+    return { error: "Gövdesi boş bir haber yayımlanamaz." };
+  }
+
+  const columns = {
+    ...toArticleColumns(parsed.data),
+    ...(publishTarget ? toStatusColumns(publishTarget, current.published_at) : {}),
+  };
   const { data, error } = await staff.supabase
     .from("articles")
     .update({ ...columns, updated_by: staff.userId })
@@ -232,6 +252,7 @@ export async function updateArticle(formData: FormData): Promise<ArticleActionSt
   await recordAudit(staff.userId, "article.update", current.id, {
     slug: data.slug,
     previous_slug: slugChanged ? current.slug : null,
+    ...(publishTarget ? { from: current.status, to: publishTarget } : {}),
   });
 
   revalidateArticleSurfaces({
@@ -242,6 +263,8 @@ export async function updateArticle(formData: FormData): Promise<ArticleActionSt
   });
   revalidatePath(`/yonetim/haberler/${current.id}`);
 
+  if (publishTarget === "PUBLISHED") return { success: "Haber yayımlandı." };
+  if (publishTarget === "SCHEDULED") return { success: "Haber zamanlandı; tarihi gelince yayına çıkacak." };
   return { success: "Haber kaydedildi." };
 }
 

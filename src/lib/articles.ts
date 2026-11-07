@@ -12,6 +12,7 @@ import {
 import { getRelatedArticles } from "@/lib/archives";
 import { sanitizeHref } from "@/lib/article-links";
 import type { ArticleImage, ArticlePreview } from "@/lib/homepage";
+import { getMockArticleDetail, mockHeroForSlug, withMockHero } from "@/lib/mock-news";
 import { createAnonClient } from "@/lib/supabase/anon";
 import { hasSupabasePublicConfig } from "@/lib/supabase/config";
 
@@ -212,6 +213,13 @@ function toPreviewRow(row: ArticleDetailRow): ArticlePreviewRow {
  * Editors preview unpublished work in the admin panel instead.
  */
 export const getArticleBySlug = cache(async (slug: string): Promise<ArticleDetail | undefined> => {
+  // Geliştirme önizlemesi: ana sayfadaki mock manşetler de gerçek bir detay
+  // sayfasına açılsın. Üretimde bu dal hiç çalışmaz.
+  if (process.env.NODE_ENV !== "production") {
+    const mock = getMockArticleDetail(slug);
+    if (mock) return mock;
+  }
+
   if (!hasSupabasePublicConfig()) return undefined;
 
   const supabase = createAnonClient();
@@ -233,13 +241,18 @@ export const getArticleBySlug = cache(async (slug: string): Promise<ArticleDetai
   const updatedAt = row.updated_at && row.updated_at > publishedAt ? row.updated_at : undefined;
 
   const preview = toArticlePreview(toPreviewRow(row));
+  const isPreview = process.env.NODE_ENV !== "production";
+  // Geliştirme önizlemesinde hero görseli olmayan habere yerel fotoğraf bağlanır;
+  // kartta görünen resimle detay sayfasındaki resim aynı kaynaktan gelir.
+  const hero = preview.hero ?? (isPreview ? mockHeroForSlug(row.slug) : undefined);
+  const related = await getRelatedArticles(row.id, row.topic?.id ?? null, 3);
 
   return {
     ...preview,
     // The cards need no credit line; the detail figure does, so it is layered on here
     // rather than widening the shared preview shape.
-    hero: preview.hero && {
-      ...preview.hero,
+    hero: hero && {
+      ...hero,
       caption: row.hero?.caption ?? undefined,
       credit: row.hero?.credit ?? undefined,
     },
@@ -254,7 +267,7 @@ export const getArticleBySlug = cache(async (slug: string): Promise<ArticleDetai
     updatedDisplay: updatedAt ? formatFullDateTime(updatedAt) : undefined,
     body: parseArticleBody(row.body),
     topicDescription: row.topic?.description ?? undefined,
-    related: await getRelatedArticles(row.id, row.topic?.id ?? null, 3),
+    related: isPreview ? related.map(withMockHero) : related,
   };
 });
 

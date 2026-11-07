@@ -44,24 +44,23 @@ function HeroCard({ article }: { article: ArticlePreview }) {
         className={styles.heroCardMedia}
       />
       <span className={styles.heroCardText}>
-        <span className={styles.heroCardKicker}>
-          {article.location} · {article.topic}
-        </span>
         <strong className={styles.heroCardTitle}>{article.title}</strong>
       </span>
     </Link>
   );
 }
 
-/** The "Son dakika" card, or the newest story as "Gündem" when nothing is breaking. */
+/** The newest story, badged "Son dakika" when it is actually breaking. */
 function BreakingCard({ article, isBreaking }: { article: ArticlePreview; isBreaking: boolean }) {
   return (
     <Link className={styles.breakingCard} href={`/haber/${article.slug}`}>
       <span className={styles.breakingTop}>
-        <span className={styles.breakingPill}>
-          {isBreaking && <span className={styles.breakingDot} aria-hidden="true" />}
-          {isBreaking ? "Son dakika" : "Gündem"}
-        </span>
+        {isBreaking && (
+          <span className={styles.breakingPill}>
+            <span className={styles.breakingDot} aria-hidden="true" />
+            Son dakika
+          </span>
+        )}
         <span className={styles.breakingTime}>{article.publishedLabel}</span>
       </span>
       <strong className={styles.breakingTitle}>{article.title}</strong>
@@ -90,7 +89,6 @@ function HeroRail({ content }: { content: HomepageContent }) {
                 className={styles.railThumb}
               />
               <span className={styles.railText}>
-                <span className={styles.railTopic}>{article.topic}</span>
                 <span className={styles.railTitle}>{article.title}</span>
               </span>
             </Link>
@@ -98,6 +96,37 @@ function HeroRail({ content }: { content: HomepageContent }) {
         ))}
       </ul>
     </>
+  );
+}
+
+/**
+ * The reader-ranked grid under the hero: nine stories, three across, with the
+ * rank drawn as a large numeral. The data comes from `view_count`, so it is the
+ * one list on the page whose order has nothing to do with publication time.
+ */
+function MostRead({ articles }: { articles: ArticlePreview[] }) {
+  if (articles.length === 0) return null;
+
+  return (
+    <section className={styles.mostRead} aria-labelledby="en-cok-okunanlar-baslik">
+      <div className={styles.mostReadRule} aria-hidden="true" />
+      <h2 className={styles.mostReadHeading} id="en-cok-okunanlar-baslik">
+        En Çok Okunanlar
+      </h2>
+      <ol className={styles.mostReadList}>
+        {articles.map((article, index) => (
+          <li className={styles.mostReadItem} key={article.id}>
+            <Link className={styles.mostReadLink} href={`/haber/${article.slug}`}>
+              {/* The numeral is decoration: the list itself already carries the order. */}
+              <span className={styles.mostReadNumber} aria-hidden="true">
+                {index + 1}
+              </span>
+              <span className={styles.mostReadTitle}>{article.title}</span>
+            </Link>
+          </li>
+        ))}
+      </ol>
+    </section>
   );
 }
 
@@ -204,6 +233,8 @@ export function Homepage({ content }: { content: HomepageContent }) {
             <HeroRail content={content} />
           </div>
         </section>
+
+        <MostRead articles={content.mostRead} />
 
         <AdSlot placement="HOME_LEADER" />
 

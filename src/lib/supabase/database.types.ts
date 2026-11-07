@@ -174,6 +174,7 @@ export type Database = {
           topic_id: string | null;
           updated_at: string;
           updated_by: string | null;
+          view_count: number;
         };
         Insert: {
           archived_at?: string | null;
@@ -201,6 +202,7 @@ export type Database = {
           topic_id?: string | null;
           updated_at?: string;
           updated_by?: string | null;
+          view_count?: number;
         };
         Update: {
           archived_at?: string | null;
@@ -228,6 +230,7 @@ export type Database = {
           topic_id?: string | null;
           updated_at?: string;
           updated_by?: string | null;
+          view_count?: number;
         };
         Relationships: [
           {
@@ -709,6 +712,7 @@ export type Database = {
       [_ in never]: never;
     };
     Functions: {
+      record_article_view: { Args: { p_slug: string }; Returns: undefined };
       search_published_articles: {
         Args: {
           p_limit?: number;

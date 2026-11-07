@@ -7,6 +7,12 @@ import { getAdminArticle, getArticleFormOptions } from "@/lib/admin/articles";
 
 export const dynamic = "force-dynamic";
 
+const noticeByCode: Record<string, string | undefined> = {
+  olusturuldu: "Taslak kaydedildi.",
+  yayimlandi: "Haber yayımlandı ve sitede görünüyor.",
+  zamanlandi: "Haber zamanlandı; tarihi gelince yayına çıkacak.",
+};
+
 type EditArticlePageProps = {
   params: Promise<{ id: string }>;
   searchParams: Promise<{ bilgi?: string | string[] }>;
@@ -38,7 +44,7 @@ export default async function EditArticlePage({ params, searchParams }: EditArti
               </Link>
             ) : undefined
           }
-          description={`Durum: ${articleStatusLabels[article.status]}. Sağdaki önizleme, haber sayfasındaki tipografiyi birebir kullanır.`}
+          description={`Durum: ${articleStatusLabels[article.status]}.`}
           eyebrow="Haberler"
           title={article.title}
         />
@@ -51,7 +57,7 @@ export default async function EditArticlePage({ params, searchParams }: EditArti
 
         <ArticleForm
           article={article}
-          notice={query.bilgi === "olusturuldu" ? "Taslak oluşturuldu." : undefined}
+          notice={noticeByCode[typeof query.bilgi === "string" ? query.bilgi : ""]}
           options={options}
         />
       </div>

@@ -22,7 +22,7 @@ const mediaRegistrationSchema = z.object({
   focalPointY: z.coerce.number().min(0).max(1),
 });
 
-export type MediaActionState = { error?: string; success?: string };
+export type MediaActionState = { error?: string; success?: string; id?: string };
 
 export async function registerMediaAsset(formData: FormData): Promise<MediaActionState> {
   if (!hasSupabasePublicConfig()) {
@@ -55,7 +55,7 @@ export async function registerMediaAsset(formData: FormData): Promise<MediaActio
     return { error: "Bu işlem için editoryal yetki gerekiyor." };
   }
 
-  const { error } = await supabase.from("media_assets").insert({
+  const { data, error } = await supabase.from("media_assets").insert({
     alt_text: parsed.data.altText,
     bucket_id: NEWS_MEDIA_BUCKET,
     byte_size: parsed.data.byteSize,
@@ -68,11 +68,11 @@ export async function registerMediaAsset(formData: FormData): Promise<MediaActio
     object_path: parsed.data.objectPath,
     uploaded_by: userId,
     width: parsed.data.width,
-  });
+  }).select("id").single();
 
-  if (error) {
+  if (error || !data) {
     return { error: "Görsel kaydı oluşturulamadı. Aynı dosya yolu yeniden kullanılamaz." };
   }
 
-  return { success: "Görsel medya kütüphanesine eklendi." };
+  return { success: "Görsel medya kütüphanesine eklendi.", id: data.id };
 }

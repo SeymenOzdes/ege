@@ -79,4 +79,20 @@ describe("composeHomepage", () => {
     expect(composeHomepage(makePreviews(3), breaking, []).breakingNews).toEqual(breaking);
     expect(composeHomepage(makePreviews(3), null, []).breakingNews).toBeNull();
   });
+
+  it("keeps the most-read list in the reader ranking, not publication order", () => {
+    const ranked = [makePreview(40), makePreview(41), makePreview(42)];
+
+    const content = composeHomepage(makePreviews(3), null, [], ranked);
+
+    expect(content.mostRead.map((story) => story.slug)).toEqual([
+      "haber-40",
+      "haber-41",
+      "haber-42",
+    ]);
+  });
+
+  it("defaults to no most-read list when the caller has no ranking", () => {
+    expect(composeHomepage(makePreviews(3), null, []).mostRead).toEqual([]);
+  });
 });

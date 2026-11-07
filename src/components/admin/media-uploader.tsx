@@ -1,32 +1,7 @@
 "use client";
 
 import { useRef, useState } from "react";
-import { registerMediaAsset } from "@/lib/media/actions";
-import {
-  NEWS_MEDIA_BUCKET,
-  createMediaObjectPath,
-  getMediaUploadError,
-  isSupportedImageMimeType,
-} from "@/lib/media";
-import { createClient } from "@/lib/supabase/client";
-
-type ImageDimensions = { width: number; height: number };
-
-function getImageDimensions(file: File): Promise<ImageDimensions> {
-  return new Promise((resolve, reject) => {
-    const url = URL.createObjectURL(file);
-    const image = new Image();
-    image.onload = () => {
-      URL.revokeObjectURL(url);
-      resolve({ width: image.naturalWidth, height: image.naturalHeight });
-    };
-    image.onerror = () => {
-      URL.revokeObjectURL(url);
-      reject(new Error("image_dimensions_failed"));
-    };
-    image.src = url;
-  });
-}
+import { uploadImage } from "@/lib/media/upload";
 
 export function MediaUploader() {
   const formRef = useRef<HTMLFormElement>(null);
@@ -35,18 +10,11 @@ export function MediaUploader() {
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const form = event.currentTarget;
-    const formData = new FormData(form);
+    const formData = new FormData(event.currentTarget);
     const file = formData.get("file");
 
-    if (!(file instanceof File)) {
+    if (!(file instanceof File) || file.size === 0) {
       setMessage("Yüklenecek bir görsel seçin.");
-      return;
-    }
-
-    const validationError = getMediaUploadError(file);
-    if (validationError || !isSupportedImageMimeType(file.type)) {
-      setMessage(validationError ?? "Dosya türü desteklenmiyor.");
       return;
     }
 
@@ -54,34 +22,15 @@ export function MediaUploader() {
     setMessage(undefined);
 
     try {
-      const dimensions = await getImageDimensions(file);
-      const objectPath = createMediaObjectPath(file.type, crypto.randomUUID());
-      const supabase = createClient();
-      const { error: uploadError } = await supabase.storage
-        .from(NEWS_MEDIA_BUCKET)
-        .upload(objectPath, file, {
-          cacheControl: "31536000",
-          contentType: file.type,
-          upsert: false,
-        });
-
-      if (uploadError) {
-        setMessage("Görsel yüklenemedi. Yetkinizi ve dosyayı kontrol edin.");
-        return;
-      }
-
-      formData.set("objectPath", objectPath);
-      formData.set("mimeType", file.type);
-      formData.set("byteSize", String(file.size));
-      formData.set("width", String(dimensions.width));
-      formData.set("height", String(dimensions.height));
-      formData.delete("file");
-
-      const result = await registerMediaAsset(formData);
-      setMessage(result.success ?? result.error ?? "Görsel kaydı tamamlanamadı.");
-      if (result.success) formRef.current?.reset();
-    } catch {
-      setMessage("Görsel boyutları okunamadı. Başka bir görsel deneyin.");
+      const result = await uploadImage(file, {
+        altText: String(formData.get("altText") ?? ""),
+        caption: String(formData.get("caption") ?? ""),
+        credit: String(formData.get("credit") ?? ""),
+        focalPointX: Number(formData.get("focalPointX") ?? 0.5),
+        focalPointY: Number(formData.get("focalPointY") ?? 0.5),
+      });
+      setMessage(result.message);
+      if (result.ok) formRef.current?.reset();
     } finally {
       setIsPending(false);
     }

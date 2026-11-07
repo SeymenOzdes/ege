@@ -99,9 +99,6 @@ export function FeaturedCarousel({
           className={styles.carouselMedia}
         />
         <div className={styles.carouselStory} key={`story-${activeSlide.id}`} aria-live="off">
-          <span className={styles.carouselLabel}>
-            {activeSlide.location} · {activeSlide.kicker}
-          </span>
           <h1>
             <Link href={`/haber/${activeSlide.slug}`}>{activeSlide.title}</Link>
           </h1>

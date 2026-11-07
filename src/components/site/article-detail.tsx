@@ -6,6 +6,7 @@ import type { ArticleDetail as ArticleDetailType } from "@/lib/articles";
 import { siteConfig } from "@/lib/site";
 import { MediaSurface } from "@/components/site/article-card";
 import { ArticleActions } from "@/components/site/article-actions";
+import { ArticleViewBeacon } from "@/components/site/article-view-beacon";
 import { BodyBlock } from "@/components/site/article-body";
 import styles from "./article-detail.module.css";
 
@@ -38,6 +39,7 @@ export function ArticleDetail({ article }: { article: ArticleDetailType }) {
 
   return (
     <article className={styles.articlePage}>
+      <ArticleViewBeacon slug={article.slug} />
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd).replace(/</g, "\\u003c") }}
@@ -122,9 +124,7 @@ export function ArticleDetail({ article }: { article: ArticleDetailType }) {
             </div>
           </section>
         )}
-
       </div>
-
       {/* İlgili haberler: her kartta yalnız görsel ve başlık. */}
       {article.related.length > 0 && (
         <section className={styles.related} aria-labelledby="related-title">

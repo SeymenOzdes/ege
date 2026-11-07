@@ -891,7 +891,7 @@ button.header-action {
 .loading-card {
   overflow: hidden;
   border: 1px solid rgb(13 27 42 / 9%);
-  border-radius: var(--radius-media);
+  border-radius: 0.5rem;
   background: var(--color-white);
   box-shadow: var(--shadow-soft);
 }

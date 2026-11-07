@@ -36,7 +36,7 @@ export function AdminQuickActions() {
               Son dakika taslağı açılsın mı?
             </h2>
             <p className="mt-3 leading-6 text-[var(--color-ink-muted)]">
-              Taslak, yayınlanmadan önce editoryal inceleme ve onay gerektirir.
+              Yazın, görseli ekleyin, “Yayımla”ya basın — haber hemen canlıya çıkar.
             </p>
             <div className="mt-6 flex flex-wrap justify-end gap-3">
               <button

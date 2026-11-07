@@ -60,10 +60,13 @@ describe("FeaturedCarousel", () => {
     );
   });
 
-  it("shows the location and kicker as the slide label", () => {
+  it("leaves the slide unlabelled, with the headline as the first line", () => {
     render(<FeaturedCarousel slides={featured} intervalMs={7000} />);
 
-    expect(screen.getByText(`${featured[0].location} · ${featured[0].kicker}`)).toBeVisible();
+    expect(
+      screen.queryByText(`${featured[0].location} · ${featured[0].kicker}`),
+    ).not.toBeInTheDocument();
+    expect(screen.getByRole("heading", { name: featured[0].title })).toBeVisible();
   });
 
   it("pauses while the carousel is hovered", () => {

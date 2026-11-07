@@ -99,15 +99,36 @@ export function toEditorialLocalInput(value: string | null | undefined): string 
   return shifted.toISOString().slice(0, 16);
 }
 
+/**
+ * Site tek kişilik bir yazı işleriyle çalışıyor: ayrı bir onaylayan yok, bu
+ * yüzden taslak inceleme adımını atlayıp doğrudan yayına ya da zamanlamaya
+ * geçebiliyor. `IN_REVIEW` yalnızca eski kayıtlar için şemada duruyor.
+ */
 const allowedTransitions: Record<ArticleStatus, readonly ArticleStatus[]> = {
-  DRAFT: ["IN_REVIEW", "ARCHIVED"],
+  DRAFT: ["PUBLISHED", "SCHEDULED", "ARCHIVED"],
   IN_REVIEW: ["DRAFT", "SCHEDULED", "PUBLISHED", "ARCHIVED"],
-  SCHEDULED: ["DRAFT", "IN_REVIEW", "PUBLISHED", "ARCHIVED"],
+  SCHEDULED: ["DRAFT", "PUBLISHED", "ARCHIVED"],
   // Yayımlanmış bir haber taslağa geri alınmaz: adres kamuya açılmıştır,
   // geri çekme yolu arşivlemedir. `redirects` de bu varsayıma dayanıyor.
   PUBLISHED: ["ARCHIVED"],
-  ARCHIVED: ["DRAFT"],
+  ARCHIVED: ["DRAFT", "PUBLISHED"],
 };
+
+/** Formdaki "Yayımla" düğmesinin hedef durumu: ileri bir tarih varsa zamanlama. */
+export function resolvePublishTarget(
+  scheduledAt: string | null,
+  now: Date = new Date(),
+): "PUBLISHED" | "SCHEDULED" {
+  if (!scheduledAt) return "PUBLISHED";
+  const date = new Date(scheduledAt);
+  return !Number.isNaN(date.getTime()) && date > now ? "SCHEDULED" : "PUBLISHED";
+}
+
+export type ArticleSaveIntent = "save" | "publish";
+
+export function readSaveIntent(formData: FormData): ArticleSaveIntent {
+  return formData.get("intent") === "publish" ? "publish" : "save";
+}
 
 export function canTransition(from: ArticleStatus, to: ArticleStatus): boolean {
   return allowedTransitions[from].includes(to);
@@ -263,9 +284,15 @@ function readBodyBlocks(formData: FormData): unknown {
 
 /** `FormData` → şemanın beklediği ham nesne. */
 export function readArticleForm(formData: FormData): unknown {
+  const title = formData.get("title") ?? "";
+  const slug = formData.get("slug") ?? "";
+
   return {
-    title: formData.get("title") ?? "",
-    slug: formData.get("slug") ?? "",
+    title,
+    // Adres alanı "Diğer ayarlar" altında kapalı duruyor; boş gelirse başlıktan türetilir.
+    slug: typeof slug === "string" && slug.trim() === "" && typeof title === "string"
+      ? slugify(title)
+      : slug,
     summary: formData.get("summary") ?? "",
     articleType: formData.get("articleType") ?? "NEWS",
     authorId: formData.get("authorId") ?? "",

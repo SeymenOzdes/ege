@@ -7,13 +7,14 @@ import {
 } from "@/lib/article-preview";
 import {
   HOMEPAGE_FEED_LIMIT,
+  MOST_READ_COUNT,
   TOPIC_SECTION_COUNT,
   TOPIC_SECTION_SIZE,
   composeHomepage,
   emptyHomepageContent,
   type HomepageContent,
 } from "@/lib/homepage";
-import { padFeaturedWithMock } from "@/lib/homepage-mock";
+import { withPreviewContent } from "@/lib/homepage-mock";
 import { createAnonClient } from "@/lib/supabase/anon";
 import { hasSupabasePublicConfig } from "@/lib/supabase/config";
 
@@ -30,7 +31,7 @@ export async function getHomepageContent(): Promise<HomepageContent> {
 
   const supabase = createAnonClient();
 
-  const [feed, breaking, topics] = await Promise.all([
+  const [feed, breaking, mostRead, topics] = await Promise.all([
     supabase
       .from("articles")
       .select(ARTICLE_PREVIEW_SELECTION)
@@ -44,6 +45,14 @@ export async function getHomepageContent(): Promise<HomepageContent> {
       .or(`breaking_expires_at.is.null,breaking_expires_at.gt.${new Date().toISOString()}`)
       .order("published_at", { ascending: false })
       .limit(1),
+    // Ties on `view_count` (every story starts at zero) fall back to the newest
+    // publication, so a quiet newsroom still shows a sensible order.
+    supabase
+      .from("articles")
+      .select(ARTICLE_PREVIEW_SELECTION)
+      .order("view_count", { ascending: false })
+      .order("published_at", { ascending: false })
+      .limit(MOST_READ_COUNT),
     supabase
       .from("topics")
       .select("id, name, slug")
@@ -51,7 +60,7 @@ export async function getHomepageContent(): Promise<HomepageContent> {
       .limit(TOPIC_SECTION_COUNT),
   ]);
 
-  if (feed.error || breaking.error || topics.error) {
+  if (feed.error || breaking.error || mostRead.error || topics.error) {
     return { ...emptyHomepageContent, loadError: true };
   }
 
@@ -84,7 +93,8 @@ export async function getHomepageContent(): Promise<HomepageContent> {
       slug: topic.slug,
       articles: toPreviews(sections[index].data),
     })),
+    toPreviews(mostRead.data),
   );
 
-  return process.env.NODE_ENV === "production" ? content : padFeaturedWithMock(content);
+  return process.env.NODE_ENV === "production" ? content : withPreviewContent(content);
 }

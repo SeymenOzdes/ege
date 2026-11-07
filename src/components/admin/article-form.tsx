@@ -17,7 +17,9 @@ import {
   articleTypeLabels,
   articleTypes,
   getAllowedTransitions,
+  resolvePublishTarget,
   slugify,
+  toEditorialInstant,
   toEditorialLocalInput,
 } from "@/lib/admin/article-schema";
 import type { AdminArticleRecord, ArticleFormOptions } from "@/lib/admin/articles";
@@ -204,6 +206,11 @@ export function ArticleForm({
   // kaydedilen gövde her koşulda editörün son hâli olmalı.
   const blocksRef = useRef<ArticleBodyBlock[]>(initialBlocks);
   const submittedRef = useRef(false);
+  const formRef = useRef<HTMLFormElement>(null);
+  const saveButtonRef = useRef<HTMLButtonElement>(null);
+  const [scheduledAt, setScheduledAt] = useState(() =>
+    toEditorialLocalInput(article?.scheduledAt),
+  );
 
   const previewBlocks = useDeferredValue(blocks);
 
@@ -279,8 +286,15 @@ export function ArticleForm({
 
   async function handleSubmit(event: React.FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    const formData = new FormData(event.currentTarget);
+    // Hangi düğmeye basıldığı (`intent`) gönderen düğmeden okunuyor.
+    const submitter = (event.nativeEvent as SubmitEvent).submitter;
+    const formData = new FormData(event.currentTarget, submitter);
     formData.set("body", JSON.stringify(blocksRef.current));
+
+    if (formData.get("intent") === "publish" && blocksRef.current.length === 0) {
+      setMessage("Yayımlamadan önce haber metnini yazın.");
+      return;
+    }
 
     // Kaydetmeye başladığımız an kurtarma kopyası gereksiz: içerik sunucuya gidiyor.
     // Başarılı oluşturma `redirect` attığı için bu satırdan sonrası hiç çalışmaz,
@@ -317,9 +331,33 @@ export function ArticleForm({
     setIsPending(false);
   }
 
+  // Cmd/Ctrl+S: yayın durumunu değiştirmeden kaydeder.
+  useEffect(() => {
+    function onKeyDown(event: KeyboardEvent) {
+      if ((event.metaKey || event.ctrlKey) && event.key.toLowerCase() === "s") {
+        event.preventDefault();
+        if (!isPending) formRef.current?.requestSubmit(saveButtonRef.current ?? undefined);
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
+  }, [isPending]);
+
+  const isPublished = article?.status === "PUBLISHED";
+  const scheduledInstant = toEditorialInstant(scheduledAt);
+  const willSchedule = resolvePublishTarget(scheduledInstant) === "SCHEDULED";
+  const publishLabel = willSchedule ? "Zamanla" : "Yayımla";
+
+  // Yayımlama ana düğmede; yan panelde yalnızca geri alma işlemleri kalıyor.
+  const sideTransitions = article
+    ? getAllowedTransitions(article.status).filter(
+        (status) => status === "DRAFT" || status === "ARCHIVED",
+      )
+    : [];
+
   return (
     <div className="grid gap-8 xl:grid-cols-[minmax(0,1fr)_24rem]">
-      <form className="grid gap-6" onSubmit={handleSubmit}>
+      <form className="grid gap-6" onSubmit={handleSubmit} ref={formRef}>
         {isEdit ? <input name="articleId" type="hidden" value={article.id} /> : null}
 
         {recoverable ? (
@@ -350,7 +388,8 @@ export function ArticleForm({
         <section className={cardClassName}>
           <Field htmlFor="article-title" label="Başlık">
             <input
-              className={fieldClassName}
+              autoFocus={!isEdit}
+              className={`${fieldClassName} text-lg font-semibold`}
               id="article-title"
               maxLength={200}
               name="title"
@@ -358,6 +397,7 @@ export function ArticleForm({
                 setTitle(event.target.value);
                 if (!slugTouched) setSlug(slugify(event.target.value));
               }}
+              placeholder="Haberin başlığı"
               required
               type="text"
               value={title}
@@ -365,32 +405,12 @@ export function ArticleForm({
           </Field>
 
           <Field
-            hint={
-              isEdit
-                ? "Yayımlanmış bir haberin adresi değiştirilirse eski adresten yenisine kalıcı yönlendirme kaydedilir."
-                : "Başlıktan türetiliyor; elle değiştirirseniz artık güncellenmez."
-            }
-            htmlFor="article-slug"
-            label="Adres (slug)"
+            hint="Kartlarda ve başlığın altında görünen kısa giriş. İsteğe bağlı."
+            htmlFor="article-summary"
+            label="Özet (spot)"
           >
-            <input
-              className={fieldClassName}
-              id="article-slug"
-              maxLength={200}
-              name="slug"
-              onChange={(event) => {
-                setSlugTouched(true);
-                setSlug(event.target.value);
-              }}
-              required
-              type="text"
-              value={slug}
-            />
-          </Field>
-
-          <Field htmlFor="article-summary" label="Özet">
             <textarea
-              className={`${fieldClassName} min-h-24`}
+              className={`${fieldClassName} min-h-20`}
               id="article-summary"
               maxLength={500}
               name="summary"
@@ -400,30 +420,7 @@ export function ArticleForm({
           </Field>
 
           <div className="grid gap-5 sm:grid-cols-2">
-            <Field htmlFor="article-type" label="Tür">
-              <select
-                className={fieldClassName}
-                defaultValue={article?.articleType ?? "NEWS"}
-                id="article-type"
-                name="articleType"
-              >
-                {articleTypes.map((type) => (
-                  <option key={type} value={type}>
-                    {articleTypeLabels[type]}
-                  </option>
-                ))}
-              </select>
-            </Field>
-            <Field htmlFor="article-author" label="Yazar">
-              <RelationSelect
-                defaultValue={article?.authorId ?? null}
-                id="article-author"
-                name="authorId"
-                options={options.authors}
-                placeholder="Haber merkezi"
-              />
-            </Field>
-            <Field htmlFor="article-topic" label="Konu">
+            <Field htmlFor="article-topic" label="Kategori">
               <RelationSelect
                 defaultValue={article?.topicId ?? null}
                 id="article-topic"
@@ -442,40 +439,6 @@ export function ArticleForm({
               />
             </Field>
           </div>
-        </section>
-
-        <NewsEditor
-          defaultBlocks={editorSeed.blocks}
-          key={editorSeed.generation}
-          onChange={handleBlocksChange}
-        />
-
-        <section className={cardClassName}>
-          <div>
-            <p className="eyebrow text-[var(--color-teal)]">Görseller</p>
-            <h2 className="font-editorial mt-2 text-3xl">Medya</h2>
-          </div>
-          <HeroMediaPicker
-            defaultValue={article?.heroMediaId ?? null}
-            description="Haber detayında ve kartlarda görünen ana görsel."
-            label="Manşet görseli"
-            name="heroMediaId"
-            options={options.media}
-          />
-          <HeroMediaPicker
-            defaultValue={article?.socialMediaId ?? null}
-            description="Yalnızca paylaşım kartlarında kullanılır; boş bırakılırsa manşet görseli kullanılır."
-            label="Sosyal medya görseli"
-            name="socialMediaId"
-            options={options.media}
-          />
-        </section>
-
-        <section className={cardClassName}>
-          <div>
-            <p className="eyebrow text-[var(--color-teal)]">Yayın</p>
-            <h2 className="font-editorial mt-2 text-3xl">Zamanlama ve SEO</h2>
-          </div>
 
           <label className="flex items-center gap-3 text-sm font-semibold">
             <input
@@ -487,101 +450,221 @@ export function ArticleForm({
             />
             Son dakika olarak işaretle
           </label>
+        </section>
 
-          <div className="grid gap-5 sm:grid-cols-2">
+        <HeroMediaPicker
+          defaultValue={article?.heroMediaId ?? null}
+          description="Haber sayfasında ve kartlarda görünen ana görsel."
+          fallbackAltText={title}
+          label="Haber görseli"
+          name="heroMediaId"
+          options={options.media}
+        />
+
+        <NewsEditor
+          defaultBlocks={editorSeed.blocks}
+          key={editorSeed.generation}
+          onChange={handleBlocksChange}
+        />
+
+        <details className={`${cardClassName} group`}>
+          <summary className="cursor-pointer list-none text-sm font-semibold">
+            <span className="mr-2 inline-block transition group-open:rotate-90">›</span>
+            Diğer ayarlar
+            <span className="ml-2 font-normal text-[var(--color-ink-muted)]">
+              (adres, yazar, zamanlama, SEO — isteğe bağlı)
+            </span>
+          </summary>
+
+          <div className="grid gap-5 pt-2">
             <Field
-              hint="Boş bırakılırsa şerit elle kaldırılana kadar kalır."
-              htmlFor="article-breaking-expires"
-              label="Son dakika bitişi"
+              hint={
+                isEdit
+                  ? "Yayımlanmış bir haberin adresi değiştirilirse eski adresten yenisine kalıcı yönlendirme kaydedilir."
+                  : "Başlıktan otomatik oluşturulur; elle değiştirirseniz artık güncellenmez."
+              }
+              htmlFor="article-slug"
+              label="Adres (slug)"
             >
               <input
                 className={fieldClassName}
-                defaultValue={toEditorialLocalInput(article?.breakingExpiresAt)}
-                disabled={!isBreaking}
-                id="article-breaking-expires"
-                name="breakingExpiresAt"
-                type="datetime-local"
+                id="article-slug"
+                maxLength={200}
+                name="slug"
+                onChange={(event) => {
+                  setSlugTouched(true);
+                  setSlug(event.target.value);
+                }}
+                type="text"
+                value={slug}
+              />
+            </Field>
+
+            <div className="grid gap-5 sm:grid-cols-2">
+              <Field htmlFor="article-type" label="Tür">
+                <select
+                  className={fieldClassName}
+                  defaultValue={article?.articleType ?? "NEWS"}
+                  id="article-type"
+                  name="articleType"
+                >
+                  {articleTypes.map((type) => (
+                    <option key={type} value={type}>
+                      {articleTypeLabels[type]}
+                    </option>
+                  ))}
+                </select>
+              </Field>
+              <Field htmlFor="article-author" label="Yazar">
+                <RelationSelect
+                  defaultValue={article?.authorId ?? null}
+                  id="article-author"
+                  name="authorId"
+                  options={options.authors}
+                  placeholder="Haber merkezi"
+                />
+              </Field>
+              <Field
+                hint="İleri bir tarih girerseniz “Yayımla” düğmesi haberi o saate zamanlar."
+                htmlFor="article-scheduled"
+                label="İleri tarihte yayımla"
+              >
+                <input
+                  className={fieldClassName}
+                  id="article-scheduled"
+                  name="scheduledAt"
+                  onChange={(event) => setScheduledAt(event.target.value)}
+                  type="datetime-local"
+                  value={scheduledAt}
+                />
+              </Field>
+              <Field
+                hint="Boş bırakılırsa şerit elle kaldırılana kadar kalır."
+                htmlFor="article-breaking-expires"
+                label="Son dakika bitişi"
+              >
+                <input
+                  className={fieldClassName}
+                  defaultValue={toEditorialLocalInput(article?.breakingExpiresAt)}
+                  disabled={!isBreaking}
+                  id="article-breaking-expires"
+                  name="breakingExpiresAt"
+                  type="datetime-local"
+                />
+              </Field>
+            </div>
+
+            <HeroMediaPicker
+              defaultValue={article?.socialMediaId ?? null}
+              description="Yalnızca paylaşım kartlarında kullanılır; boş bırakılırsa haber görseli kullanılır."
+              fallbackAltText={title}
+              label="Sosyal medya görseli"
+              name="socialMediaId"
+              options={options.media}
+            />
+
+            <Field
+              hint="Boş bırakılırsa haberin kendi başlığı kullanılır."
+              htmlFor="article-seo-title"
+              label="SEO başlığı"
+            >
+              <input
+                className={fieldClassName}
+                defaultValue={article?.seoTitle ?? ""}
+                id="article-seo-title"
+                maxLength={200}
+                name="seoTitle"
+                type="text"
               />
             </Field>
             <Field
-              hint="Zamanlanmış duruma geçmek için ileri bir tarih kaydedin."
-              htmlFor="article-scheduled"
-              label="Planlanan yayın"
+              htmlFor="article-seo-description"
+              label="SEO açıklaması"
             >
-              <input
-                className={fieldClassName}
-                defaultValue={toEditorialLocalInput(article?.scheduledAt)}
-                id="article-scheduled"
-                name="scheduledAt"
-                type="datetime-local"
+              <textarea
+                className={`${fieldClassName} min-h-20`}
+                defaultValue={article?.seoDescription ?? ""}
+                id="article-seo-description"
+                maxLength={320}
+                name="seoDescription"
               />
             </Field>
           </div>
+        </details>
 
-          <Field
-            hint="Boş bırakılırsa haberin kendi başlığı kullanılır."
-            htmlFor="article-seo-title"
-            label="SEO başlığı"
-          >
-            <input
-              className={fieldClassName}
-              defaultValue={article?.seoTitle ?? ""}
-              id="article-seo-title"
-              maxLength={200}
-              name="seoTitle"
-              type="text"
-            />
-          </Field>
-          <Field htmlFor="article-seo-description" label="SEO açıklaması">
-            <textarea
-              className={`${fieldClassName} min-h-20`}
-              defaultValue={article?.seoDescription ?? ""}
-              id="article-seo-description"
-              maxLength={320}
-              name="seoDescription"
-            />
-          </Field>
-        </section>
-
-        {message ? (
-          <p
-            aria-live="polite"
-            className="rounded-[18px] bg-[var(--color-paper)] px-4 py-3 text-sm"
-            role="status"
-          >
-            {message}
-          </p>
-        ) : null}
-
-        <div className="flex flex-wrap items-center gap-3">
-          <button
-            className="rounded-full bg-[var(--color-ink)] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-teal)] disabled:cursor-wait disabled:opacity-60"
-            disabled={isPending}
-            type="submit"
-          >
-            {isPending ? "Kaydediliyor…" : isEdit ? "Değişiklikleri kaydet" : "Taslağı oluştur"}
-          </button>
-          {isEdit ? (
-            <span className="text-sm text-[var(--color-ink-muted)]">
-              Durum: {articleStatusLabels[article.status]}
-            </span>
+        <div className="sticky bottom-0 z-10 -mx-1 grid gap-3 rounded-[20px] border border-[var(--color-line)] bg-white/95 px-4 py-3 shadow-lg backdrop-blur">
+          {message ? (
+            <p aria-live="polite" className="text-sm" role="status">
+              {message}
+            </p>
           ) : null}
+
+          <div className="flex flex-wrap items-center gap-3">
+            {isPublished ? (
+              <button
+                className="rounded-full bg-[var(--color-ink)] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-teal)] disabled:cursor-wait disabled:opacity-60"
+                disabled={isPending}
+                name="intent"
+                ref={saveButtonRef}
+                type="submit"
+                value="save"
+              >
+                {isPending ? "Kaydediliyor…" : "Değişiklikleri yayına al"}
+              </button>
+            ) : (
+              <>
+                <button
+                  className="rounded-full bg-[var(--color-teal)] px-6 py-3 text-sm font-semibold text-white transition hover:bg-[var(--color-ink)] disabled:cursor-wait disabled:opacity-60"
+                  disabled={isPending}
+                  name="intent"
+                  type="submit"
+                  value="publish"
+                >
+                  {isPending ? "Gönderiliyor…" : publishLabel}
+                </button>
+                <button
+                  className="rounded-full border border-[var(--color-line)] px-5 py-3 text-sm font-semibold transition hover:border-[var(--color-teal)] hover:text-[var(--color-teal)] disabled:cursor-wait disabled:opacity-60"
+                  disabled={isPending}
+                  name="intent"
+                  ref={saveButtonRef}
+                  type="submit"
+                  value="save"
+                >
+                  Taslak olarak kaydet
+                </button>
+              </>
+            )}
+            <span className="text-sm text-[var(--color-ink-muted)]">
+              {isEdit ? `Durum: ${articleStatusLabels[article.status]}` : "Henüz kaydedilmedi"}
+              {willSchedule && !isPublished && scheduledInstant
+                ? ` · ${formatDraftTime(scheduledInstant)} için zamanlanacak`
+                : ""}
+            </span>
+            {isPublished ? (
+              <a
+                className="ml-auto text-sm font-semibold text-[var(--color-teal)] hover:underline"
+                href={`/haber/${article.slug}`}
+                rel="noreferrer"
+                target="_blank"
+              >
+                Sitede gör ↗
+              </a>
+            ) : null}
+          </div>
         </div>
       </form>
 
       <aside className="grid content-start gap-6">
-        {isEdit ? (
+        {sideTransitions.length > 0 ? (
           <section className={cardClassName}>
             <div>
-              <p className="eyebrow text-[var(--color-teal)]">Editoryal akış</p>
-              <h2 className="font-editorial mt-2 text-3xl">Durum</h2>
+              <h2 className="font-editorial text-2xl">Durum</h2>
               <p className="mt-2 text-sm leading-6 text-[var(--color-ink-muted)]">
-                Durum işlemleri kaydedilmiş içerik üzerinde çalışır; önce değişikliklerinizi
-                kaydedin.
+                Şu an: {articleStatusLabels[article!.status]}.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">
-              {getAllowedTransitions(article.status).map((status) => (
+              {sideTransitions.map((status) => (
                 <button
                   className="rounded-full border border-[var(--color-line)] px-4 py-2 text-sm font-semibold transition hover:border-[var(--color-teal)] hover:text-[var(--color-teal)] disabled:cursor-wait disabled:opacity-60"
                   disabled={isPending}
@@ -589,7 +672,11 @@ export function ArticleForm({
                   onClick={() => handleTransition(status)}
                   type="button"
                 >
-                  {articleStatusLabels[status]}
+                  {status === "DRAFT"
+                    ? "Taslağa geri al"
+                    : isPublished
+                      ? "Yayından kaldır"
+                      : "Arşivle"}
                 </button>
               ))}
             </div>
