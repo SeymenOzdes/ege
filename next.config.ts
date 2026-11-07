@@ -33,6 +33,12 @@ function supabaseImagePatterns() {
 const nextConfig: NextConfig = {
   allowedDevOrigins: ["127.0.0.1", "localhost"],
   images: {
+    // AVIF is ~20% lighter than WebP at the same quality; the optimizer falls back to
+    // WebP for browsers that do not send it in `Accept`.
+    formats: ["image/avif", "image/webp"],
+    // A published story's picture lives at a fresh storage path per upload, so the
+    // optimized copy can be kept for a week instead of re-encoded every few hours.
+    minimumCacheTTL: 60 * 60 * 24 * 7,
     // Google ile giriş yapan okurun header'daki profil resmi.
     remotePatterns: [
       ...supabaseImagePatterns(),

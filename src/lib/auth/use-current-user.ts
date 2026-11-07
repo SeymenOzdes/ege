@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { getClaimString } from "@/lib/auth/roles";
 import { toCurrentUser, type CurrentUser } from "@/lib/auth/session";
-import { createClient } from "@/lib/supabase/client";
+import { hasSupabaseAuthCookie, loadSupabaseClient } from "@/lib/supabase/load-client";
 import { hasSupabasePublicConfig } from "@/lib/supabase/config";
 
 export type SessionState = {
@@ -31,10 +31,20 @@ export function useCurrentUser(): SessionState {
   useEffect(() => {
     if (!hasSupabasePublicConfig()) return;
 
-    const supabase = createClient();
-    let active = true;
+    // Anonim ziyaretçide çözülecek oturum yok: Supabase istemcisini hiç indirmeden
+    // "giriş yapılmamış" olarak yerleş. Giriş ve çıkış tam sayfa yönlendirmesiyle
+    // (/auth/confirm, sunucu eylemi) geldiği için çerez bir sonraki yüklemede görünür.
+    if (!hasSupabaseAuthCookie()) {
+      // Microtask'ta: çerez yalnızca tarayıcıda okunabildiği için ilk render'da
+      // bilinemez, ama efektin içinde eşzamanlı setState de çağrılmaz.
+      queueMicrotask(() => setState({ resolved: true }));
+      return;
+    }
 
-    async function resolve() {
+    let active = true;
+    let unsubscribe: (() => void) | undefined;
+
+    async function resolve(supabase: Awaited<ReturnType<typeof loadSupabaseClient>>) {
       const { data, error } = await supabase.auth.getClaims();
       if (!active) return;
 
@@ -53,19 +63,23 @@ export function useCurrentUser(): SessionState {
       setState({ resolved: true, user: toCurrentUser(claims, profile?.display_name) });
     }
 
-    void resolve();
+    void loadSupabaseClient().then((supabase) => {
+      if (!active) return;
+      void resolve(supabase);
 
-    // Sign-in lands on /auth/confirm and sign-out runs as a server action, so without
-    // this the header would keep showing whatever it resolved on first paint.
-    const { data } = supabase.auth.onAuthStateChange(() => {
-      // supabase-js warns against awaiting its own calls inside this callback;
-      // deferring to a macrotask sidesteps the documented deadlock.
-      setTimeout(() => void resolve(), 0);
+      // Sign-in lands on /auth/confirm and sign-out runs as a server action, so without
+      // this the header would keep showing whatever it resolved on first paint.
+      const { data } = supabase.auth.onAuthStateChange(() => {
+        // supabase-js warns against awaiting its own calls inside this callback;
+        // deferring to a macrotask sidesteps the documented deadlock.
+        setTimeout(() => void resolve(supabase), 0);
+      });
+      unsubscribe = () => data.subscription.unsubscribe();
     });
 
     return () => {
       active = false;
-      data.subscription.unsubscribe();
+      unsubscribe?.();
     };
   }, []);
 

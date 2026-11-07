@@ -6,7 +6,7 @@ import { ShareNetwork } from "@phosphor-icons/react/dist/csr/ShareNetwork";
 import { useCurrentUser } from "@/lib/auth/use-current-user";
 import { startBookmarkLogin, toggleBookmark } from "@/lib/bookmarks/actions";
 import { bookmarkErrorText } from "@/lib/bookmarks/messages";
-import { createClient } from "@/lib/supabase/client";
+import { loadSupabaseClient } from "@/lib/supabase/load-client";
 import { hasSupabasePublicConfig } from "@/lib/supabase/config";
 import styles from "./article-detail.module.css";
 
@@ -40,11 +40,14 @@ export function ArticleActions({ title, slug }: ArticleActionsProps) {
     if (!isSignedIn || !hasSupabasePublicConfig()) return;
 
     let active = true;
-    void createClient()
-      .from("articles")
-      .select("id, bookmarks(article_id)")
-      .eq("slug", slug)
-      .maybeSingle()
+    void loadSupabaseClient()
+      .then((supabase) =>
+        supabase
+          .from("articles")
+          .select("id, bookmarks(article_id)")
+          .eq("slug", slug)
+          .maybeSingle(),
+      )
       .then(({ data }) => {
         if (active) setSaved((data?.bookmarks?.length ?? 0) > 0);
       });
