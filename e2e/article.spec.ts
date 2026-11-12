@@ -19,16 +19,12 @@ test("opens the sample article from the homepage card", async ({ page }) => {
   await expect(page.getByText("ARTICLE_END")).toHaveCount(0);
 });
 
-test("anonim okuru kaydetmeden önce girişe yönlendirir", async ({ page }) => {
+test("haber detayında yalnız paylaş düğmesini gösterir", async ({ page }) => {
   await page.goto("/haber/mahalle-pazarlarinda-yerel-urun");
 
   await expect(page.getByRole("button", { name: "Haberi paylaş" })).toBeVisible();
-
-  // Oturum açmamış ziyaretçi için kaydetme, iyimser bir açma/kapama değil giriş
-  // akışının başlangıcıdır: hedef haber çerezde taşınır.
-  await page.getByRole("button", { name: "Haberi sonra okumak için giriş yap" }).click();
-
-  await expect(page).toHaveURL(/\/giris\?next=%2Fhaber%2Fmahalle-pazarlarinda-yerel-urun/);
+  // Kaydet düğmesi haber detayından kaldırıldı; geri gelmemeli.
+  await expect(page.getByRole("button", { name: /kaydet|sonra oku/i })).toHaveCount(0);
 });
 
 test("returns a permanent not-found state for unknown article slugs", async ({ page }) => {

@@ -2,12 +2,14 @@ import type { ReactNode } from "react";
 import Link from "next/link";
 import { List } from "@phosphor-icons/react/dist/ssr/List";
 import { AccountMenu, MobileAccountLinks } from "@/components/site/account-menu";
+import { AdConsentBanner, AdConsentReset } from "@/components/site/ad-consent-banner";
 import { Brand } from "@/components/site/brand";
 import { NewsHeaderActions } from "@/components/site/news-header-actions";
 import { isSiteDemoModeEnabled } from "@/lib/auth/demo";
 
 const navigation = [
   ["Gündem", "/kategori/gundem"],
+  ["Siyaset", "/kategori/siyaset"],
   ["Ekonomi", "/kategori/ekonomi"],
   ["Kültür-Sanat", "/kategori/kultur-sanat"],
   ["Yaşam", "/kategori/yasam"],
@@ -46,9 +48,11 @@ export function PublicShell({ children }: { children: ReactNode }) {
         </div>
 
         <div className="shell-container main-header-row">
+          <div className="header-search">
+            <NewsHeaderActions />
+          </div>
           <Brand className="header-brand" variant="wordmark" />
           <div className="header-tools">
-            <NewsHeaderActions />
             <AccountMenu />
             <Link className="header-action" href="/bulten">
               Bültene katıl
@@ -95,6 +99,7 @@ export function PublicShell({ children }: { children: ReactNode }) {
             <strong>Haberler</strong>
             <Link href="/son-dakika">Son Dakika</Link>
             <Link href="/kategori/gundem">Gündem</Link>
+            <Link href="/kategori/siyaset">Siyaset</Link>
             <Link href="/kategori/ekonomi">Ekonomi</Link>
             <Link href="/kategori/kultur-sanat">Kültür-Sanat</Link>
           </nav>
@@ -118,10 +123,12 @@ export function PublicShell({ children }: { children: ReactNode }) {
           <p>© {new Date().getFullYear()} Ege&apos;nin Nabzı. Tüm hakları saklıdır.</p>
           <div>
             <Link href="/cerezler">Çerezler</Link>
+            <AdConsentReset />
             <Link href="/kullanim-kosullari">Kullanım Koşulları</Link>
           </div>
         </div>
       </footer>
+      <AdConsentBanner />
     </div>
   );
 }

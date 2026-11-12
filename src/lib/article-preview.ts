@@ -116,6 +116,7 @@ export function readingTimeLabel(wordCount: number): string {
 
 const tonesByTopic: Record<string, MediaTone> = {
   gundem: "sky",
+  siyaset: "plum",
   ekonomi: "sage",
   "kultur-sanat": "ochre",
   yasam: "coral",

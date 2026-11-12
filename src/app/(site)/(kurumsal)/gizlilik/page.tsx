@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CorporateDocument, Fact, FactList, MailLink } from "@/components/site/corporate";
 import { corporateInfo } from "@/lib/corporate-info";
+import { isAdsenseEnabled } from "@/lib/adsense";
 
 export const metadata: Metadata = {
   title: "Gizlilik Politikası",
@@ -115,11 +116,24 @@ export default function GizlilikPage() {
         </li>
       </ul>
 
-      <p>
-        Sitede reklam ağı, sosyal medya piksel&rsquo;i ya da davranışsal profilleme amaçlı üçüncü
-        taraf takip kodu bulunmuyor. Bu değişirse metin güncellenir ve değişiklik bu sayfada
-        duyurulur.
-      </p>
+      {isAdsenseEnabled ? (
+        <p>
+          Sitede Google AdSense ile reklam gösterilir. Google&rsquo;ın reklam çerezleri yalnızca siz
+          açıkça izin verdiğinizde yüklenir; izin vermezseniz Google&rsquo;a hiçbir istek
+          gönderilmez. İzin verirseniz Google, çerez ve benzeri teknolojilerle tarayıcınızdan veri
+          toplayıp bunu kendi gizlilik politikasına göre işler; bu işlemede Google veri sorumlusu
+          sıfatıyla hareket eder. İznin hukuki sebebi açık rızanızdır (KVKK m. 5/1) ve rızanızı
+          sayfa altındaki &ldquo;Reklam tercihleri&rdquo; bağlantısından dilediğiniz an geri
+          alabilirsiniz. Başka bir sosyal medya piksel&rsquo;i ya da profilleme amaçlı takip kodu
+          bulunmuyor.
+        </p>
+      ) : (
+        <p>
+          Sitede reklam ağı, sosyal medya piksel&rsquo;i ya da davranışsal profilleme amaçlı üçüncü
+          taraf takip kodu bulunmuyor. Bu değişirse metin güncellenir ve değişiklik bu sayfada
+          duyurulur.
+        </p>
+      )}
 
       <h2>3. Verinin toplanma yöntemi</h2>
       <p>

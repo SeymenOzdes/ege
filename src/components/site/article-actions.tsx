@@ -1,61 +1,20 @@
 "use client";
 
-import { startTransition, useEffect, useOptimistic, useState } from "react";
-import { BookmarkSimple } from "@phosphor-icons/react/dist/csr/BookmarkSimple";
+import { useState } from "react";
 import { ShareNetwork } from "@phosphor-icons/react/dist/csr/ShareNetwork";
-import { useCurrentUser } from "@/lib/auth/use-current-user";
-import { startBookmarkLogin, toggleBookmark } from "@/lib/bookmarks/actions";
-import { bookmarkErrorText } from "@/lib/bookmarks/messages";
-import { loadSupabaseClient } from "@/lib/supabase/load-client";
-import { hasSupabasePublicConfig } from "@/lib/supabase/config";
 import styles from "./article-detail.module.css";
 
 type ArticleActionsProps = {
   title: string;
-  slug: string;
 };
 
 /**
- * Paylaş ve kaydet düğmeleri.
+ * Haber detay sayfasındaki paylaş düğmesi.
  *
- * Oturum ve kayıt durumu sunucudan prop olarak gelmiyor; ikisi de çerez okuması
- * demekti ve haber sayfasını her istekte yeniden render ettiriyordu. Artık tarayıcıda
- * çözülüyor: sayfa gövdesi önbelleğe alınabilir kalıyor, düğme ilk boyamada
- * "Sonra oku" görünüp durumu bir tık sonra yerine oturuyor.
+ * Paylaşım adresi tarayıcıdaki güncel konumdan okunuyor.
  */
-export function ArticleActions({ title, slug }: ArticleActionsProps) {
-  const { user } = useCurrentUser();
-  const isSignedIn = Boolean(user);
-  const [saved, setSaved] = useState(false);
-  // İyimser değer, eylem sonuçlandığında `saved`'e geri düşer. Başarısız bir
-  // kaydetmede `saved` hiç değişmediği için geri alma kendiliğinden olur.
-  const [optimisticSaved, setOptimisticSaved] = useOptimistic(saved);
+export function ArticleActions({ title }: ArticleActionsProps) {
   const [status, setStatus] = useState("");
-
-  // Kayıt durumu yalnız oturum açmış okur için sorulur. Sorgu `articles` üzerinden
-  // kurulur, `bookmarks` üzerinden değil: süzgeç böylece gömülü kaynağın takma adına
-  // değil üst tablonun kendi sütununa uygulanır. `bookmarks_select_own` satırları
-  // zaten okurun kendisine daraltıyor.
-  useEffect(() => {
-    if (!isSignedIn || !hasSupabasePublicConfig()) return;
-
-    let active = true;
-    void loadSupabaseClient()
-      .then((supabase) =>
-        supabase
-          .from("articles")
-          .select("id, bookmarks(article_id)")
-          .eq("slug", slug)
-          .maybeSingle(),
-      )
-      .then(({ data }) => {
-        if (active) setSaved((data?.bookmarks?.length ?? 0) > 0);
-      });
-
-    return () => {
-      active = false;
-    };
-  }, [isSignedIn, slug]);
 
   async function shareArticle() {
     const shareData = { title, text: title, url: window.location.href };
@@ -75,59 +34,14 @@ export function ArticleActions({ title, slug }: ArticleActionsProps) {
     }
   }
 
-  function toggleSaved() {
-    const next = !saved;
-
-    startTransition(async () => {
-      setOptimisticSaved(next);
-      const result = await toggleBookmark(slug, next);
-
-      if (result.saved === undefined) {
-        setStatus(bookmarkErrorText(result.error));
-        return;
-      }
-
-      setSaved(result.saved);
-      setStatus(result.saved ? "Haber sonra oku listesine eklendi." : "Haber sonra oku listesinden çıkarıldı.");
-    });
-  }
-
-  const buttons = (
-    <div className={styles.actions} aria-label="Haber işlemleri">
-      <button type="button" onClick={shareArticle} aria-label="Haberi paylaş">
-        <ShareNetwork aria-hidden="true" size={19} weight="bold" />
-        <span>Paylaş</span>
-      </button>
-
-      {isSignedIn ? (
-        <button
-          type="button"
-          aria-label={
-            optimisticSaved ? "Haberi sonra oku listesinden çıkar" : "Haberi sonra okumak için kaydet"
-          }
-          aria-pressed={optimisticSaved}
-          onClick={toggleSaved}
-        >
-          {/* Dolu yer imi "listede", çizgili yer imi "listede değil" demek. */}
-          <BookmarkSimple aria-hidden="true" size={20} weight={optimisticSaved ? "fill" : "bold"} />
-          <span>{optimisticSaved ? "Listende" : "Sonra oku"}</span>
-        </button>
-      ) : (
-        // JavaScript olmadan da çalışsın diye düz bir form: sunucu eylemi
-        // hedef haberi çereze yazıp girişe yönlendirir.
-        <form action={startBookmarkLogin.bind(null, slug)}>
-          <button type="submit" aria-label="Haberi sonra okumak için giriş yap">
-            <BookmarkSimple aria-hidden="true" size={20} weight="bold" />
-            <span>Sonra oku</span>
-          </button>
-        </form>
-      )}
-    </div>
-  );
-
   return (
     <div className={styles.actionsWrap}>
-      {buttons}
+      <div className={styles.actions} aria-label="Haber işlemleri">
+        <button type="button" onClick={shareArticle} aria-label="Haberi paylaş">
+          <ShareNetwork aria-hidden="true" size={19} weight="bold" />
+          <span>Paylaş</span>
+        </button>
+      </div>
       <p className="sr-only" aria-live="polite">
         {status}
       </p>

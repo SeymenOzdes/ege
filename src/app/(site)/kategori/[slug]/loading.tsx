@@ -22,7 +22,6 @@ export default function Loading() {
         </div>
 
         <div className={styles.mastheadCompact} aria-hidden="true">
-          <div className="skeleton" style={{ height: "0.7rem", width: "7rem" }} />
           <div
             className="skeleton"
             style={{ height: "2.4rem", margin: "0.9rem 0 1rem", width: "min(100%, 22rem)" }}

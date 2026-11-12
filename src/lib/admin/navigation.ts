@@ -11,6 +11,7 @@ const navigationItems: AdminNavigationItem[] = [
   { href: "/yonetim/haberler", label: "Haberler" },
   { href: "/yonetim/haberler/yeni", label: "Yeni haber" },
   { href: "/yonetim/medya", label: "Medya" },
+  { href: "/yonetim/reklamlar", label: "Reklamlar", adminOnly: true },
   { href: "/yonetim/aboneler", label: "Aboneler", adminOnly: true },
   { href: "/yonetim/anasayfa", label: "Yayın ayarları", adminOnly: true },
 ];

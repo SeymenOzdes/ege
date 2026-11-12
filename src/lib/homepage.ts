@@ -77,7 +77,7 @@ export const HOMEPAGE_FEED_LIMIT = FEATURED_COUNT + SECONDARY_COUNT + LATEST_COU
 export const MOST_READ_COUNT = 9;
 
 /** A topic section renders a lead plus two side stories; with fewer it is dropped. */
-export const TOPIC_SECTION_COUNT = 4;
+export const TOPIC_SECTION_COUNT = 5;
 export const TOPIC_SECTION_SIZE = 3;
 
 export const emptyHomepageContent: HomepageContent = {

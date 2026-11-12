@@ -4,6 +4,7 @@ import { NewsletterForm } from "@/components/site/newsletter-form";
 import { Sparkle } from "@phosphor-icons/react/dist/ssr/Sparkle";
 import { formatFullDate } from "@/lib/article-preview";
 import type { ArticlePreview, HomepageContent } from "@/lib/homepage";
+import { AdSlot } from "@/components/site/ad-slot";
 import { ArticleCard, MediaSurface } from "@/components/site/article-card";
 import { FeaturedCarousel } from "@/components/site/featured-carousel";
 import { FeedNotice } from "@/components/site/feed-notice";
@@ -14,14 +15,14 @@ function SectionHeading({
   title,
   href,
 }: {
-  eyebrow: string;
+  eyebrow?: string;
   title: string;
   href?: string;
 }) {
   return (
     <div className={styles.sectionHeading}>
       <div>
-        <span>{eyebrow}</span>
+        {eyebrow && <span>{eyebrow}</span>}
         <h2 className="font-editorial">{title}</h2>
       </div>
       {href && (
@@ -127,20 +128,6 @@ function MostRead({ articles }: { articles: ArticlePreview[] }) {
         ))}
       </ol>
     </section>
-  );
-}
-
-function AdSlot({ placement, compact = false }: { placement: string; compact?: boolean }) {
-  return (
-    <aside className={`${styles.adSlot} ${compact ? styles.adSlotCompact : ""}`}>
-      <span>Reklam</span>
-      <p>
-        {placement === "HOME_LEADER"
-          ? "Ege'nin yerel markaları için seçkin alan"
-          : "Sponsorlu içerik alanı"}
-      </p>
-      <small>{placement}</small>
-    </aside>
   );
 }
 
@@ -258,7 +245,6 @@ export function Homepage({ content }: { content: HomepageContent }) {
               key={section.slug}
             >
               <SectionHeading
-                eyebrow="Bölgesel dosya"
                 title={section.name}
                 href={`/kategori/${section.slug}`}
               />

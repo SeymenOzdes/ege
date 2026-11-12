@@ -264,8 +264,17 @@ input {
 .header-tools {
   display: flex;
   align-items: center;
+  grid-column: 3;
   justify-self: end;
   gap: 1.25rem;
+}
+
+/* Arama soldaki boş sütunda, sayfanın sol hizasında durur. */
+.header-search {
+  display: flex;
+  align-items: center;
+  grid-column: 1;
+  justify-self: start;
 }
 
 .icon-action,
@@ -408,36 +417,69 @@ button.header-action {
   gap: 0.45rem;
 }
 
-.text-button {
-  min-width: 2rem;
-  padding: 0.5rem 0;
-  border: none;
-  background: transparent;
+/*
+ * Arama tetikleyicisi: masthead'in sol sütununda metin gibi değil, gerçek bir
+ * düğme gibi görünür. Panel açılınca düğme dolguya geçer ki açık durum ve
+ * kapatma eylemi bir bakışta anlaşılsın.
+ */
+.header-search-trigger {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  min-height: 2.25rem;
+  padding: 0 0.95rem;
+  border: 1px solid rgb(13 27 42 / 16%);
+  border-radius: var(--radius-pill);
+  background: var(--color-white);
   color: var(--color-ink);
   font: inherit;
   font-size: 0.8125rem;
-  font-weight: 500;
-  line-height: 1rem;
+  font-weight: 600;
+  line-height: 1;
   cursor: pointer;
+  transition:
+    border-color 150ms ease,
+    background-color 150ms ease,
+    color 150ms ease;
+}
+
+.header-search-trigger svg {
+  flex-shrink: 0;
+  width: 0.95rem;
+  height: 0.95rem;
+  color: var(--color-teal);
   transition: color 150ms ease;
 }
 
-.text-button:hover {
+.header-search-trigger:hover {
+  border-color: var(--color-teal);
   color: var(--color-teal);
 }
 
-/* The search field slides out from the trigger's left edge and sits flush
-   against it, overlaying the nav links while open. */
+.header-search-trigger[aria-expanded="true"] {
+  border-color: var(--color-ink);
+  background: var(--color-ink);
+  color: white;
+}
+
+.header-search-trigger[aria-expanded="true"] svg {
+  color: white;
+}
+
+/* The search field slides out from the trigger's right edge and sits flush
+   against it, overlaying the header while open. */
 .header-search-slot {
   position: absolute;
   top: 50%;
-  right: calc(100% + 0.45rem);
+  left: calc(100% + 0.45rem);
   z-index: 50;
-  width: min(24rem, 60vw);
+  /* The field grows toward the centred wordmark but stops short of it; at
+     narrower desktop widths it gives up width before it can collide. */
+  width: clamp(15rem, 50vw - 18rem, 22rem);
   opacity: 0;
   visibility: hidden;
   /* Negative insets leave room for the focus ring and shadow. */
-  clip-path: inset(-1rem -1rem -1rem 100% round var(--radius-pill));
+  clip-path: inset(-1rem 100% -1rem -1rem round var(--radius-pill));
   transform: translateY(-50%);
   /* Keep the slot visible while it collapses on close. */
   transition:
@@ -1025,6 +1067,7 @@ button.header-action {
 @media (max-width: 1023px) {
   .city-nav,
   .primary-nav-row,
+  .header-search,
   .header-tools {
     display: none;
   }

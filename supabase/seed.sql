@@ -3,6 +3,7 @@
 insert into public.topics (name, slug, description, sort_order)
 values
   ('Gündem', 'gundem', 'Ege Bölgesi gündemi ve kamusal yaşam.', 10),
+  ('Siyaset', 'siyaset', 'Siyaset, yerel yönetim ve kamusal kararlar.', 15),
   ('Ekonomi', 'ekonomi', 'Yerel ekonomi, üretim ve emek.', 20),
   ('Kültür-Sanat', 'kultur-sanat', 'Kültür, sanat ve tarih.', 30),
   ('Yaşam', 'yasam', 'Günlük yaşam, çevre ve topluluk.', 40)

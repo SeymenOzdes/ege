@@ -56,7 +56,7 @@
 }
 
 /* Künye okuma sütununun içinde, son paragrafın hemen altında tek satır: yazar
-   ve varsa güncelleme saati solda; paylaş/kaydet ikonları sağda. */
+   ve varsa güncelleme saati solda; paylaş ikonu sağda. */
 .byline {
   display: flex;
   align-items: center;
@@ -467,5 +467,16 @@ a.bylineName:hover {
 
   .related {
     margin-top: 3.5rem;
+  }
+}
+
+.footerAd {
+  width: min(100% - 4rem, 42rem);
+  margin-inline: auto;
+}
+
+@media (max-width: 640px) {
+  .footerAd {
+    width: calc(100% - 2rem);
   }
 }

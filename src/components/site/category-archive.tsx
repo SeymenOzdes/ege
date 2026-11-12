@@ -7,7 +7,6 @@ import type { SearchFacet, SearchFacets } from "@/lib/facets";
 import styles from "./category-archive.module.css";
 
 export type CategoryArchiveViewProps = {
-  eyebrow: string;
   title: string;
   description?: string | null;
   /** Topics and cities share one URL namespace; the rail marks the right chip. */
@@ -19,7 +18,6 @@ export type CategoryArchiveViewProps = {
   basePath: string;
   currentPage: number;
   totalPages: number;
-  total: number;
   /** The archive query failed; say so rather than implying an empty archive. */
   loadError?: boolean;
 };
@@ -33,15 +31,6 @@ const toneAccents: Record<MediaTone, string> = {
   coral: styles.accentCoral,
   plum: styles.accentPlum,
 };
-
-/**
- * Sentence-case and quiet, where the old archive header shouted
- * "2 HABER LİSTELENİYOR." in uppercase teal and read as debug output.
- */
-function describeCount(total: number, totalPages: number): string {
-  if (total === 0) return "Henüz yayınlanmış haber yok";
-  return totalPages > 1 ? `${total} haber · ${totalPages} sayfa` : `${total} haber`;
-}
 
 function ChipGroup({
   heading,
@@ -86,7 +75,6 @@ function ChipGroup({
  * page's siblings are authors, not topics.
  */
 export function CategoryArchiveView({
-  eyebrow,
   title,
   description,
   kind,
@@ -97,7 +85,6 @@ export function CategoryArchiveView({
   basePath,
   currentPage,
   totalPages,
-  total,
   loadError = false,
 }: CategoryArchiveViewProps) {
   // A hero on page 4 of an archive is noise, not hierarchy: only the first page
@@ -140,17 +127,12 @@ export function CategoryArchiveView({
           <span aria-current="page">{title}</span>
         </nav>
 
+        {/* No type label ("Haber dosyası" / "Şehir") and no count line: the
+            breadcrumb and the heading already name the page, and the count read
+            as metadata rather than as part of the masthead. */}
         <header className={isFirstPage ? styles.masthead : styles.mastheadCompact}>
-          <span className="eyebrow">{eyebrow}</span>
           <h1 className={`font-editorial ${styles.title}`}>{title}</h1>
           {isFirstPage && description ? <p className={styles.lede}>{description}</p> : null}
-          {!loadError && (
-            <p className={styles.meta} role="status">
-              {isFirstPage
-                ? describeCount(total, totalPages)
-                : `Sayfa ${currentPage} / ${totalPages} · ${total} haber`}
-            </p>
-          )}
           <span aria-hidden="true" className={`${styles.accent} ${toneAccents[tone]}`} />
         </header>
 
@@ -178,9 +160,9 @@ export function CategoryArchiveView({
           </div>
         ) : (
           <div className={styles.layout}>
-            {/* No `role="status"` here: the masthead's count is already the live
-                region, and two of them announce over one another. */}
-            <section className="statePanel">
+            {/* The empty panel is now the page's only live region: the masthead
+                count that used to announce emptiness is gone. */}
+            <section className="statePanel" role="status">
               <p className="eyebrow">Boş arşiv</p>
               <h2 className={`font-editorial ${styles.stateHeading}`}>
                 Bu dosyada henüz bir haber yok.

@@ -1,9 +1,11 @@
+import { Fragment } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { Clock } from "@phosphor-icons/react/dist/ssr/Clock";
 import { NotePencil } from "@phosphor-icons/react/dist/ssr/NotePencil";
 import type { ArticleDetail as ArticleDetailType } from "@/lib/articles";
 import { siteConfig } from "@/lib/site";
+import { AdSlot } from "@/components/site/ad-slot";
 import { MediaSurface } from "@/components/site/article-card";
 import { ArticleActions } from "@/components/site/article-actions";
 import { ArticleViewBeacon } from "@/components/site/article-view-beacon";
@@ -86,7 +88,11 @@ export function ArticleDetail({ article }: { article: ArticleDetailType }) {
       <div className={styles.readingLayout}>
         <div className={styles.articleBody}>
           {article.body.map((block, index) => (
-            <BodyBlock block={block} index={index} key={`${block.type}-${index}`} />
+            <Fragment key={`${block.type}-${index}`}>
+              <BodyBlock block={block} index={index} />
+              {/* One ad inside long stories only, after the second block; short pieces stay clean. */}
+              {index === 1 && article.body.length >= 4 && <AdSlot placement="ARTICLE_MID" />}
+            </Fragment>
           ))}
         </div>
 
@@ -109,7 +115,7 @@ export function ArticleDetail({ article }: { article: ArticleDetailType }) {
               </span>
             )}
           </p>
-          <ArticleActions title={article.title} slug={article.slug} />
+          <ArticleActions title={article.title} />
         </footer>
 
         {article.correction && (
@@ -124,6 +130,9 @@ export function ArticleDetail({ article }: { article: ArticleDetailType }) {
             </div>
           </section>
         )}
+      </div>
+      <div className={styles.footerAd}>
+        <AdSlot placement="ARTICLE_END" />
       </div>
       {/* İlgili haberler: her kartta yalnız görsel ve başlık. */}
       {article.related.length > 0 && (

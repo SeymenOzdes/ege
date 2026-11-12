@@ -12,10 +12,6 @@ type PageProps = {
   searchParams: Promise<{ sayfa?: string }>;
 };
 
-function describeKind(kind: "topic" | "location"): string {
-  return kind === "topic" ? "Haber dosyası" : "Şehir";
-}
-
 /**
  * `/kategori/[slug]` hem haber dosyalarını hem şehirleri karşılıyor. Yedek
  * açıklama bu yüzden türe bakıyor: tek bir "… ilinden" kalıbı, açıklaması
@@ -68,7 +64,6 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
         ])}
       />
       <CategoryArchiveView
-        eyebrow={describeKind(archive.kind)}
         title={archive.name}
         description={describeArchive(archive)}
         kind={archive.kind}
@@ -79,7 +74,6 @@ export default async function CategoryPage({ params, searchParams }: PageProps) 
         basePath={`/kategori/${archive.slug}`}
         currentPage={archive.page.currentPage}
         totalPages={archive.page.totalPages}
-        total={archive.page.total}
         loadError={archive.page.loadError}
       />
     </>

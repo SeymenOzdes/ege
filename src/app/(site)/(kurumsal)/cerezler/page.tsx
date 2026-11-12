@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { CorporateDocument, Fact, FactList } from "@/components/site/corporate";
 import { corporateInfo } from "@/lib/corporate-info";
+import { isAdsenseEnabled } from "@/lib/adsense";
 
 export const metadata: Metadata = {
   title: "Çerez Politikası",
@@ -15,7 +16,11 @@ export default function CerezlerPage() {
     <CorporateDocument
       eyebrow="Kurumsal"
       title="Çerez Politikası"
-      lede="Sitede yalnızca sitenin çalışması için zorunlu olan çerezler kullanılıyor. Reklam, izleme ya da davranış analizi çerezi yok — bu yüzden karşınıza bir çerez onay penceresi de çıkmıyor."
+      lede={
+        isAdsenseEnabled
+          ? "Sitenin çalışması için zorunlu çerezler her zaman kullanılır. Reklam çerezleri ise yalnızca siz izin verdiğinizde, Google reklamları aracılığıyla yüklenir; reddederseniz reklam gösterilmez."
+          : "Sitede yalnızca sitenin çalışması için zorunlu olan çerezler kullanılıyor. Reklam, izleme ya da davranış analizi çerezi yok — bu yüzden karşınıza bir çerez onay penceresi de çıkmıyor."
+      }
       path="/cerezler"
     >
       <h2>Çerez nedir?</h2>
@@ -51,9 +56,34 @@ export default function CerezlerPage() {
 
       <p>Giriş yapmadan haber okuduğunuzda bu çerezlerin hiçbiri oluşturulmaz.</p>
 
+      {isAdsenseEnabled ? (
+        <>
+          <h2>Reklam çerezleri (isteğe bağlı)</h2>
+          <p>
+            Sitede Google AdSense aracılığıyla reklam gösterilir. Alt kısımdaki pencerede{" "}
+            <strong>Kabul et</strong> derseniz Google, size uygun reklam göstermek ve reklam
+            performansını ölçmek için kendi çerezlerini ve benzeri teknolojileri tarayıcınıza
+            yerleştirebilir. <strong>Reddet</strong> derseniz Google&rsquo;ın betiği hiç yüklenmez
+            ve reklam gösterilmez. Tercihiniz tarayıcınızda saklanır; sayfa altındaki{" "}
+            <em>Reklam tercihleri</em> bağlantısından istediğiniz an değiştirebilirsiniz.
+          </p>
+          <p>
+            Google&rsquo;ın verileri nasıl kullandığını{" "}
+            <a href="https://policies.google.com/technologies/partner-sites" rel="noopener noreferrer" target="_blank">
+              Google&rsquo;ın iş ortağı siteler sayfasında
+            </a>{" "}
+            okuyabilirsiniz. Kişiselleştirilmiş reklamları{" "}
+            <a href="https://adssettings.google.com" rel="noopener noreferrer" target="_blank">
+              Google Reklam Ayarları
+            </a>{" "}
+            üzerinden de kapatabilirsiniz.
+          </p>
+        </>
+      ) : null}
+
       <h2>Kullanılmayanlar</h2>
       <ul>
-        <li>Reklam ve yeniden hedefleme çerezi yok.</li>
+        {isAdsenseEnabled ? null : <li>Reklam ve yeniden hedefleme çerezi yok.</li>}
         <li>Sosyal medya piksel&rsquo;i veya paylaşım aracı çerezi yok.</li>
         <li>Üçüncü taraf analitik (ör. ziyaretçi ölçümleme) çerezi yok.</li>
       </ul>

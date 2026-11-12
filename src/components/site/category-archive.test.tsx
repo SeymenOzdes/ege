@@ -38,7 +38,6 @@ const facets = {
 function renderView(overrides: Partial<Parameters<typeof CategoryArchiveView>[0]> = {}) {
   return render(
     <CategoryArchiveView
-      eyebrow="Haber dosyası"
       title="Gündem"
       description="Ege Bölgesi gündemi ve kamusal yaşam."
       kind="topic"
@@ -49,7 +48,6 @@ function renderView(overrides: Partial<Parameters<typeof CategoryArchiveView>[0]
       basePath="/kategori/gundem"
       currentPage={1}
       totalPages={2}
-      total={8}
       {...overrides}
     />,
   );
@@ -70,7 +68,6 @@ describe("CategoryArchiveView", () => {
 
     expect(container.querySelectorAll('[class*="articleCardfeature"]')).toHaveLength(0);
     expect(container.querySelectorAll('[class*="articleCardlist"]')).toHaveLength(2);
-    expect(screen.getByRole("status")).toHaveTextContent("Sayfa 2 / 2");
   });
 
   it("bulunulan dosyayı rafta işaretler", () => {
@@ -106,25 +103,28 @@ describe("CategoryArchiveView", () => {
     expect(screen.getAllByText("Ege Bölgesi gündemi ve kamusal yaşam.")).toHaveLength(1);
   });
 
-  it("sayımı sessiz bir satıra indirir", () => {
-    renderView();
+  it("başlıkta tür etiketi ve haber sayısı göstermez", () => {
+    // Neither the "Haber dosyası" / "Şehir" label nor the "8 haber" line belongs
+    // in the masthead: the breadcrumb and heading already name the page.
+    const { container } = renderView();
 
-    expect(screen.getByRole("status")).toHaveTextContent("8 haber · 2 sayfa");
+    expect(screen.queryByText("Haber dosyası")).toBeNull();
+    expect(screen.queryByText("Şehir")).toBeNull();
+    expect(container.textContent).not.toContain("8 haber");
   });
 
   it("boş arşivde bile rafı gösterir, böylece sayfa çıkmaz sokak olmaz", () => {
-    renderView({ entries: [], total: 0, totalPages: 1 });
+    renderView({ entries: [], totalPages: 1 });
 
-    // One live region, not two: the count reports the emptiness.
-    expect(screen.getByRole("status")).toHaveTextContent("Henüz yayınlanmış haber yok");
-    expect(screen.getByText("Bu dosyada henüz bir haber yok.")).toBeTruthy();
+    // The empty panel is the page's only live region now that the count is gone.
+    expect(screen.getByRole("status")).toHaveTextContent("Bu dosyada henüz bir haber yok.");
     expect(
       within(screen.getByRole("complementary")).getByRole("link", { name: "Ekonomi" }),
     ).toBeTruthy();
   });
 
   it("bağlantı hatasında boş arşiv demez", () => {
-    renderView({ entries: [], total: 0, loadError: true });
+    renderView({ entries: [], totalPages: 1, loadError: true });
 
     expect(screen.getByRole("alert")).toHaveTextContent("Haber akışı şu anda güncellenemiyor.");
     expect(screen.queryByText("Bu dosyada henüz bir haber yok.")).toBeNull();

@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import type { Ref } from "react";
 import { MagnifyingGlassIcon } from "@phosphor-icons/react/dist/csr/MagnifyingGlass";
+import { XIcon } from "@phosphor-icons/react/dist/csr/X";
 
 type PanelId = "search";
 
@@ -97,7 +98,7 @@ export function NewsHeaderActions() {
         return (
           <button
             key={id}
-            className="text-button"
+            className="header-search-trigger"
             type="button"
             aria-label={panelActions[id].label}
             aria-expanded={isOpen}
@@ -107,7 +108,8 @@ export function NewsHeaderActions() {
               triggerRefs.current[id] = node;
             }}
           >
-            {isOpen ? panelActions[id].openText : panelActions[id].closedText}
+            {isOpen ? <XIcon aria-hidden="true" /> : <MagnifyingGlassIcon aria-hidden="true" />}
+            <span>{isOpen ? panelActions[id].openText : panelActions[id].closedText}</span>
           </button>
         );
       })}

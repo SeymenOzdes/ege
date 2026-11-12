@@ -9,6 +9,7 @@ import { GearSixIcon } from "@phosphor-icons/react/dist/ssr/GearSix";
 import { HouseIcon } from "@phosphor-icons/react/dist/ssr/House";
 import { ImageIcon } from "@phosphor-icons/react/dist/ssr/Image";
 import { ListIcon } from "@phosphor-icons/react/dist/ssr/List";
+import { MegaphoneIcon } from "@phosphor-icons/react/dist/ssr/Megaphone";
 import { NewspaperIcon } from "@phosphor-icons/react/dist/ssr/Newspaper";
 import { PlusIcon } from "@phosphor-icons/react/dist/ssr/Plus";
 import { XIcon } from "@phosphor-icons/react/dist/ssr/X";
@@ -24,6 +25,7 @@ const navigationIcons = {
   "/yonetim/haberler": NewspaperIcon,
   "/yonetim/haberler/yeni": PlusIcon,
   "/yonetim/medya": ImageIcon,
+  "/yonetim/reklamlar": MegaphoneIcon,
   "/yonetim/aboneler": EnvelopeSimpleIcon,
   "/yonetim/anasayfa": GearSixIcon,
 };

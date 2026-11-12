@@ -1,0 +1,56 @@
+.adSlot {
+  display: grid;
+  justify-items: center;
+  gap: 0.5rem;
+  margin: 1.35rem 0 4.8rem;
+}
+
+.compact {
+  margin: 4rem 0 0;
+}
+
+.label {
+  color: var(--color-ink-muted);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+
+.creative {
+  display: block;
+  width: 100%;
+}
+
+.creative img {
+  display: block;
+  width: 100%;
+  height: auto;
+  border-radius: var(--radius-control);
+  background: rgb(13 27 42 / 5%);
+  object-fit: cover;
+}
+
+/* Inside the reading column the banner is a rectangle, centred. */
+.article {
+  margin: 2.4rem 0 2.8rem;
+}
+
+@media (max-width: 767px) {
+  .adSlot {
+    margin-bottom: 3.8rem;
+  }
+
+  .compact {
+    margin-bottom: 0;
+  }
+
+  .article {
+    margin: 2rem 0 2.4rem;
+  }
+
+  /* Phone banners (320x100) have their own shape; keep it instead of the desktop one. */
+  .creative img {
+    aspect-ratio: var(--mobile-ratio);
+  }
+}

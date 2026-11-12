@@ -1,0 +1,53 @@
+.banner {
+  position: fixed;
+  inset: auto 1rem 1rem 1rem;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  gap: 1.25rem;
+  max-width: 46rem;
+  margin-inline: auto;
+  padding: 1rem 1.25rem;
+  border: 1px solid rgb(13 27 42 / 14%);
+  border-radius: 1rem;
+  background: #fff;
+  box-shadow: 0 10px 40px rgb(13 27 42 / 18%);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.banner p {
+  margin: 0;
+}
+
+.banner a {
+  text-decoration: underline;
+}
+
+.actions {
+  display: flex;
+  flex-shrink: 0;
+  gap: 0.5rem;
+}
+
+.actions button {
+  min-height: 2.5rem;
+  padding: 0 1.1rem;
+  border: 1px solid var(--color-ink);
+  border-radius: 999px;
+  background: #fff;
+  color: var(--color-ink);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .banner {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .actions button {
+    flex: 1;
+  }
+}
