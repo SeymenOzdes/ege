@@ -14,6 +14,9 @@ const eslintConfig = defineConfig([
     "next-env.d.ts",
     // Supabase CLI local runtime artifacts, not application source.
     "supabase/.temp/**",
+    // Cloudflare (OpenNext) build output and wrangler state.
+    ".open-next/**",
+    ".wrangler/**",
   ]),
 ]);
 
